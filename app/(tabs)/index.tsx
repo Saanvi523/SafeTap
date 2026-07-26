@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 22,
     textAlign:"center",
-    marginBottom: 8,
+    marginBottom: 35,
   },
 
   circle: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "black",
     borderRadius: 15,
-    paddignVerical: 18,
+    paddingVertical: 18,
     alignItems: "center",
   },
   buttonText: {
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    marginTop: 35,
+    position:"absolute",
+    bottom: 40,
   },
 });
