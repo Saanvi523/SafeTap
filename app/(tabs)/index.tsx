@@ -25,9 +25,18 @@ export default function HomeScreen() {
     </Pressable>
 
     <View style={styles.footer}>
-      <Text>🔒 Secure</Text>
-      <Text>🛡️ Private</Text>
-      <Text>👥 Reliable</Text>
+      <View style={styles.footerItem}>
+        <Text>🔒</Text>
+        <Text style={styles.footerText}>Secure</Text>
+        </View>
+      <View style={styles.footerItem}>
+        <Text>🛡️</Text>
+        <Text style={styles.footerText}>Private</Text>
+      </View>
+      <View style={styles.footerItem}>
+        <Text>👥</Text>
+        <Text style={styles.footerText}>Reliable</Text>
+      </View>
     </View>
   </View>
   );
@@ -38,62 +47,83 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 70,
     paddingHorizontal: 30,
   },
 
   title: {
-    fontSize: 42,
-    fontWeight: "bold",
-    marginBottom: 8,
+    fontSize: 46,
+    fontWeight: "700",
+    color: "#000",
+    marginTop: 30,
+    marginBottom: 10,
   },
 
   subtitle: {
-    fontSize: 22,
+    fontSize: 18,
     textAlign:"center",
-    marginBottom: 35,
+    color: "#444",
+    lineHeight: 28,
+    marginBottom: 25,
   },
 
   circle: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     borderWidth: 2,
     borderColor: "black",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 35,
+    marginBottom: 25,
   },
 
   shield: {
-    fontSize: 80,
+    fontSize: 95,
   },
 
   description: {
-    fontSize: 20,
+    fontSize: 18,
     textAlign: "center",
+    color: '#444',
     lineHeight: 28,
-    marginBottom: 40,
+    marginTop:5,
+    marginBottom: 25,
   },
 
   button: {
-    width: "100%",
+    width: "92%",
+    height:58,
+    justifyContent:"center",
+    backgroundColor: "#fff",
     borderWidth: 2,
     borderColor: "black",
     borderRadius: 15,
-    paddingVertical: 18,
     alignItems: "center",
   },
   buttonText: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
   },
 
   footer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    position:"absolute",
-    bottom: 40,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    width: "90%",
+    position: "absolute",
+    bottom: 25,
+  },
+
+  footerText: {
+    fontSize: 12,
+    marginTop:2,
+    color: "#444",
+  },
+
+  footerItem: {
+    alignItems: "center",
   },
 });
