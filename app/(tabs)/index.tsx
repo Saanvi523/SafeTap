@@ -1,8 +1,14 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={["#FFFFFF", "#FCFDFF", "#F5FAFF", "#EDF7FF"]}
+      locations={[0, 0.5, 0.75, 1]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y:1}}
+      style={styles.container}>
       <Text style={styles.title}>SafeTap</Text>
     
     <Text style={styles.subtitle}>
@@ -38,14 +44,14 @@ export default function HomeScreen() {
         <Text style={styles.footerText}>Reliable</Text>
       </View>
     </View>
-  </View>
-  );
+  </LinearGradient>
+);
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "flex-start",
     paddingTop: 70,
@@ -55,7 +61,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 46,
     fontWeight: "700",
-    color: "#000",
+    color: "#1E3A8A",
     marginTop: 30,
     marginBottom: 10,
   },
@@ -63,7 +69,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     textAlign:"center",
-    color: "#444",
+    color: "#5E6D91",
     lineHeight: 28,
     marginBottom: 25,
   },
@@ -73,7 +79,7 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 120,
     borderWidth: 2,
-    borderColor: "black",
+    borderColor: "#4F7DD9",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 25,
@@ -86,7 +92,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 18,
     textAlign: "center",
-    color: '#444',
+    color: '#5E6D91',
     lineHeight: 28,
     marginTop:5,
     marginBottom: 25,
@@ -96,9 +102,9 @@ const styles = StyleSheet.create({
     width: "92%",
     height:58,
     justifyContent:"center",
-    backgroundColor: "#fff",
+    backgroundColor: "#4F7DD9",
     borderWidth: 2,
-    borderColor: "black",
+    borderColor: "#4F7DD9",
     borderRadius: 15,
     alignItems: "center",
   },
@@ -106,6 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
+    color: "#FFFFFF",
   },
 
   footer: {
