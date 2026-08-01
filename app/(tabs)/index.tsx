@@ -1,5 +1,6 @@
+
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
@@ -18,7 +19,11 @@ export default function HomeScreen() {
 
     {/* Shield Placeholder */}
     <View style={styles.circle}>
-      <Text style={styles.shield}>🛡️</Text>
+      <Image
+        source={require("../../assets/images/Shield 2.0. .png")}
+        style={styles.shieldImage}
+        resizeMode="contain"
+        />
     </View>
 
     <Text style={styles.description}>
@@ -75,19 +80,26 @@ const styles = StyleSheet.create({
   },
 
   circle: {
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: "#F9FCFF",
     borderWidth: 2,
-    borderColor: "#4F7DD9",
+    borderColor: "#D9E9FF",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 30,
+
+    shadowColor: "#4F7DD9",
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    elevation: 8,
   },
 
-  shield: {
-    fontSize: 95,
-  },
 
   description: {
     fontSize: 18,
@@ -132,5 +144,10 @@ const styles = StyleSheet.create({
 
   footerItem: {
     alignItems: "center",
+  },
+
+  shieldImage: {
+    width: 220,
+    height: 220,
   },
 });
