@@ -1,4 +1,5 @@
 
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -26,6 +27,7 @@ export default function HomeScreen() {
         />
     </View>
 
+
     <Text style={styles.description}>
       One tap to let someone{"\n"}
       know you're safe.
@@ -37,15 +39,27 @@ export default function HomeScreen() {
 
     <View style={styles.footer}>
       <View style={styles.footerItem}>
-        <Text>🔒</Text>
+        <Feather
+        name="lock"
+        size={15}
+        color="#2E6BEB"
+        />
         <Text style={styles.footerText}>Secure</Text>
         </View>
       <View style={styles.footerItem}>
-        <Text>🛡️</Text>
+        <MaterialCommunityIcons
+        name="shield-check-outline"
+        size={15}
+        color="#2E6BEB"
+        />
         <Text style={styles.footerText}>Private</Text>
       </View>
       <View style={styles.footerItem}>
-        <Text>👥</Text>
+        <Feather
+        name="users"
+        size={15}
+        color="#2E6BEB"
+        />
         <Text style={styles.footerText}>Reliable</Text>
       </View>
     </View>
@@ -139,7 +153,8 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     marginTop:2,
-    color: "#444",
+    color: "2E6BEB",
+    fontWeight: "600",
   },
 
   footerItem: {
