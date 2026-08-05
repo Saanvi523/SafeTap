@@ -75,11 +75,11 @@ export default function Sign_up ({ navigation }: any) {
                 <TextInput
                 placeholder="Email Address"
                 placeholderTextColor="#6B7280"
-                style={styles.input
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    value={email}
-                    onChangeText={setEmail}
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
                 />
             </View>
 
@@ -108,7 +108,104 @@ export default function Sign_up ({ navigation }: any) {
                 color="#2563EB"
                 style={styles.icon}
                 />
+
+                <TextInput
+                placeholder="Password"
+                placeholderTextColor="#6B7280"
+                style={styles.input}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                />
+
+                <TouchableOpacity
+                onPress={() => 
+                    setShowPassword(!showPassword)
                 }
+                >
+                    <Ionicons
+                    name={
+                        showPassword
+                        ? "eye-off"
+                        : "eye"
+                    }
+                    size={24}
+                    color="#6B7280"
+                />
+                </TouchableOpacity>
+            </View>
+            
+
+            <View style={styles.inputContainer}>
+                <Ionicons
+                name="lock-closed"
+                size={22}
+                color="#2563EB"
+                style={styles.icon}
+                />
+
+                <TextInput
+                placeholder="Confirm Password"
+                placeholderTextColor="#6B7280"
+                style={styles.input}
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                />
+
+                <TouchableOpacity
+                onPress={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                }
+                >
+                    <Ionicons
+                    name={
+                        showConfirmPassword
+                        ? "eye-off"
+                        : "eye"
+                    }
+                    size={24}
+                    color="#6B7280"
+                    />
+                </TouchableOpacity> 
+            </View>
+
+            <View style={styles.requirements}>
+                <View style={styles.requirementRow}>
+                    <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#2563EB"
+                    />
+                    <Text style={styles.requirementText}>
+                        At least 8 characters
+                    </Text>
+                </View>
+
+                <View style={styles.requirementRow}>
+                    <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#2563EB"
+                    />
+                    <Text style={styles.requirementText}>
+                        Includes a number
+                    </Text>
+                </View>
+
+                <View style={styles.requirementRow}>
+                    <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#2563EB"
+                />
+                    <Text style={styles.requirementText}>
+                        Includes uppercase and lowercase letters
+                    </Text>
+                </View>
+            </View>
+                    </Text>
+            </View>
 
             
 
