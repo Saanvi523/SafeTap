@@ -1,6 +1,7 @@
 
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
@@ -33,7 +34,10 @@ export default function HomeScreen() {
       know you're safe.
     </Text>
 
-    <Pressable style={styles.button}>
+    <Pressable 
+      style={styles.button}
+      onPress={() => router.push("/Sign_up")}
+      >
       <Text style={styles.buttonText}>GET STARTED</Text>
     </Pressable>
 

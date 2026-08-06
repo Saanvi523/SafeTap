@@ -1,9 +1,11 @@
-import React, {useState} from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView,} from "react-native";
+import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import {Ionicons, MaterialIcons, FontAwesome} from "@expo/vector-icons";
+import React, { useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 
-export default function Sign_up ({ navigation }: any) {
+import { router } from "expo-router";
+
+export default function SignUp() {
   const [fullName, setFullName] = useState ("");
   const [email,setEmail] = useState ("");
   const [phone, setPhone] = useState ("");
@@ -26,12 +28,12 @@ export default function Sign_up ({ navigation }: any) {
 
             <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
             >
                 <Ionicons
                 name="arrow-back"
                 size={30}
-                color="#2563EB"
+                color="#2563E8"
                 />
             </TouchableOpacity>
 
@@ -51,13 +53,13 @@ export default function Sign_up ({ navigation }: any) {
                 <FontAwesome
                 name="user"
                 size={22}
-                color="#2563EB"
+                color="#2563E8"
                 style={styles.icon}
                 />
 
                 <TextInput
                 placeholder="Full Name"
-                placeholderTextColor="#2563EB"
+                placeholderTextColor="#2563E8"
                 style={styles.input}
                 value={fullName}
                 onChangeText={setFullName}
@@ -87,7 +89,7 @@ export default function Sign_up ({ navigation }: any) {
                 <Ionicons
                 name="call"
                 size={22}
-                color="#2563EB"
+                color="#2563E8"
                 style={styles.icon}
                 />
 
@@ -105,7 +107,7 @@ export default function Sign_up ({ navigation }: any) {
                 <Ionicons
                 name="lock-closed"
                 size={22}
-                color="#2563EB"
+                color="#2563E8"
                 style={styles.icon}
                 />
 
@@ -140,7 +142,7 @@ export default function Sign_up ({ navigation }: any) {
                 <Ionicons
                 name="lock-closed"
                 size={22}
-                color="#2563EB"
+                color="#2563E8"
                 style={styles.icon}
                 />
 
@@ -175,7 +177,7 @@ export default function Sign_up ({ navigation }: any) {
                     <Ionicons
                     name="checkmark-circle"
                     size={20}
-                    color="#2563EB"
+                    color="#2563E8"
                     />
                     <Text style={styles.requirementText}>
                         At least 8 characters
@@ -186,7 +188,7 @@ export default function Sign_up ({ navigation }: any) {
                     <Ionicons
                     name="checkmark-circle"
                     size={20}
-                    color="#2563EB"
+                    color="#2563E8"
                     />
                     <Text style={styles.requirementText}>
                         Includes a number
@@ -197,7 +199,7 @@ export default function Sign_up ({ navigation }: any) {
                     <Ionicons
                     name="checkmark-circle"
                     size={20}
-                    color="#2563EB"
+                    color="#2563E8"
                 />
                     <Text style={styles.requirementText}>
                         Includes uppercase and lowercase letters
@@ -208,7 +210,7 @@ export default function Sign_up ({ navigation }: any) {
 
             <TouchableOpacity style={styles.signUpButton}>
                 <LinearGradient
-                    colors={["#3B82F6", "#2563EB"]}
+                    colors={["#3B82F6", "#2563E8"]}
                     start={{ x:0, y:0 }}
                     end={{ x:1, y:0 }}
                     style={styles.buttonGradient}    
@@ -224,16 +226,16 @@ export default function Sign_up ({ navigation }: any) {
                     Already have an account?
                 </Text>
 
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => router.back()}>
                     <Text style={styles.loginLink}>
                         Sign In
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.shieldcontainer}>
+            <View style={styles.shieldContainer}>
                 <Ionicons
-                    name="shield.checkmark"
+                    name="shield-checkmark"
                     size={90}
                     color="#3B82F6"
                 />
@@ -264,7 +266,7 @@ const styles = StyleSheet.create({
     logo: {
         fontSize: 52,
         fontWeight: "800",
-        color: "#2563EB",
+        color: "#2563E8",
         textAlign: "center",
         marginBottom: 10,
     },
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
         height: 64,
         marginBottom: 18,
 
-        shadowColor: "#2563EB",
+        shadowColor: "#2563E8",
         shadowOpacity: 0.08,
         shadowRadius: 10,
         shadowOffset: {
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
 
     loginLink: {
         fontSize: 16,
-        color: "#2563EB",
+        color: "#2563E8",
         fontWeight: "700",
         marginLeft: 5,
     },
@@ -389,4 +391,4 @@ const styles = StyleSheet.create({
 
        
    
-  )
+  
