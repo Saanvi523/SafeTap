@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     heading: {
         fontSize: 22,
         fontWeight: "700",
-        color: #1E3A8A,
+        color: "#1E3A8A",
         textAlign: "center",
     },
 
@@ -285,6 +285,102 @@ const styles = StyleSheet.create({
         lineHeight: 26,
     },
     
+    inputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        borderRadius: 18,
+        paddingHorizontal: 18,
+        height: 64,
+        marginBottom: 18,
+
+        shadowColor: "#2563EB",
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 5,
+    },
+
+    icon: {
+        marginRight: 15,
+    },
+
+    input: {
+        flex: 1,
+        fontSize: 17,
+        color: "#1F2937",
+    },
+
+    requirements: {
+        marginTop: 5,
+        marginBottom: 25,
+    },
+
+    requirementRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+
+    requirementText: {
+        fontSize: 15,
+        color: "#64748B",
+        marginLeft: 10,
+    },
+
+    signUpButton: {
+        marginTop: 10,
+        borderRadius: 18,
+        overflow: "hidden",
+    },
+
+    buttonGradient: {
+        height: 60,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 18,
+    },
+
+    signUpButtonText: {
+        color: "#FFFFFF",
+        fontSize: 22,
+        fontWeight: "700",
+        letterSpacing: 1,
+    },
+
+    loginContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 28,
+    },
+
+    loginText: {
+        fontSize: 16,
+        color: "#64748B",
+    },
+
+    loginLink: {
+        fontSize: 16,
+        color: "#2563EB",
+        fontWeight: "700",
+        marginLeft: 5,
+    },
+
+    shieldContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 45,
+        marginBottom: 20,
+    },
+});
+    
+
+
                     
             
             
