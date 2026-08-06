@@ -204,8 +204,90 @@ export default function Sign_up ({ navigation }: any) {
                     </Text>
                 </View>
             </View>
+
+
+            <TouchableOpacity style={styles.signUpButton}>
+                <LinearGradient
+                    colors={["#3B82F6", "#2563EB"]}
+                    start={{ x:0, y:0 }}
+                    end={{ x:1, y:0 }}
+                    style={styles.buttonGradient}    
+                >
+                    <Text style={styles.signUpButtonText}>
+                        SIGN UP
                     </Text>
+                </LinearGradient> 
+            </TouchableOpacity>   
+
+            <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>
+                    Already have an account?
+                </Text>
+
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Text style={styles.loginLink}>
+                        Sign In
+                    </Text>
+                </TouchableOpacity>
             </View>
+
+            <View style={styles.shieldcontainer}>
+                <Ionicons
+                    name="shield.checkmark"
+                    size={90}
+                    color="#3B82F6"
+                />
+            </View>
+
+        </ScrollView>
+    </SafeAreaView>
+</LinearGradient>
+  );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+
+    scrollContainer: {
+        paddingHorizontal: 25,
+        paddingTop: 20,
+        paddingBottom: 40,
+    },
+
+    backButton: {
+        marginBottom: 20,
+        alignSelf: "flex-start",
+    },
+    
+    logo: {
+        fontSize: 52,
+        fontWeight: "800",
+        color: "#2563EB",
+        textAlign: "center",
+        marginBottom: 10,
+    },
+    
+    heading: {
+        fontSize: 22,
+        fontWeight: "700",
+        color: #1E3A8A,
+        textAlign: "center",
+    },
+
+    subtitle: {
+        fontSize: 17,
+        color: "#6B7280",
+        textAlign: "center",
+        marginTop: 10,
+        marginBottom: 35,
+        lineHeight: 26,
+    },
+    
+                    
+            
+            
 
             
 
