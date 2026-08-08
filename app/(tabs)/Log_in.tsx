@@ -1,6 +1,6 @@
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TextInputComponent, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 
 export default function SignIn() {
@@ -31,7 +31,7 @@ export default function SignIn() {
                 style={styles.leftIcon}
                 />
 
-                <TextInputComponent
+                <TextInput
                     placeholder="Full Name"
                     placeholderTextColor="#6C7AA9"
                     style={styles.input}
