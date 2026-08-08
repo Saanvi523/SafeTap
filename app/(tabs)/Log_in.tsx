@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TextInputComponent, TouchableOpacity, View } from "react-native";
-import { TextInput } from 'react-native-gesture-handler';
+import { SafeAreaView, StyleSheet, Text, TextInput, TextInputComponent, TouchableOpacity, View } from "react-native";
+
 
 export default function SignIn() {
     const [password, setPassword] = useState ("");
@@ -23,7 +23,7 @@ export default function SignIn() {
                 safety check-ins and alerts.
             </Text>
 
-            <View style={style.inputContainer}>
+            <View style={styles.inputContainer}>
                 <FontAwesome
                 name="user"
                 size={22}
