@@ -104,3 +104,51 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginTop:10,
     },
+
+    heading: {
+        marginTop: 55,
+        textAlign: "center",
+        fontSize: 28,
+        fontWeight: "700",
+        color: "#183C8E",
+    },
+
+    subHeading: {
+        textAlign: "center",
+        marginTop: 14,
+        color: "#5C6E9E",
+        fontSize: 18,
+        lineHeight: 28,
+        marginBottom: 55,
+    },
+
+    inputContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        height: 72,
+        marginBottom: 24,
+        paddingHorizontal: 18,
+    
+        shadowColor: "#8AAEFF",
+        shadowOpacity: 0.18,
+        shadowRadius: 14,
+        shadowOffset: {
+            width: 0,
+            height: 6,
+        },
+
+        elevation: 8,
+    },
+
+    leftIcon: {
+        marginRight: 18,
+    },
+
+    input: {
+        flex: 1,
+        fontSize: 20,
+        color: "#24428E",
+    },
+});
