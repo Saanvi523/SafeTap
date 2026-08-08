@@ -81,6 +81,32 @@ export default function SignIn() {
                     />
                 </TouchableOpacity>
             </View>
+
+            <TouchableOpacity style={styles.forgotContainer}><
+                <Text style={styles.forgotText}>
+                    Forgot Password?
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.signInButton}><
+                <Text style={styles.signInText}>
+                    SIGN IN
+                </Text>
+            </TouchableOpacity>
+
+            <View style={styles.orContainer}>
+                <View style={styles.divider}/>
+
+                <Text style={styles.orText}
+                    or 
+                </Text>
+
+                <View style={styles.divider} />
+            </View>
+
+            
+
+
         </SafeAreaView>
     );
 }
