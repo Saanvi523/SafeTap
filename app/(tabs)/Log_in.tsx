@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { router } from "expo-router";
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-
+import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SignIn() {
     const [password, setPassword] = useState ("");
@@ -82,13 +82,13 @@ export default function SignIn() {
                 </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.forgotContainer}><
+            <TouchableOpacity style={styles.forgotContainer}>
                 <Text style={styles.forgotText}>
                     Forgot Password?
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.signInButton}><
+            <TouchableOpacity style={styles.signInButton}>
                 <Text style={styles.signInText}>
                     SIGN IN
                 </Text>
@@ -97,14 +97,36 @@ export default function SignIn() {
             <View style={styles.orContainer}>
                 <View style={styles.divider}/>
 
-                <Text style={styles.orText}
-                    or 
+                <Text style={styles.orText}>
+                    or
                 </Text>
 
                 <View style={styles.divider} />
             </View>
 
-            
+
+            <View style={styles.createAccountContainer}>
+                <Text style={styles.noAccountText}>
+                    Don't have an account?
+                </Text>
+
+                <TouchableOpacity
+                    onPress={() => router.push("/(tabs)/Sign_up")}
+                >
+                    <Text style={styles.createAccountText}>
+                        Create Account
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.shieldContainer}>
+                <Image
+                    source={require("../../assets/images/Shield 2.0. .png")}
+                    style={styles.shieldImage}
+                    resizeMode="contain"
+                />
+            </View>
+
 
 
         </SafeAreaView>
@@ -176,5 +198,80 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 20,
         color: "#24428E",
+    },
+
+    forgotContainer: {
+        alignItems: "flex-end",
+        marginTop: -8,
+        marginBottom: 32,
+    },
+
+    forgotText: {
+        fontSize: 17,
+        fontWeight: "600",
+        color: "#1554D1",
+    },
+
+    signInButton: {
+        height: 64,
+        backgroundColor: "#1764E8",
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        marginHorizontal: 10,
+    },
+
+    signInText: {
+        color: "#FFFFFF",
+        fontSize: 24,
+        fontWeight: "800",
+        letterSpacing: 1,
+    },
+
+    orContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 28,
+        marginHorizontal: 5,
+    },
+
+    divider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: "#C8D7F2",
+    },
+
+    orText: {
+        marginHorizontal: 20,
+        fontSize: 17,
+        color: "#65769F",
+    },
+
+    createAccountContainer: {
+        alignItems: "center",
+        marginTop: 25,
+    },
+
+    noAccountText: {
+        fontSize: 16,
+        color: "#60729E",
+        marginBottom: 8,
+    },
+
+    createAccountText: {
+        fontSize: 20,
+        fontWeight: "700",
+        color: "#1554D1",
+    },
+
+    shieldContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 25,
+    },
+
+    shieldImage: {
+        width: 180,
+        height: 180,
     },
 });
