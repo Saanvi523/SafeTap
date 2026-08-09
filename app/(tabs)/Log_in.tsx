@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React, { useState } from 'react';
-import { Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SignIn() {
     const [password, setPassword] = useState ("");
@@ -9,6 +9,10 @@ export default function SignIn() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContainer}>
+
 
             <TouchableOpacity style={styles.backButton}>
                 <Ionicons name="arrow-back" size={30} color="#1E4FD8" />
@@ -107,7 +111,7 @@ export default function SignIn() {
 
             <View style={styles.createAccountContainer}>
                 <Text style={styles.noAccountText}>
-                    Don't have an account?
+                    Don't have an account?{"\n"}
                 </Text>
 
                 <TouchableOpacity
@@ -128,7 +132,7 @@ export default function SignIn() {
             </View>
 
 
-
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -138,6 +142,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F5F7FB",
         paddingHorizontal: 28,
+    },
+
+    scrollContainer: {
+        paddingBottom: 40,
     },
 
     backButton: {
