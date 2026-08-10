@@ -1,4 +1,4 @@
-import { Ionicons, MaterialIcons } from "@expo/vectoricons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 
@@ -11,7 +11,7 @@ type Contact = {
 };
 
 export default function Contacts () {
-    const [showAddContact, setShowAddCintact] = useState(false);
+    const [showAddContact, setShowAddContact] = useState(false);
 
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
@@ -22,12 +22,13 @@ export default function Contacts () {
 
     const addContact = () => {
         if (name.trim() === "" || phone.trim() === "") {
+            return;
         }
 
         const newContact: Contact = {
-            id: Date.now()
-            name: name.trim()
-            phone: phone.trim()
+            id: Date.now(),
+            name: name.trim(),
+            phone: phone.trim(),
             relationship: relationship.trim(),
             email: email.trim(),
         };
@@ -42,7 +43,7 @@ export default function Contacts () {
         setShowAddContact(false);
     };
 
-    const deleteContact = (id: number) ==> {
+    const deleteContact = (id: number) => {
         setContacts(
             contacts.filter((contact) => contact.id !== id)
         );
@@ -139,7 +140,7 @@ export default function Contacts () {
                             onChangeText={setName}
                         />
 
-                        <Text style={style.label}>
+                        <Text style={styles.label}>
                             Phone Number
                         </Text>
 
@@ -264,7 +265,7 @@ export default function Contacts () {
     );
 }
 
-const styles = Stylesheet.create({
+const styles = StyleSheet.create({
 
     container: {
         flex:1,
@@ -331,9 +332,9 @@ const styles = Stylesheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 22,
-        marginButton: 12,
+        marginBottom: 12,
 
-        shadowColor: "7EA7EF",
+        shadowColor: "#7EA7EF",
         shadowOpacity: 0.15,
         shadowRadius: 12,
         shadowOffset: {
@@ -406,9 +407,9 @@ const styles = Stylesheet.create({
         borderRadius: 14,
         paddingHorizontal: 16,
         fontSize: 16,
-        color: "243F80",
+        color: "#243F80",
         marginBottom: 17,
-        backgroundColor: "FBFCFF",
+        backgroundColor: "#FBFCFF",
     },
 
     saveButton: {
@@ -421,7 +422,7 @@ const styles = Stylesheet.create({
     },
 
     saveButtonText: {
-        color: "#FFFFFF"
+        color: "#FFFFFF",
         fontSize: 18,
         fontWeight: "700",
     },
@@ -438,7 +439,7 @@ const styles = Stylesheet.create({
         backgroundColor: "#FFFFFF",
         borderRadius: 18,
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
         paddingHorizontal: 14,
         paddingVertical: 12,
         marginBottom: 13,
