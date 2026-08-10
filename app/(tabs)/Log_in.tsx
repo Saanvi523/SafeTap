@@ -92,7 +92,10 @@ export default function SignIn() {
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.signInButton}>
+            <TouchableOpacity 
+                style={styles.signInButton}
+                onPress={() => router.push("/(tabs)/Contacts")}
+            >
                 <Text style={styles.signInText}>
                     SIGN IN
                 </Text>
