@@ -391,4 +391,117 @@ const styles = Stylesheet.create({
         color: "#173B8F",
         marginBottom: 20,
     },
-})
+
+    label: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#60729E",
+        marginBottom: 7,
+    },
+
+    formInput: {
+        height: 55,
+        borderWidth: 1,
+        borderColor: "#D6E0F3",
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        color: "243F80",
+        marginBottom: 17,
+        backgroundColor: "FBFCFF",
+    },
+
+    saveButton: {
+        height: 57,
+        borderRadius: 15,
+        backgroundColor: "#2563E8",
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 5,
+    },
+
+    saveButtonText: {
+        color: "#FFFFFF"
+        fontSize: 18,
+        fontWeight: "700",
+    },
+
+    contactsHeading: {
+        fontSize: 21,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 14,
+    },
+
+    contactCard: {
+        minHeight: 88,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 18,
+        flexDirection: "row",
+        alignItems: "center"
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        marginBottom: 13,
+
+        shadowColor: "#7EA7EF",
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 4,
+    },
+
+    contactBadge: {
+        width: 55,
+        height: 55,
+        borderRadius: 30,
+        backgroundColor: "#E7F0FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 14,
+    },
+
+    contactInfo: {
+        flex:1,
+    },
+
+    contactName: {
+        fontSize: 17,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 4,
+    },
+
+    contactPhone: {
+        fontSize: 15,
+        color: "#60729E",
+    },
+
+    relationship: {
+        fontSize: 13,
+        color: "#8A9ABD",
+        marginTop: 3,
+    },
+
+    messageButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: "#EDF4FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 8,
+    },
+
+    deleteButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#E53935",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+});
