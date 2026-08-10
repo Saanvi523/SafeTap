@@ -170,11 +170,225 @@ export default function Contacts () {
                         </Text>
 
                         <TextInput
+                            style={styles.formInput}
+                            placeholder="e.g. email@example.com"
+                            placeholderTextColor="#8092BC"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
+                        />
+
+                        <TouchableOpacity
+                            style={styles.saveButton}
+                            onPress={addContact}
+                        >
+                            <Text style={styles.saveButtonText}>
+                                Save Contact
+                            </Text>
+                        </TouchableOpacity>
                             
                     </View>
                 )}
+
+                {contacts.length > 0 && (
+                    <Text style={styles.contactsHeading}>
+                        Your Contacts
+                    </Text>
+                )}
+
+
+                {contacts.map((contact) => (
+                    <View
+                        key={contact.id}
+                        style={styles.contactCard}
+                    >
+
+                        <View style={styles.contactBadge}>
+                            <Ionicons
+                                name="person"
+                                size={28}
+                                color="#2563E8"
+                            />
+                        </View>
+
+
+                        <View style={styles.contactInfo}>
+
+                            <Text style={styles.contactName}>
+                                {contact.name}
+                            </Text>
+
+                            <Text style={styles.contactPhone}>
+                                {contact.phone}
+                            </Text>
+
+                            {contact.relationship !== "" && (
+                                <Text style={styles.relationship}>
+                                    {contact.relationship}
+                                </Text>
+                            )}
+
+                        </View>
+
+
+                        <TouchableOpacity
+                            style={styles.messageButton}
+                        >
+                            <Ionicons
+                                name="chatbubble"
+                                size={21}
+                                color="#2563E8"
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={() =>
+                                deleteContact(contact.id)
+                            }
+                        >
+                            <MaterialIcons
+                                name="delete"
+                                size={21}
+                                color="#FFFFFF"
+                            />
+                        </TouchableOpacity>
+
+                    </View>
+                ))}
+
             </ScrollView>
+
         </SafeAreaView>
-    )
+    );
 }
-}
+
+const styles = Stylesheet.create({
+
+    container: {
+        flex:1,
+        backgroundColor: "#F5F8FD",
+    },
+
+    scrollContainer: {
+        paddingHorizontal: 25,
+        paddingTop: 15,
+        paddingBottom: 50,
+    },
+
+    backButton: {
+        marginBottom: 10,
+        alignSelf: "flex-start",
+    },
+
+    title: {
+        fontSize: 34,
+        fontWeight: "800",
+        color: "#2563E8",
+        textAlign: "center",
+        marginBottom: 35,
+    },
+
+    introContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 30,
+    },
+
+    introTextContainer: {
+        flex: 1,
+    },
+
+    mainHeading: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 10,
+    },
+
+    subtitle: {
+        fontSize: 16,
+        lineHeight: 25,
+        color: "#60729E",
+    },
+
+    contactIcon: {
+        width: 95,
+        height: 95,
+        borderRadius: 50,
+        backgroundColor: "#EDF4FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginLeft: 10,
+    },
+
+    addButton: {
+        height: 78,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 22,
+        marginButton: 12,
+
+        shadowColor: "7EA7EF",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    addButtonText: {
+        fontSize: 21,
+        fontWeight: "700",
+        color: "#173B8F",
+    },
+
+    plusCircle: {
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+        backgroundColor: "#2563E8",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    addForm: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 20,
+        padding: 22,
+        marginBottom: 30,
+
+        shadowColor: "#7EA7EF",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    dragHandle: {
+        width: 48,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: "#CCD5E8",
+        alignSelf: "center",
+        marginBottom: 20,
+    },
+
+    formTitle: {
+        fontSize: 23,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 20,
+    },
+})
