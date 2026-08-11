@@ -218,7 +218,7 @@ export default function Settings() {
 
 
                     <TouchableOpacity
-                        style={styles.navitem}
+                        style={styles.navItem}
                         onPress={() =>
                             router.push("/(tabs)/Home")
                         }
@@ -398,5 +398,197 @@ const styles = StyleSheet.create({
 
     singleCard: {
         minHeight: 112,
-    }
-})
+        backgroundColor: "#FFFFFF",
+        borderRadius: 25,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 24,
+        marginBottom: 38,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    preferencesCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 25,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        marginBottom: 38,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    settingRow: {
+        minHeight: 105,
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+
+    cardTextContainer: {
+        flex: 1,
+        marginLeft: 20,
+    },
+
+    cardTitle: {
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#172E70",
+        marginBottom: 5,
+    },
+
+    cardDescription: {
+        fontSize: 16,
+        lineHeight: 23,
+        color: "#60729E",
+    },
+
+    logoutTitle: {
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#D62828",
+    },
+
+
+    iconCircleBlue: {
+        width: 58,
+        height: 58,
+        borderRadius: 29,
+        backgroundColor: "#E5EFFF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    iconCircleRed: {
+        width: 58,
+        height: 58,
+        borderRadius: 29,
+        backgroundColor: "#FFE4E8",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    
+    
+    toggle: {
+        width: 58,
+        height: 34,
+        borderRadius: 20,
+        justifyContent: "center",
+        paddingHorizontal: 3,
+    },
+
+    toggleOn: {
+        backgroundColor: "#2563E8",
+        alignItems: "flex-end",
+    },
+
+    toggleOff: {
+        backgroundColor: "#D7D9DE",
+        alignItems: "flex-start"
+    },
+
+    toggleCircle: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: "#FFFFFF",
+    },
+
+    toggleCircleOn: {
+        shadowColor: "#000000",
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+
+        elevation: 2,
+    },
+
+    toggleCircleOff: {
+        shadowColor: "#000000",
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        shadowOffset: {
+            width: 0,
+            height: 1,
+    },
+
+        elevation: 2,
+    },
+
+
+    bottomNav: {
+        height: 94,
+        backgroundColor: "FFFFFF",
+        borderRadius: 26,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 5,
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 5,
+    },
+
+    activeNavItem: {
+        position: "relative",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#7C3AED",
+    },
+
+    activeSettingsText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#7C3AED",
+        marginTop: 5,
+    },
+
+});
