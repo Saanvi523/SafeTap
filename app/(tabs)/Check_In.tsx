@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function CheckIn() {
-    const [duration, setDuration] = useState(30);
+    const [duration, setDuration] = useState("30 min");
     const [showDurationPicker, setShowDurationPicker] = useState(false);
     return (
         <SafeAreaView style={styles.container}>
@@ -142,13 +142,13 @@ export default function CheckIn() {
                         >
 
                             <Text style={styles.optionLabel}>
-                                Duration
+                                Check-In Frequency
                             </Text>
 
                             <View style={styles.optionRight}>
 
                                 <Text style={styles.optionValue}>
-                                    {duration} min
+                                    {duration} 
                                 </Text>
 
                                 <Ionicons
@@ -170,7 +170,7 @@ export default function CheckIn() {
 
                                 <View style={styles.durationOptions}>
 
-                                    {[15, 30, 45, 60, 90, 120].map((time) => (
+                                    {["15 min", "30 min", "45 min", "60 min", "90 min", "120 min", "1 day", "2 days", "1 week"].map((time) => (
                                         <TouchableOpacity
                                             key={time}
                                             style={[
@@ -189,7 +189,7 @@ export default function CheckIn() {
                                                         styles.selectedDurationText,
                                                 ]}
                                             >
-                                                {time} min
+                                                {time} 
                                             </Text>
                                         </TouchableOpacity>
                                     ))}
