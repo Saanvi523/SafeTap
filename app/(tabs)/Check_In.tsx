@@ -329,7 +329,7 @@ export default function CheckIn() {
 }
 
 
-const styles = StyleSheet.create({
+const styles= StyleSheet.create({
 
     container: {
         flex: 1,
@@ -504,4 +504,87 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
-})
+
+    optionValue: {
+        fontSize: 19,
+        fontWeight: "700",
+        color: "#2563E8",
+        marginRight: 10,
+    },
+
+    startButton: {
+        height: 64,
+        borderRadius: 20,
+        backgroundColor: "#2563E8",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: "20",
+
+        shadowColor: "#2563E8",
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    startButtonText: {
+        color: "#FFFFFF",
+        fontSize: 20,
+        fontWeight: "800",
+        marginLeft: "10,"
+    },
+
+    bottomNav: {
+        height: 94,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 5,
+    },
+
+    activeText: {
+        color: "#2563E8",
+        fontWeight: "800",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#2563E8",
+    },
+
+});
