@@ -1,9 +1,11 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function CheckIn() {
+    const [duration, setDuration] = useState(30);
+    const [showDurationPicker, setShowDurationPicker] = useState(false);
     return (
         <SafeAreaView style={styles.container}>
 
@@ -59,7 +61,7 @@ export default function CheckIn() {
                                 1. Set your time
                             </Text>
 
-                            <Text styel={styles.stepDescription}>
+                            <Text style={styles.stepDescription}>
                                 Choose how long your
                                 {"\n"}
                                 check in should last.
@@ -109,7 +111,7 @@ export default function CheckIn() {
 
                         <View style={styles.stepTextContainer}>
 
-                            <Text style={styles.stepTotle}>
+                            <Text style={styles.stepTitle}>
                                 3. Stay Safe
                             </Text>
 
@@ -124,7 +126,7 @@ export default function CheckIn() {
                     </View>
 
 
-                    <View style={styles.startCrad}>
+                    <View style={styles.startCard}>
 
                         <Text style={styles.startTitle}>
                             Start a new check in
@@ -134,7 +136,10 @@ export default function CheckIn() {
                         <View style={styles.divider} />
 
 
-                        <TouchableOpacity style={styles.optionRow}>
+                        <TouchableOpacity 
+                            style={styles.optionRow}
+                            onPress={() => setShowDurationPicker(true)}
+                        >
 
                             <Text style={styles.optionLabel}>
                                 Duration
@@ -143,7 +148,7 @@ export default function CheckIn() {
                             <View style={styles.optionRight}>
 
                                 <Text style={styles.optionValue}>
-                                    30 min
+                                    {duration} min
                                 </Text>
 
                                 <Ionicons
@@ -156,6 +161,52 @@ export default function CheckIn() {
 
                         </TouchableOpacity>
 
+                        {showDurationPicker && (
+                            <View style={styles.durationPicker}>
+
+                                <Text style={styles.pickerTitle}>
+                                    Check-in Duration
+                                </Text>
+
+                                <View style={styles.durationOptions}>
+
+                                    {[15, 30, 45, 60, 90, 120].map((time) => (
+                                        <TouchableOpacity
+                                            key={time}
+                                            style={[
+                                                styles.durationOption,
+                                                duration === time && styles.selectedDuration,
+                                            ]}
+                                            onPress={() => {
+                                                setDuration(time);
+                                                setShowDurationPicker(false);
+                                            }}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.durationOptionText,
+                                                    duration === time &&
+                                                        styles.selectedDurationText,
+                                                ]}
+                                            >
+                                                {time} min
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.cancelButton}
+                                    onPress={() => setShowDurationPicker(false)}
+                                >
+                                    <Text style={styles.cancelButtonText}>
+                                        Cancel
+                                    </Text>
+                                </TouchableOpacity>
+
+                            </View>
+                        )}
 
                         <View style={styles.divider} />
 
@@ -235,7 +286,7 @@ export default function CheckIn() {
                         <TouchableOpacity
                             style={styles.navItem}
                             onPress={() =>
-                                router.push ("/(tabs)/Check-In")
+                                router.push ("/(tabs)/Check_In")
                             }
                         >
 
@@ -322,6 +373,8 @@ export default function CheckIn() {
 
                     </View>
                 
+                </View>
+                
             </ScrollView>
 
         </SafeAreaView>
@@ -357,7 +410,7 @@ const styles= StyleSheet.create({
     },
 
     subtitle: {
-        fontsize: 17,
+        fontSize: 17,
         lineHeight: 25,
         color: "#60729E",
         marginTop: 8
@@ -371,7 +424,7 @@ const styles= StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
 
-        shadowColor: "7EA7EF",
+        shadowColor: "#7EA7EF",
         shadowOpacity: 0.15,
         shadowRadius: 12,
         shadowOffset: {
@@ -519,7 +572,7 @@ const styles= StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: "20",
+        marginTop: 20,
 
         shadowColor: "#2563E8",
         shadowOpacity: 0.25,
@@ -536,7 +589,7 @@ const styles= StyleSheet.create({
         color: "#FFFFFF",
         fontSize: 20,
         fontWeight: "800",
-        marginLeft: "10,"
+        marginLeft: 10,
     },
 
     bottomNav: {
@@ -585,6 +638,71 @@ const styles= StyleSheet.create({
         height: 4,
         borderRadius: 2,
         backgroundColor: "#2563E8",
+    },
+
+    sectionTitle: {
+    fontSize: 25,
+    fontWeight: "800",
+    color: "#173B8F",
+    marginBottom: 25,
+    },
+
+    durationPicker: {
+    backgroundColor: "#F5F8FF",
+    borderRadius: 18,
+    padding: 18,
+    marginVertical: 10,
+    },
+
+    pickerTitle: {
+        fontSize: 18,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 15,
+    },
+
+    durationOptions: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+    },
+
+    durationOption: {
+        width: "31%",
+        height: 48,
+        borderRadius: 14,
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: "#DDE5F2",
+    },
+
+    selectedDuration: {
+        backgroundColor: "#2563E8",
+        borderColor: "#2563E8",
+    },
+
+    durationOptionText: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#526487",
+    },
+
+    selectedDurationText: {
+        color: "#FFFFFF",
+    },
+
+    cancelButton: {
+        alignItems: "center",
+        paddingVertical: 8,
+    },
+
+    cancelButtonText: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#60729E",
     },
 
 });
