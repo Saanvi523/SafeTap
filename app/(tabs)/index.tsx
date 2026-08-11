@@ -36,7 +36,7 @@ export default function HomeScreen() {
 
     <Pressable 
       style={styles.button}
-      onPress={() => router.push("/Sign_up")}
+      onPress={() => router.push("/Log_in")}
       >
       <Text style={styles.buttonText}>GET STARTED</Text>
     </Pressable>

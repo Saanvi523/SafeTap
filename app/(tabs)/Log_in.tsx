@@ -1,11 +1,20 @@
-import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React, { useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SignIn() {
-    const [password, setPassword] = useState ("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+
+    const handleSignIn = () => {
+        if (email === "test@safetap.com" && password === "123456") {
+            router.push("/(tabs)/Home");
+        } else {
+            alert("Incorrect email or password.");
+        }   
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -27,20 +36,6 @@ export default function SignIn() {
                 safety check-ins and alerts.
             </Text>
 
-            <View style={styles.inputContainer}>
-                <FontAwesome
-                name="user"
-                size={22}
-                color="#1E4FD8"
-                style={styles.leftIcon}
-                />
-
-                <TextInput
-                    placeholder="Full Name"
-                    placeholderTextColor="#6C7AA9"
-                    style={styles.input}
-                />
-            </View>
 
             <View style={styles.inputContainer}>
                 <MaterialIcons
@@ -51,10 +46,12 @@ export default function SignIn() {
                 />
 
                 <TextInput
-                placeholder="Email Address"
-                placeholderTextColor="#6C7AA9"
-                keyboardType="email-address"
-                style={styles.input}
+                    placeholder="Email Address"
+                    placeholderTextColor="#6C7AA9"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                    style={styles.input}
                 />
             </View>
 
@@ -94,7 +91,7 @@ export default function SignIn() {
 
             <TouchableOpacity 
                 style={styles.signInButton}
-                onPress={() => router.push("/(tabs)/Home")}
+                onPress={handleSignIn}
             >
                 <Text style={styles.signInText}>
                     SIGN IN

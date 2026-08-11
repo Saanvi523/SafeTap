@@ -1,7 +1,7 @@
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
 
 import { router } from "expo-router";
 
@@ -234,10 +234,10 @@ export default function SignUp() {
             </View>
 
             <View style={styles.shieldContainer}>
-                <Ionicons
-                    name="shield-checkmark"
-                    size={90}
-                    color="#3B82F6"
+                <Image
+                    source={require("../../assets/images/Shield 2.0. .png")}
+                    style={styles.shieldImage}
+                    resizeMode="contain"
                 />
             </View>
 
@@ -378,6 +378,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginTop: 45,
         marginBottom: 20,
+    },
+
+    shieldImage: {
+        width: 180,
+        height: 180,
     },
 });
     
