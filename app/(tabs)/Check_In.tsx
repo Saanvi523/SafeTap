@@ -327,3 +327,39 @@ export default function CheckIn() {
         </SafeAreaView>
     );
 }
+
+
+const styles = StyleSheet.create({
+
+    container: {
+        flex: 1,
+        backgroundColor: "#F5F8FF",
+    },
+
+    scrollContainer: {
+        paddingHorizontal: 22,
+        paddingTop: 20,
+        paddingBottom: 25,
+    },
+
+
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 30,
+    },
+
+    title: {
+        fontSize: 43,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    subtitle: {
+        fontsize: 17,
+        lineHeight: 25,
+        color: "#60729E",
+        marginTop: 8
+    },
+})
