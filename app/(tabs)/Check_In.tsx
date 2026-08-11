@@ -362,4 +362,146 @@ const styles = StyleSheet.create({
         color: "#60729E",
         marginTop: 8
     },
+
+    shieldContainer: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+
+        shadowColor: "7EA7EF",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+
+    howItWorksCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        paddingHorizontal: 25,
+        paddingTop: 30,
+        paddingBottom: 20,
+        marginBottom: 25,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    stepRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 27,
+    },
+
+    stepIconBlue: {
+        width: 105,
+        height: 105,
+        borderRadius: 53,
+        backgroundColor: "#E7F0FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 25,
+    },
+
+    stepIconGreen: {
+        width: 105,
+        height: 105,
+        borderRadius: 53,
+        backgroundColor: "#E2FAEF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 25,
+    },
+
+    stepIconPurple: {
+        width: 105,
+        height: 105,
+        borderRadius: 53,
+        backgroundColor: "#F0E5FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 25,
+    },
+
+    stepTextContainer: {
+        flex: 1,
+    },
+
+    stepTitle: {
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 8,
+    },
+
+    stepDescription: {
+        fontSize: 16,
+        lineHeight: 26,
+        color: "#60729E",
+    },
+
+
+
+    startCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        paddingHorizontal: 25,
+        paddingTop: 30,
+        paddingBottom: 25,
+        marginBottom: 25,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5
+        },
+
+        elevation: 5,
+    },
+
+    startTitle: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 20,
+    },
+
+    divider: {
+        height: 1,
+        backgroundColor: "#DDE5F2"
+    },
+
+    optionRow: {
+        height: 82,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    optionLabel: {
+        fontSize: 19,
+        color: "#526487",
+    },
+
+    optionRight: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
 })
