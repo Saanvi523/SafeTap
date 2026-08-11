@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
+import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function CheckIn() {
     return (
@@ -55,11 +55,275 @@ export default function CheckIn() {
 
                         <View style={styles.stepTextContainer}>
 
-                            <Text
+                            <Text style={styles.stepTitle}>
+                                1. Set your time
+                            </Text>
+
+                            <Text styel={styles.stepDescription}>
+                                Choose how long your
+                                {"\n"}
+                                check in should last.
+                            </Text>
+
                         </View>
+
                     </View>
-                </View>
+
+
+                    <View style={styles.stepRow}>
+
+                        <View style={styles.stepIconGreen}>
+                            <Ionicons
+                                name="notifications"
+                                size={45}
+                                color="#08B88A"
+                            />
+                        </View>
+
+                        <View style={styles.stepTextContainer}>
+
+                            <Text style={styles.stepTitle}>
+                                2.We'll remind you
+                            </Text>
+
+                            <Text style={styles.stepDescription}>
+                                We'll send you a reminder
+                                {"\n"}
+                                when it's time to check in.
+                            </Text>
+
+                        </View>
+
+                    </View>
+
+
+                    <View style={styles.stepRow}>
+
+                        <View style={styles.stepIconPurple}>
+                            <Ionicons
+                                name="people"
+                                size={45}
+                                color="#8B4DFF"
+                            />
+                        </View>
+
+                        <View style={styles.stepTextContainer}>
+
+                            <Text style={styles.stepTotle}>
+                                3. Stay Safe
+                            </Text>
+
+                            <Text style={styles.stepDescription}>
+                                If you don't check in, we'll 
+                                {"\n"}
+                                alert your trusted contacts.
+                            </Text>
+
+                        </View>
+
+                    </View>
+
+
+                    <View style={styles.startCrad}>
+
+                        <Text style={styles.startTitle}>
+                            Start a new check in
+                        </Text>
+
+
+                        <View style={styles.divider} />
+
+
+                        <TouchableOpacity style={styles.optionRow}>
+
+                            <Text style={styles.optionLabel}>
+                                Duration
+                            </Text>
+
+                            <View style={styles.optionRight}>
+
+                                <Text style={styles.optionValue}>
+                                    30 min
+                                </Text>
+
+                                <Ionicons
+                                    name="chevron-forward"
+                                    size={28}
+                                    color="#526487"
+                                />
+
+                            </View>
+
+                        </TouchableOpacity>
+
+
+                        <View style={styles.divider} />
+
+
+                        <TouchableOpacity style={styles.optionRow}>
+
+                            <Text style={styles.optionLabel}>
+                                When
+                            </Text>
+
+                            <View style={styles.optionRight}>
+
+                                <Text style={styles.optionValue}>
+                                    Today, 8:00PM
+                                </Text>
+
+                                <Ionicons
+                                    name="chevron-forward"
+                                    size={28}
+                                    color="#526487"
+                                />
+                                
+                            </View>
+
+                        </TouchableOpacity>
+
+
+                        <View style={styles.divider} />
+
+
+
+                        <TouchableOpacity
+                            style={styles.startButton}
+                            onPress={() =>
+                                router.push("/(tabs)/Actual_Check_In")
+                            }
+                        >
+
+                            <Ionicons
+                                name="shield-checkmark-outline"
+                                size={30}
+                                color="#FFFFFF"
+                            />
+
+                            <Text style={styles.startButtonText}>
+                                Start Check In
+                            </Text>
+
+                        </TouchableOpacity>
+
+                    </View>
+
+
+
+                    <View style={styles.bottomNav}>
+
+                        <TouchableOpacity
+                            style={styles.navItem}
+                            onPress={() =>
+                                router.push("/(tabs)/Home")
+                            }
+                        >
+
+                            <Ionicons
+                                name="home"
+                                size={34}
+                                color="#526487"
+                            />
+
+                            <Text style={styles.navText}>
+                                Home
+                            </Text>
+
+                        </TouchableOpacity>
+
+
+                        <TouchableOpacity
+                            style={styles.navItem}
+                            onPress={() =>
+                                router.push ("/(tabs)/Check-In")
+                            }
+                        >
+
+                            <View style={styles.activeLine} />
+
+                            <Ionicons
+                                name="shield-checkmark"
+                                size={34}
+                                color="#2563E8"
+                            />
+
+                            <Text
+                                style={[
+                                    styles.navText,
+                                    styles.activeText,
+                                ]}
+                            >
+                                Check In
+                            </Text>
+
+                        </TouchableOpacity>
+
+
+
+                        <TouchableOpacity
+                            style={styles.navItem}
+                            onPress={() =>
+                                router.push("/(tabs)/Contacts")
+                            }
+                        >
+
+                            <Ionicons
+                                name="people"
+                                size={34}
+                                color="#08B88A"
+                            />
+
+                            <Text style={styles.navText}>
+                                Contacts
+                            </Text>
+
+                        </TouchableOpacity>
+
+
+                        <TouchableOpacity
+                            style={styles.navItem}
+                            onPress={() =>
+                                router.push("/(tabs)/History")
+                            }
+                        >
+
+                            <MaterialIcons
+                                name="history"
+                                size={35}
+                                color="#F59E0B"
+                            />
+
+                            <Text style={styles.navText}>
+                                History
+                            </Text>
+
+                        </TouchableOpacity>
+
+
+
+                        <TouchableOpacity
+                            style={styles.navItem}
+                            onPress={() =>
+                                router.push("/(tabs)/Settings")
+                            }
+                        >
+
+                            <Ionicons
+                                name="settings"
+                                size={34}
+                                color="#7C3AED"
+                            />
+
+                            <Text style={styles.navText}>
+                                Settings
+                            </Text>
+
+                        </TouchableOpacity>
+
+                    </View>
+                
             </ScrollView>
+
         </SafeAreaView>
-    )
+    );
 }
