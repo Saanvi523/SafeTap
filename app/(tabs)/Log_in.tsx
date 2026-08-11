@@ -94,7 +94,7 @@ export default function SignIn() {
 
             <TouchableOpacity 
                 style={styles.signInButton}
-                onPress={() => router.push("/(tabs)/Contacts")}
+                onPress={() => router.push("/(tabs)/Home")}
             >
                 <Text style={styles.signInText}>
                     SIGN IN

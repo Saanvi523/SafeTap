@@ -198,11 +198,11 @@ export default function Home() {
 
                 <View style={styles.safetyBanner}>
 
-                    <View style={styles.safetyicon}>
+                    <View style={styles.safetyIcon}>
                         <Ionicons
                             name="lock-closed"
                             size={42}
-                            color="FFFFFF"
+                            color="#FFFFFF"
                         />
                     </View>
 
@@ -356,7 +356,7 @@ const styles= StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
         marginBottom: 30,
     },
 
@@ -367,6 +367,12 @@ const styles= StyleSheet.create({
     },
 
     subtitle: {
+        fontSize: 18,
+        color: "#60729E",
+        marginTop: 5,
+    },
+
+    shieldContainer: {
         width: 68,
         height: 68,
         borderRadius: 34,
@@ -423,7 +429,7 @@ const styles= StyleSheet.create({
 
     contactsCard: {
         borderBottomWidth: 5,
-        borderBottomColor: "8DE8BF"
+        borderBottomColor: "#8DE8BF"
     },
 
     historyCard: {
@@ -454,6 +460,7 @@ const styles= StyleSheet.create({
         borderRadius: 60,
         backgroundColor: "#E2FAEF",
         justifyContent: "center",
+        alignItems: "center",
         marginBottom: 18,
     },
 
@@ -487,7 +494,7 @@ const styles= StyleSheet.create({
     cardDescription: {
         fontSize: 16,
         lineHeight: 24,
-        color: "#60729E"
+        color: "#60729E",
         textAlign: "center",
     },
 
@@ -611,7 +618,7 @@ const styles= StyleSheet.create({
 
     navItem: {
         flex: 1,
-        height: "100%"
+        height: "100%",
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
@@ -620,7 +627,7 @@ const styles= StyleSheet.create({
     navText: {
         fontSize: 12,
         fontWeight: "600",
-        color: "#526487"
+        color: "#526487",
         marginTop: 5,
     },
 
