@@ -17,7 +17,7 @@ export default function Home() {
 
                     <View>
                         <Text style={styles.title}>
-                            Settings
+                            Home
                         </Text>
 
                         <Text style={styles.subtitle}>
@@ -107,7 +107,7 @@ export default function Home() {
 
                         <View style={styles.arrowGreen}>
                             <Ionicons
-                                name="checron-forward"
+                                name="chevron-forward"
                                 size={30}
                                 color="#08B88A"
                             />
@@ -198,7 +198,7 @@ export default function Home() {
 
                 <View style={styles.safetyBanner}>
 
-                    <View style={style.safetyicon}>
+                    <View style={styles.safetyicon}>
                         <Ionicons
                             name="lock-closed"
                             size={42}
@@ -346,6 +346,296 @@ const styles= StyleSheet.create({
         backgroundColor: "#F5F8FF",
     },
 
-    scrollContainer: {}
+    scrollContainer: {
+        paddingHorizontal: 22,
+        paddingTop: 20,
+        paddingBottom: 25,
+    },
 
-})
+
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between"
+        marginBottom: 30,
+    },
+
+    title: {
+        fontSize: 45,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    subtitle: {
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+
+        shadowColor: "#7EA7EF",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+
+    cardGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+    },
+
+    featureCard: {
+        width: "48%",
+        height: 265,
+        borderRadius: 25,
+        backgroundColor: "#FFFFFF",
+        alignItems: "center",
+        paddingTop: 25,
+        marginBottom: 18,
+
+        shadowColor:"#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+
+        overflow: "hidden",
+    },
+
+
+
+    checkInCard: {
+        borderBottomWidth: 5,
+        borderBottomColor: "#8DBAFF",
+    },
+
+    contactsCard: {
+        borderBottomWidth: 5,
+        borderBottomColor: "8DE8BF"
+    },
+
+    historyCard: {
+        borderBottomWidth: 5,
+        borderBottomColor: "#FFD16A",
+    },
+
+    settingsCard: {
+        borderBottomWidth: 5,
+        borderBottomColor: "#C89AFF",
+    },
+
+
+
+    iconCircleBlue: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: "#E5EFFF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+
+    iconCircleGreen: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: "#E2FAEF",
+        justifyContent: "center",
+        marginBottom: 18,
+    },
+
+    iconCircleOrange: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: "#FFF1D1",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+
+    iconCirclePurple: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: "#F0E5FF",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 18,
+    },
+
+    cardTitle: {
+        fontSize: 23,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 9,
+    },
+
+    cardDescription: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: "#60729E"
+        textAlign: "center",
+    },
+
+    arrowBlue: {
+        position: "absolute",
+        right: 14,
+        bottom: 14,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#E5EFFF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    arrowGreen: {
+        position: "absolute",
+        right: 14,
+        bottom: 14,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#E2FAEF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    arrowOrange: {
+        position: "absolute",
+        right: 14,
+        bottom: 14,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#FFF1D1",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    arrowPurple: {
+        position: "absolute",
+        right: 14,
+        bottom: 14,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#F0E5FF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+
+
+    safetyBanner: {
+        minHeight: 160,
+        borderRadius: 26,
+        backgroundColor: "#79A5F5",
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        marginTop: 5,
+        marginBottom: 25,
+
+        shadowColor: "#7199E8",
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    safetyIcon: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: "#2563E8",
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 16,
+    },
+
+    safetyTextContainer: {
+        flex: 1,
+    },
+
+    safetyTitle: {
+        fontSize: 22,
+        fontWeight: "800",
+        color: "#FFFFFF",
+        marginBottom: 8,
+    },
+
+    safetyText: {
+        fontSize: 15,
+        lineHeight: 23,
+        color: "#FFFFFF",
+    },
+
+
+    bottomNav: {
+        height: 94,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%"
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487"
+        marginTop: 5,
+    },
+
+    activeHomeText: {
+        color: "#2563E8",
+        fontWeight: "800",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#2563E8",
+    },
+
+});
