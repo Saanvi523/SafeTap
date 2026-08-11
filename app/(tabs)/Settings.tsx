@@ -105,7 +105,7 @@ export default function Settings() {
 
                         <TouchableOpacity
                             style={[
-                                StyleSheet.toggle,
+                                styles.toggle,
                                 reminderAlerts
                                     ? styles.toggleOn
                                     : styles.toggleOff,
