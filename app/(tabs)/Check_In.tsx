@@ -241,7 +241,10 @@ export default function CheckIn() {
                         <TouchableOpacity
                             style={styles.startButton}
                             onPress={() =>
-                                router.push("/(tabs)/Actual_Check_In")
+                                router.push({
+                                    pathname: "/(tabs)/Actual_Check_In",
+                                    params: { duration: duration },
+                                })
                             }
                         >
 
