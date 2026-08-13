@@ -1,6 +1,8 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -10,26 +12,45 @@ import {
     View,
 } from "react-native";
 
-import { getHistory, HistoryItem } from "../historyStore";
+type HistoryItem = {
+    id: string;
+    date: string;
+    time: string;
+    duration: string;
+    message: string;
+};
+
+const HISTORY_KEY = "@safetap_history";
 
 export default function History() {
 
     const [history, setHistory] = useState<HistoryItem[]>([]);
 
-    useEffect(() => {
+    const loadHistory = async () => {
+        try {
+            const savedHistory =
+                await AsyncStorage.getItem(HISTORY_KEY);
 
-        const loadHistory = () => {
-            setHistory([...getHistory()]);
-        };
+            if (savedHistory) {
+                setHistory(JSON.parse(savedHistory));
+            } else {
+                setHistory([]);
+            }
 
-        loadHistory();
+        } catch (error) {
+            console.log("Error loading history:", error);
+        }
+    };
 
-        const interval = setInterval(loadHistory, 500);
-
-        return () => clearInterval(interval);
-
-    }, []);
-
+    /*
+     * Reload the history whenever the History
+     * page becomes visible.
+     */
+    useFocusEffect(
+        useCallback(() => {
+            loadHistory();
+        }, [])
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -50,58 +71,25 @@ export default function History() {
                         </Text>
 
                         <Text style={styles.subtitle}>
-                            View your past check-ins
+                            Your previous safety check-ins
                         </Text>
 
                     </View>
 
-                    <View style={styles.shieldContainer}>
-
-                        <Ionicons
-                            name="shield-checkmark"
-                            size={48}
-                            color="#2563E8"
-                        />
-
-                    </View>
-
-                </View>
-
-
-                {/* SUMMARY */}
-
-                <View style={styles.summaryCard}>
-
-                    <View style={styles.summaryIcon}>
+                    <View style={styles.headerIcon}>
 
                         <MaterialIcons
                             name="history"
-                            size={38}
+                            size={40}
                             color="#F59E0B"
                         />
 
                     </View>
 
-                    <View style={styles.summaryTextContainer}>
-
-                        <Text style={styles.summaryTitle}>
-                            Check-In History
-                        </Text>
-
-                        <Text style={styles.summaryDescription}>
-                            Your completed and missed check-ins are
-                            recorded here.
-                        </Text>
-
-                    </View>
-
                 </View>
 
 
-                <Text style={styles.sectionTitle}>
-                    Recent Activity
-                </Text>
-
+                {/* NO HISTORY */}
 
                 {history.length === 0 ? (
 
@@ -111,203 +99,203 @@ export default function History() {
 
                             <MaterialIcons
                                 name="history"
-                                size={45}
-                                color="#60729E"
+                                size={55}
+                                color="#F59E0B"
                             />
 
                         </View>
 
                         <Text style={styles.emptyTitle}>
-                            No Check-In History
+                            No Check-Ins Yet
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Your check-ins will appear here after you
-                            complete or miss one.
+                            Your completed safety check-ins
+                            {"\n"}
+                            will appear here.
                         </Text>
 
                     </View>
 
                 ) : (
 
-                    history.map((item) => (
+                    /* HISTORY LIST */
 
-                        <View
-                            key={item.id}
-                            style={styles.historyCard}
-                        >
+                    <View style={styles.historyCard}>
+
+                        <Text style={styles.sectionTitle}>
+                            Check-In History
+                        </Text>
+
+                        {history.map((item) => (
 
                             <View
-                                style={[
-                                    styles.statusIcon,
-                                    item.status === "Successful"
-                                        ? styles.successIcon
-                                        : styles.missedIcon,
-                                ]}
+                                key={item.id}
+                                style={styles.historyItem}
                             >
 
-                                <Ionicons
-                                    name={
-                                        item.status === "Successful"
-                                            ? "checkmark"
-                                            : "close"
-                                    }
-                                    size={28}
-                                    color={
-                                        item.status === "Successful"
-                                            ? "#08B88A"
-                                            : "#E53935"
-                                    }
-                                />
+                                <View style={styles.successIcon}>
+
+                                    <Ionicons
+                                        name="shield-checkmark"
+                                        size={28}
+                                        color="#08A96D"
+                                    />
+
+                                </View>
+
+                                <View style={styles.historyInfo}>
+
+                                    <Text style={styles.historyTitle}>
+                                        Check-In Successful
+                                    </Text>
+
+                                    <Text style={styles.message}>
+                                        {item.message}
+                                    </Text>
+
+                                    <Text style={styles.dateTime}>
+                                        {item.date} • {item.time}
+                                    </Text>
+
+                                    <Text style={styles.duration}>
+                                        Duration: {item.duration}
+                                    </Text>
+
+                                </View>
 
                             </View>
 
+                        ))}
 
-                            <View style={styles.historyTextContainer}>
-
-                                <Text
-                                    style={[
-                                        styles.statusTitle,
-                                        item.status === "Successful"
-                                            ? styles.successText
-                                            : styles.missedText,
-                                    ]}
-                                >
-                                    {item.status} Check-In
-                                </Text>
-
-                                <Text style={styles.historyDate}>
-                                    {item.date}
-                                </Text>
-
-                                <Text style={styles.historyDetails}>
-                                    {item.time} • {item.duration}
-                                </Text>
-
-                                <Text style={styles.message}>
-                                    {item.message}
-                                </Text>
-
-                            </View>
-
-                        </View>
-
-                    ))
+                    </View>
 
                 )}
 
-
-                {/* BOTTOM NAVIGATION */}
-
-                <View style={styles.bottomNav}>
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Home")
-                        }
-                    >
-
-                        <Ionicons
-                            name="home"
-                            size={34}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Home
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Check_In")
-                        }
-                    >
-
-                        <Ionicons
-                            name="shield-checkmark-outline"
-                            size={34}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Check In
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Contacts")
-                        }
-                    >
-
-                        <Ionicons
-                            name="people"
-                            size={34}
-                            color="#08B88A"
-                        />
-
-                        <Text style={styles.navText}>
-                            Contacts
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={[
-                            styles.navItem,
-                            styles.activeNavItem,
-                        ]}
-                        onPress={() =>
-                            router.push("/(tabs)/History")
-                        }
-                    >
-
-                        <View style={styles.activeLine} />
-
-                        <MaterialIcons
-                            name="history"
-                            size={35}
-                            color="#F59E0B"
-                        />
-
-                        <Text style={styles.activeHistoryText}>
-                            History
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Settings")
-                        }
-                    >
-
-                        <Ionicons
-                            name="settings"
-                            size={34}
-                            color="#7C3AED"
-                        />
-
-                        <Text style={styles.navText}>
-                            Settings
-                        </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
             </ScrollView>
+
+
+            {/* BOTTOM NAVIGATION */}
+
+            <View style={styles.bottomNav}>
+
+                {/* HOME */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Home")
+                    }
+                >
+
+                    <Ionicons
+                        name="home"
+                        size={32}
+                        color="#526487"
+                    />
+
+                    <Text style={styles.navText}>
+                        Home
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* CHECK IN */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text style={styles.navText}>
+                        Check In
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* CONTACTS */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <Ionicons
+                        name="people"
+                        size={32}
+                        color="#08B88A"
+                    />
+
+                    <Text style={styles.navText}>
+                        Contacts
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* HISTORY */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
+
+                    <View style={styles.activeLine} />
+
+                    <MaterialIcons
+                        name="history"
+                        size={34}
+                        color="#F59E0B"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeText,
+                        ]}
+                    >
+                        History
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* SETTINGS */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <Ionicons
+                        name="settings"
+                        size={32}
+                        color="#7C3AED"
+                    />
+
+                    <Text style={styles.navText}>
+                        Settings
+                    </Text>
+
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
@@ -324,7 +312,7 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 30,
+        paddingBottom: 130,
     },
 
     header: {
@@ -335,26 +323,26 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 45,
+        fontSize: 43,
         fontWeight: "800",
         color: "#173B8F",
     },
 
     subtitle: {
-        fontSize: 18,
+        fontSize: 17,
         color: "#60729E",
-        marginTop: 5,
+        marginTop: 8,
     },
 
-    shieldContainer: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
+    headerIcon: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
         backgroundColor: "#FFFFFF",
-        justifyContent: "center",
         alignItems: "center",
+        justifyContent: "center",
 
-        shadowColor: "#7EA7EF",
+        shadowColor: "#7898D8",
         shadowOpacity: 0.15,
         shadowRadius: 12,
         shadowOffset: {
@@ -365,142 +353,12 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
 
-    summaryCard: {
-        minHeight: 125,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 25,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 22,
-        marginBottom: 32,
-
-        shadowColor: "#7898D8",
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
-        elevation: 5,
-    },
-
-    summaryIcon: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
-        backgroundColor: "#FFF1D1",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    summaryTextContainer: {
-        flex: 1,
-        marginLeft: 18,
-    },
-
-    summaryTitle: {
-        fontSize: 21,
-        fontWeight: "800",
-        color: "#173B8F",
-        marginBottom: 5,
-    },
-
-    summaryDescription: {
-        fontSize: 15,
-        lineHeight: 22,
-        color: "#60729E",
-    },
-
-    sectionTitle: {
-        fontSize: 27,
-        fontWeight: "800",
-        color: "#173B8F",
-        marginBottom: 14,
-    },
-
-    historyCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 25,
-        flexDirection: "row",
-        alignItems: "flex-start",
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        marginBottom: 16,
-
-        shadowColor: "#7898D8",
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
-        elevation: 5,
-    },
-
-    statusIcon: {
-        width: 58,
-        height: 58,
-        borderRadius: 29,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    successIcon: {
-        backgroundColor: "#E2FAEF",
-    },
-
-    missedIcon: {
-        backgroundColor: "#FFE4E8",
-    },
-
-    historyTextContainer: {
-        flex: 1,
-        marginLeft: 18,
-    },
-
-    statusTitle: {
-        fontSize: 20,
-        fontWeight: "800",
-        marginBottom: 5,
-    },
-
-    successText: {
-        color: "#08A77E",
-    },
-
-    missedText: {
-        color: "#D62828",
-    },
-
-    historyDate: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#344A78",
-        marginBottom: 3,
-    },
-
-    historyDetails: {
-        fontSize: 14,
-        color: "#60729E",
-        marginBottom: 8,
-    },
-
-    message: {
-        fontSize: 13,
-        lineHeight: 19,
-        color: "#526487",
-    },
-
     emptyCard: {
-        minHeight: 190,
         backgroundColor: "#FFFFFF",
-        borderRadius: 25,
-        alignItems: "center",
-        justifyContent: "center",
+        borderRadius: 26,
+        paddingVertical: 55,
         paddingHorizontal: 25,
-        marginBottom: 25,
+        alignItems: "center",
 
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
@@ -514,36 +372,114 @@ const styles = StyleSheet.create({
     },
 
     emptyIcon: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: "#E9EEF8",
-        justifyContent: "center",
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: "#FFF5DD",
         alignItems: "center",
-        marginBottom: 12,
+        justifyContent: "center",
+        marginBottom: 20,
     },
 
     emptyTitle: {
-        fontSize: 20,
+        fontSize: 25,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 6,
+        marginBottom: 10,
     },
 
     emptyText: {
-        fontSize: 15,
+        fontSize: 16,
+        lineHeight: 25,
         color: "#60729E",
         textAlign: "center",
     },
 
+    historyCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        paddingHorizontal: 20,
+        paddingTop: 25,
+        paddingBottom: 10,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    sectionTitle: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 20,
+    },
+
+    historyItem: {
+        flexDirection: "row",
+        paddingVertical: 18,
+        borderTopWidth: 1,
+        borderTopColor: "#E3EAF5",
+    },
+
+    successIcon: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "#E8FFF4",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 15,
+    },
+
+    historyInfo: {
+        flex: 1,
+    },
+
+    historyTitle: {
+        fontSize: 18,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 5,
+    },
+
+    message: {
+        fontSize: 14,
+        color: "#526487",
+        lineHeight: 20,
+        marginBottom: 6,
+    },
+
+    dateTime: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#2563E8",
+        marginBottom: 4,
+    },
+
+    duration: {
+        fontSize: 13,
+        color: "#7182A5",
+    },
+
     bottomNav: {
+        position: "absolute",
+        bottom: 10,
+        left: 15,
+        right: 15,
+
         height: 94,
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
+
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        marginTop: 20,
 
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
@@ -571,8 +507,9 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
-    activeNavItem: {
-        position: "relative",
+    activeText: {
+        color: "#F59E0B",
+        fontWeight: "800",
     },
 
     activeLine: {
@@ -582,13 +519,6 @@ const styles = StyleSheet.create({
         height: 4,
         borderRadius: 2,
         backgroundColor: "#F59E0B",
-    },
-
-    activeHistoryText: {
-        fontSize: 12,
-        fontWeight: "800",
-        color: "#F59E0B",
-        marginTop: 5,
     },
 
 });

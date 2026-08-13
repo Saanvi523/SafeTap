@@ -1,14 +1,31 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
+import {
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+const HISTORY_KEY = "@safetap_history";
+
 export default function ActualCheckIn() {
 
-    const { duration } = useLocalSearchParams<{ duration?: string }>();
+    const { duration } =
+        useLocalSearchParams<{ duration?: string }>();
 
     const selectedDuration = duration || "30 min";
 
+
+    /* Convert selected duration into seconds */
+
     const getDurationInSeconds = (value: string) => {
+
         const number = parseInt(value) || 30;
 
         if (value.toLowerCase().includes("week")) {
@@ -26,117 +43,251 @@ export default function ActualCheckIn() {
         return number * 60;
     };
 
-    const [totalSeconds, setTotalSeconds] = useState(
+
+    const [totalSeconds] = useState(
         getDurationInSeconds(selectedDuration)
     );
 
-    const [timeRemaining, setTimeRemaining] = useState(
-        getDurationInSeconds(selectedDuration)
-    );
+    const [timeRemaining, setTimeRemaining] =
+        useState(
+            getDurationInSeconds(selectedDuration)
+        );
 
-    const [isActive, setIsActive] = useState(true);
+    const [isActive, setIsActive] =
+        useState(true);
+
+
+    /* TIMER */
 
     useEffect(() => {
+
         if (!isActive || timeRemaining <= 0) {
             return;
         }
 
-        const timer = setInterval (() => {
+        const timer = setInterval(() => {
+
             setTimeRemaining((previousTime) => {
+
                 if (previousTime <= 1) {
+
                     clearInterval(timer);
+
                     return 0;
                 }
 
-                return previousTime -1;
+                return previousTime - 1;
+
             });
+
         }, 1000);
 
         return () => clearInterval(timer);
+
     }, [isActive, timeRemaining]);
+
+
+    /* FORMAT TIMER */
 
     const formatTime = (seconds: number) => {
 
-        const days = Math.floor(seconds / (24 * 60 * 60));
+        const days =
+            Math.floor(seconds / (24 * 60 * 60));
 
-        const hours = Math.floor(
-            (seconds % (24 * 60 * 60)) / (60 * 60)
-        );
+        const hours =
+            Math.floor(
+                (seconds % (24 * 60 * 60)) /
+                (60 * 60)
+            );
 
-        const minutes = Math.floor(
-            (seconds % (60 * 60)) / 60
-        );
+        const minutes =
+            Math.floor(
+                (seconds % (60 * 60)) / 60
+            );
 
-        const remainingSeconds = seconds % 60;
-        
+        const remainingSeconds =
+            seconds % 60;
+
+
         if (days > 0) {
-            return `${days}:${String(hours).padStart(2, "0")}:${String(
-                minutes
-            ).padStart(2, "0")}:${String(remainingSeconds).padStart(
+
+            return `${days}:${String(hours).padStart(
+                2,
+                "0"
+            )}:${String(minutes).padStart(
+                2,
+                "0"
+            )}:${String(remainingSeconds).padStart(
                 2,
                 "0"
             )}`;
+
         }
 
+
         if (hours > 0) {
+
             return `${hours}:${String(minutes).padStart(
                 2,
                 "0"
-            )}:${String(remainingSeconds).padStart(2, "0")}`;
+            )}:${String(remainingSeconds).padStart(
+                2,
+                "0"
+            )}`;
+
         }
+
 
         return `${String(minutes).padStart(
             2,
             "0"
-        )}:${String(remainingSeconds).padStart(2, "0")}`;
+        )}:${String(remainingSeconds).padStart(
+            2,
+            "0"
+        )}`;
     };
 
-    const handleImSafe = () => {
 
-        setTimeRemaining(totalSeconds);
-        setIsActive(true);
+    /* I'M SAFE */
 
-        Alert.alert(
-            "Check-In Successful",
-            "Your check-in has been recorded. The timer has been reset."
-        );
+    const handleImSafe = async () => {
+
+        const now = new Date();
+
+        const date =
+            now.toLocaleDateString();
+
+        const time =
+            now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+
+
+        const newHistoryItem = {
+
+            id: Date.now().toString(),
+
+            date: date,
+
+            time: time,
+
+            duration: selectedDuration,
+
+            message:
+                `I'm Safe check-in completed at ${time}.`,
+        };
+
+
+        try {
+
+            const existingHistory =
+                await AsyncStorage.getItem(
+                    HISTORY_KEY
+                );
+
+
+            const history =
+                existingHistory
+                    ? JSON.parse(existingHistory)
+                    : [];
+
+
+            const updatedHistory = [
+                newHistoryItem,
+                ...history,
+            ];
+
+
+            await AsyncStorage.setItem(
+                HISTORY_KEY,
+                JSON.stringify(updatedHistory)
+            );
+
+
+            /* Reset timer */
+
+            setTimeRemaining(totalSeconds);
+
+            setIsActive(true);
+
+
+            Alert.alert(
+                "Check-In Successful",
+                `Your check-in was recorded at ${time}.`
+            );
+
+
+        } catch (error) {
+
+            console.log(
+                "Error saving history:",
+                error
+            );
+
+
+            Alert.alert(
+                "Error",
+                "Your check-in could not be saved."
+            );
+        }
     };
+
+
+    /* END CHECK-IN */
 
     const handleEndCheckIn = () => {
 
         Alert.alert(
             "End Check-In",
             "Are you sure you want to end this check-in?",
+
             [
+
                 {
                     text: "Cancel",
                     style: "cancel",
                 },
+
                 {
                     text: "End Check-In",
                     style: "destructive",
+
                     onPress: () => {
+
                         setIsActive(false);
-                        router.push("/(tabs)/Check_In");
+
+                        router.push(
+                            "/(tabs)/Check_In"
+                        );
+
                     },
                 },
+
             ]
         );
     };
 
-    const progress = 
+
+    const progress =
         totalSeconds > 0
-            ?timeRemaining / totalSeconds
+            ? timeRemaining / totalSeconds
             : 0;
 
+
     return (
+
         <SafeAreaView style={styles.container}>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContainer}
+                contentContainerStyle={
+                    styles.scrollContainer
+                }
             >
 
+
+                {/* HEADER */}
 
                 <View style={styles.header}>
 
@@ -144,28 +295,35 @@ export default function ActualCheckIn() {
                         style={styles.backButton}
                         onPress={() => router.back()}
                     >
+
                         <Ionicons
                             name="arrow-back"
                             size={32}
                             color="#173B8F"
                         />
+
                     </TouchableOpacity>
 
+
                     <Text style={styles.title}>
-                        active Check-In
+                        Active Check-In
                     </Text>
 
+
                     <View style={styles.headerShield}>
+
                         <Ionicons
                             name="shield-checkmark"
                             size={42}
                             color="#2563E8"
                         />
+
                     </View>
 
                 </View>
 
 
+                {/* ACTIVE CARD */}
 
                 <View style={styles.activeCard}>
 
@@ -179,15 +337,18 @@ export default function ActualCheckIn() {
 
                     </View>
 
+
                     <Text style={styles.activeTitle}>
                         Check-In Active
                     </Text>
+
 
                     <Text style={styles.safeText}>
                         You're Safe!
                     </Text>
 
 
+                    {/* TIMER */}
 
                     <View style={styles.timerCircle}>
 
@@ -199,14 +360,17 @@ export default function ActualCheckIn() {
                                         timeRemaining > 0
                                             ? 1
                                             : 0.3,
+
                                     transform: [
                                         {
-                                            rotate: `${(1 - progress) * 180}deg`,
+                                            rotate:
+                                                `${(1 - progress) * 180}deg`,
                                         },
                                     ],
                                 },
                             ]}
                         />
+
 
                         <View style={styles.timerInside}>
 
@@ -214,9 +378,13 @@ export default function ActualCheckIn() {
                                 Time remaining
                             </Text>
 
+
                             <Text style={styles.timerText}>
-                                {formatTime(timeRemaining)}
+                                {formatTime(
+                                    timeRemaining
+                                )}
                             </Text>
+
 
                             <Text style={styles.durationLabel}>
                                 {selectedDuration}
@@ -227,6 +395,7 @@ export default function ActualCheckIn() {
                     </View>
 
 
+                    {/* STATUS */}
 
                     <View style={styles.endTimeBox}>
 
@@ -243,6 +412,7 @@ export default function ActualCheckIn() {
                     </View>
 
 
+                    {/* I'M SAFE */}
 
                     <TouchableOpacity
                         style={styles.safeButton}
@@ -262,6 +432,7 @@ export default function ActualCheckIn() {
                     </TouchableOpacity>
 
 
+                    {/* END */}
 
                     <TouchableOpacity
                         style={styles.endButton}
@@ -283,6 +454,7 @@ export default function ActualCheckIn() {
                 </View>
 
 
+                {/* INFORMATION CARD */}
 
                 <View style={styles.infoCard}>
 
@@ -303,11 +475,13 @@ export default function ActualCheckIn() {
 
                         </View>
 
+
                         <Text style={styles.infoText}>
-                            We will alert your trusted {"\n"}
+                            We will alert your trusted{"\n"}
                             contacts when the timer{"\n"}
                             reaches zero.
                         </Text>
+
 
                         <View style={styles.contactBadge}>
 
@@ -324,7 +498,6 @@ export default function ActualCheckIn() {
                     </View>
 
 
-
                     <View style={styles.reminderBox}>
 
                         <View style={styles.infoIconBlue}>
@@ -337,17 +510,21 @@ export default function ActualCheckIn() {
 
                         </View>
 
+
                         <Text style={styles.reminderText}>
                             We'll send a reminder{"\n"}
                             before your check-in ends.
                         </Text>
 
+
                         <TouchableOpacity
                             style={styles.editButton}
                         >
+
                             <Text style={styles.editButtonText}>
                                 Edit Reminder
                             </Text>
+
                         </TouchableOpacity>
 
                     </View>
@@ -355,13 +532,16 @@ export default function ActualCheckIn() {
                 </View>
 
 
+                {/* BOTTOM NAVIGATION */}
 
                 <View style={styles.bottomNav}>
 
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() =>
-                            router.push("/(tabs)/Home")
+                            router.push(
+                                "/(tabs)/Home"
+                            )
                         }
                     >
 
@@ -381,12 +561,14 @@ export default function ActualCheckIn() {
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() =>
-                            router.push("/(tabs)/Check_In")
+                            router.push(
+                                "/(tabs)/Check_In"
+                            )
                         }
                     >
 
-                        <View style={styles.activeLine}
-                        />
+                        <View style={styles.activeLine} />
+
                         <Ionicons
                             name="shield-checkmark"
                             size={34}
@@ -399,7 +581,7 @@ export default function ActualCheckIn() {
                                 styles.activeText,
                             ]}
                         >
-                            Check In 
+                            Check In
                         </Text>
 
                     </TouchableOpacity>
@@ -408,7 +590,9 @@ export default function ActualCheckIn() {
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() =>
-                            router.push("/(tabs)/Contacts")
+                            router.push(
+                                "/(tabs)/Contacts"
+                            )
                         }
                     >
 
@@ -428,7 +612,9 @@ export default function ActualCheckIn() {
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() =>
-                            router.push("/(tabs)/History")
+                            router.push(
+                                "/(tabs)/History"
+                            )
                         }
                     >
 
@@ -441,14 +627,16 @@ export default function ActualCheckIn() {
                         <Text style={styles.navText}>
                             History
                         </Text>
-                        
+
                     </TouchableOpacity>
 
 
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() =>
-                            router.push("/(tabs)/Settings")
+                            router.push(
+                                "/(tabs)/Settings"
+                            )
                         }
                     >
 
@@ -473,7 +661,9 @@ export default function ActualCheckIn() {
 }
 
 
-const styles= StyleSheet.create({
+/* STYLES */
+
+const styles = StyleSheet.create({
 
     container: {
         flex: 1,
@@ -504,6 +694,7 @@ const styles= StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 10,
+
         shadowOffset: {
             width: 0,
             height: 4,
@@ -538,6 +729,7 @@ const styles= StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.10,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -652,6 +844,7 @@ const styles= StyleSheet.create({
         shadowColor: "#08A96D",
         shadowOpacity: 0.25,
         shadowRadius: 10,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -697,6 +890,7 @@ const styles= StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.10,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -811,6 +1005,7 @@ const styles= StyleSheet.create({
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 4,
