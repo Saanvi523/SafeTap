@@ -27,12 +27,10 @@ export default function SignIn() {
 
     return (
         <SafeAreaView style={styles.container}>
-
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
-
                 {/* Back Button */}
                 <TouchableOpacity
                     style={styles.backButton}
@@ -45,27 +43,19 @@ export default function SignIn() {
                     />
                 </TouchableOpacity>
 
-
                 {/* Logo */}
-                <Text style={styles.logo}>
-                    SafeTap
-                </Text>
-
+                <Text style={styles.logo}>SafeTap</Text>
 
                 {/* Heading */}
-                <Text style={styles.heading}>
-                    Welcome Back
-                </Text>
+                <Text style={styles.heading}>Welcome Back</Text>
 
                 <Text style={styles.subHeading}>
                     Sign in to access your{"\n"}
                     safety check-ins and alerts.
                 </Text>
 
-
                 {/* Email */}
                 <View style={styles.inputContainer}>
-
                     <MaterialIcons
                         name="email"
                         size={22}
@@ -82,13 +72,10 @@ export default function SignIn() {
                         onChangeText={setEmail}
                         style={styles.input}
                     />
-
                 </View>
-
 
                 {/* Password */}
                 <View style={styles.inputContainer}>
-
                     <MaterialIcons
                         name="lock"
                         size={22}
@@ -106,116 +93,59 @@ export default function SignIn() {
                     />
 
                     <TouchableOpacity
-                        onPress={() =>
-                            setShowPassword(!showPassword)
-                        }
+                        onPress={() => setShowPassword(!showPassword)}
                     >
                         <Ionicons
-                            name={
-                                showPassword
-                                    ? "eye-off"
-                                    : "eye"
-                            }
+                            name={showPassword ? "eye-off" : "eye"}
                             size={24}
                             color="#7A84A7"
                         />
                     </TouchableOpacity>
-
                 </View>
 
-
                 {/* Forgot Password */}
-                <TouchableOpacity
-                    style={styles.forgotContainer}
-                >
+                <TouchableOpacity style={styles.forgotContainer}>
                     <Text style={styles.forgotText}>
                         Forgot Password?
                     </Text>
                 </TouchableOpacity>
-
 
                 {/* Sign In Button */}
                 <TouchableOpacity
                     style={styles.signInButton}
                     onPress={handleSignIn}
                 >
-                    <Text style={styles.signInText}>
-                        SIGN IN
-                    </Text>
+                    <Text style={styles.signInText}>SIGN IN</Text>
                 </TouchableOpacity>
-
-
-                {/* OR */}
-                <View style={styles.orContainer}>
-
-                    <View style={styles.divider} />
-
-                    <Text style={styles.orText}>
-                        or
-                    </Text>
-
-                    <View style={styles.divider} />
-
-                </View>
-
-
-                {/* Create Account */}
-                <View style={styles.createAccountContainer}>
-
-                    <Text style={styles.noAccountText}>
-                        Don't have an account?
-                    </Text>
-
-                    <TouchableOpacity
-                        onPress={() =>
-                            router.push("/(tabs)/Sign_up")
-                        }
-                    >
-                        <Text style={styles.createAccountText}>
-                            Create Account
-                        </Text>
-                    </TouchableOpacity>
-
-                </View>
-
 
                 {/* Shield */}
                 <View style={styles.shieldContainer}>
-
                     <Image
                         source={require("../../assets/images/Shield 2.0. .png")}
                         style={styles.shieldImage}
                         resizeMode="contain"
                     />
-
                 </View>
-
             </ScrollView>
-
         </SafeAreaView>
     );
 }
 
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         backgroundColor: "#F5F7FB",
         paddingHorizontal: 28,
     },
 
-
     scrollContainer: {
         paddingBottom: 40,
     },
-
 
     backButton: {
         marginTop: 20,
         marginBottom: 20,
     },
-
 
     logo: {
         fontSize: 56,
@@ -225,7 +155,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
 
-
     heading: {
         marginTop: 55,
         textAlign: "center",
@@ -233,7 +162,6 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#183C8E",
     },
-
 
     subHeading: {
         textAlign: "center",
@@ -244,22 +172,13 @@ const styles = StyleSheet.create({
         marginBottom: 35,
     },
 
-
-    /*
-     * SAME INPUT BOX SIZE AS SIGN UP
-     */
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
-
         backgroundColor: "#FFFFFF",
-
         borderRadius: 18,
-
         height: 64,
-
         marginBottom: 18,
-
         paddingHorizontal: 18,
 
         shadowColor: "#2563E8",
@@ -273,11 +192,9 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
 
-
     leftIcon: {
         marginRight: 15,
     },
-
 
     input: {
         flex: 1,
@@ -285,20 +202,17 @@ const styles = StyleSheet.create({
         color: "#1F2937",
     },
 
-
     forgotContainer: {
         alignItems: "flex-end",
         marginTop: -3,
         marginBottom: 25,
     },
 
-
     forgotText: {
         fontSize: 16,
         fontWeight: "600",
         color: "#1554D1",
     },
-
 
     signInButton: {
         height: 60,
@@ -309,7 +223,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
     },
 
-
     signInText: {
         color: "#FFFFFF",
         fontSize: 22,
@@ -317,59 +230,14 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
     },
 
-
-    orContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 28,
-        marginHorizontal: 5,
-    },
-
-
-    divider: {
-        flex: 1,
-        height: 1,
-        backgroundColor: "#C8D7F2",
-    },
-
-
-    orText: {
-        marginHorizontal: 20,
-        fontSize: 17,
-        color: "#65769F",
-    },
-
-
-    createAccountContainer: {
-        alignItems: "center",
-        marginTop: 25,
-    },
-
-
-    noAccountText: {
-        fontSize: 16,
-        color: "#60729E",
-        marginBottom: 8,
-    },
-
-
-    createAccountText: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#1554D1",
-    },
-
-
     shieldContainer: {
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 25,
+        marginTop: 40,
     },
-
 
     shieldImage: {
         width: 180,
         height: 180,
     },
-
 });

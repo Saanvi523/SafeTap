@@ -14,212 +14,288 @@ export default function Home() {
     return (
         <SafeAreaView style={styles.container}>
 
-            {/* Main Scrollable Content */}
-
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
-                {/* Header */}
+                {/* HEADER */}
 
                 <View style={styles.header}>
 
                     <View>
+                        <Text style={styles.smallGreeting}>
+                            Good to see you
+                        </Text>
 
                         <Text style={styles.title}>
-                            Home
+                            SafeTap
                         </Text>
-
-                        <Text style={styles.subtitle}>
-                            Access all SafeTap features
-                        </Text>
-
                     </View>
 
                     <View style={styles.shieldContainer}>
-
                         <Ionicons
                             name="shield-checkmark"
-                            size={48}
+                            size={38}
                             color="#2563E8"
                         />
-
                     </View>
 
                 </View>
 
 
-                {/* Feature Cards */}
+                {/* SAFETY STATUS */}
 
-                <View style={styles.cardGrid}>
+                <View style={styles.safetyCard}>
 
-                    {/* Check In */}
+                    <View style={styles.safetyHeader}>
+
+                        <View style={styles.safeIcon}>
+                            <Ionicons
+                                name="shield-checkmark"
+                                size={42}
+                                color="#08A96D"
+                            />
+                        </View>
+
+                        <View style={styles.safeTextContainer}>
+
+                            <Text style={styles.safeTitle}>
+                                You're Safe
+                            </Text>
+
+                            <Text style={styles.safeSubtitle}>
+                                No active check-in
+                            </Text>
+
+                        </View>
+
+                    </View>
+
+
+                    <View style={styles.statusDivider} />
+
+
+                    <Text style={styles.safetyDescription}>
+                        Start a check-in whenever you want
+                        someone to know you're safe.
+                    </Text>
+
 
                     <TouchableOpacity
-                        style={[
-                            styles.featureCard,
-                            styles.checkInCard,
-                        ]}
+                        style={styles.startButton}
                         onPress={() =>
                             router.push("/(tabs)/Check_In")
                         }
                     >
 
-                        <View style={styles.iconCircleBlue}>
+                        <Ionicons
+                            name="shield-checkmark-outline"
+                            size={28}
+                            color="#FFFFFF"
+                        />
 
-                            <Ionicons
-                                name="shield-checkmark"
-                                size={52}
-                                color="#2563E8"
-                            />
-
-                        </View>
-
-                        <Text style={styles.cardTitle}>
-                            Check In
-                        </Text>
-
-                        <Text style={styles.cardDescription}>
-                            Start a new check in
-                            {"\n"}
-                            and stay safe.
+                        <Text style={styles.startButtonText}>
+                            Start Check-In
                         </Text>
 
                     </TouchableOpacity>
 
+                </View>
 
-                    {/* Contacts */}
 
-                    <TouchableOpacity
-                        style={[
-                            styles.featureCard,
-                            styles.contactsCard,
-                        ]}
-                        onPress={() =>
-                            router.push("/(tabs)/Contacts")
-                        }
-                    >
+                {/* TODAY'S SAFETY */}
 
-                        <View style={styles.iconCircleGreen}>
+                <View style={styles.sectionHeader}>
 
-                            <Ionicons
-                                name="people"
-                                size={52}
-                                color="#08B88A"
-                            />
+                    <Text style={styles.sectionTitle}>
+                        Your Safety
+                    </Text>
 
-                        </View>
+                    <Text style={styles.sectionSubtitle}>
+                        Quick access to your SafeTap features
+                    </Text>
+
+                </View>
+
+
+                {/* CONTACTS */}
+
+                <TouchableOpacity
+                    style={styles.horizontalCard}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <View style={styles.contactsIcon}>
+                        <Ionicons
+                            name="people"
+                            size={32}
+                            color="#2563E8"
+                        />
+                    </View>
+
+                    <View style={styles.cardTextContainer}>
 
                         <Text style={styles.cardTitle}>
-                            Contacts
+                            Trusted Contacts
                         </Text>
 
                         <Text style={styles.cardDescription}>
-                            Manage your trusted
-                            {"\n"}
-                            contacts.
+                            Manage the people who can be
+                            alerted if you miss a check-in.
                         </Text>
 
-                    </TouchableOpacity>
+                    </View>
+
+                    <Ionicons
+                        name="chevron-forward"
+                        size={27}
+                        color="#526487"
+                    />
+
+                </TouchableOpacity>
 
 
-                    {/* History */}
+                {/* HISTORY */}
 
-                    <TouchableOpacity
-                        style={[
-                            styles.featureCard,
-                            styles.historyCard,
-                        ]}
-                        onPress={() =>
-                            router.push("/(tabs)/History")
-                        }
-                    >
+                <TouchableOpacity
+                    style={styles.horizontalCard}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
 
-                        <View style={styles.iconCircleOrange}>
+                    <View style={styles.historyIcon}>
+                        <MaterialIcons
+                            name="history"
+                            size={34}
+                            color="#F59E0B"
+                        />
+                    </View>
 
-                            <MaterialIcons
-                                name="history"
-                                size={55}
-                                color="#F59E0B"
-                            />
-
-                        </View>
+                    <View style={styles.cardTextContainer}>
 
                         <Text style={styles.cardTitle}>
-                            History
+                            Check-In History
                         </Text>
 
                         <Text style={styles.cardDescription}>
-                            View your past
-                            {"\n"}
-                            check in records.
+                            View your previous successful
+                            and completed check-ins.
                         </Text>
 
-                    </TouchableOpacity>
+                    </View>
+
+                    <Ionicons
+                        name="chevron-forward"
+                        size={27}
+                        color="#526487"
+                    />
+
+                </TouchableOpacity>
 
 
-                    {/* Settings */}
+                {/* CHECK IN */}
 
-                    <TouchableOpacity
-                        style={[
-                            styles.featureCard,
-                            styles.settingsCard,
-                        ]}
-                        onPress={() =>
-                            router.push("/(tabs)/Settings")
-                        }
-                    >
+                <TouchableOpacity
+                    style={styles.horizontalCard}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
 
-                        <View style={styles.iconCirclePurple}>
+                    <View style={styles.checkIcon}>
+                        <Ionicons
+                            name="time"
+                            size={32}
+                            color="#08A96D"
+                        />
+                    </View>
 
-                            <Ionicons
-                                name="settings"
-                                size={54}
-                                color="#7C3AED"
-                            />
+                    <View style={styles.cardTextContainer}>
 
-                        </View>
+                        <Text style={styles.cardTitle}>
+                            Check-In
+                        </Text>
+
+                        <Text style={styles.cardDescription}>
+                            Set a time and start your
+                            safety check-in.
+                        </Text>
+
+                    </View>
+
+                    <Ionicons
+                        name="chevron-forward"
+                        size={27}
+                        color="#526487"
+                    />
+
+                </TouchableOpacity>
+
+
+                {/* SETTINGS */}
+
+                <TouchableOpacity
+                    style={styles.horizontalCard}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <View style={styles.settingsIcon}>
+                        <Ionicons
+                            name="settings"
+                            size={32}
+                            color="#7C3AED"
+                        />
+                    </View>
+
+                    <View style={styles.cardTextContainer}>
 
                         <Text style={styles.cardTitle}>
                             Settings
                         </Text>
 
                         <Text style={styles.cardDescription}>
-                            Manage your
-                            {"\n"}
-                            preferences.
+                            Manage reminders and
+                            app preferences.
                         </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
-
-                {/* Safety Banner */}
-
-                <View style={styles.safetyBanner}>
-
-                    <View style={styles.safetyIcon}>
-
-                        <Ionicons
-                            name="lock-closed"
-                            size={42}
-                            color="#FFFFFF"
-                        />
 
                     </View>
 
-                    <View style={styles.safetyTextContainer}>
+                    <Ionicons
+                        name="chevron-forward"
+                        size={27}
+                        color="#526487"
+                    />
 
-                        <Text style={styles.safetyTitle}>
-                            You're in control
+                </TouchableOpacity>
+
+
+                {/* SAFETY TIP */}
+
+                <View style={styles.tipCard}>
+
+                    <View style={styles.tipIcon}>
+                        <Ionicons
+                            name="bulb"
+                            size={28}
+                            color="#2563E8"
+                        />
+                    </View>
+
+                    <View style={styles.tipTextContainer}>
+
+                        <Text style={styles.tipTitle}>
+                            Safety Tip
                         </Text>
 
-                        <Text style={styles.safetyText}>
-                            SafeTap is here to keep you safe and
-                            {"\n"}
-                            connected with the people who matter.
+                        <Text style={styles.tipText}>
+                            Remember to start a check-in
+                            before travelling alone.
                         </Text>
 
                     </View>
@@ -229,11 +305,11 @@ export default function Home() {
             </ScrollView>
 
 
-            {/* Fixed Bottom Navigation */}
+            {/* BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
 
-                {/* Home - Active */}
+                {/* HOME */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -253,7 +329,7 @@ export default function Home() {
                     <Text
                         style={[
                             styles.navText,
-                            styles.activeHomeText,
+                            styles.activeText,
                         ]}
                     >
                         Home
@@ -262,7 +338,7 @@ export default function Home() {
                 </TouchableOpacity>
 
 
-                {/* Check In */}
+                {/* CHECK IN */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -274,7 +350,7 @@ export default function Home() {
                     <Ionicons
                         name="shield-checkmark"
                         size={32}
-                        color="#2563E8"
+                        color="#526487"
                     />
 
                     <Text style={styles.navText}>
@@ -284,7 +360,7 @@ export default function Home() {
                 </TouchableOpacity>
 
 
-                {/* Contacts */}
+                {/* CONTACTS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -306,7 +382,7 @@ export default function Home() {
                 </TouchableOpacity>
 
 
-                {/* History */}
+                {/* HISTORY */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -328,7 +404,7 @@ export default function Home() {
                 </TouchableOpacity>
 
 
-                {/* Settings */}
+                {/* SETTINGS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -358,41 +434,38 @@ export default function Home() {
 
 const styles = StyleSheet.create({
 
-    /* Main Screen */
-
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
     },
 
     scrollContainer: {
-        paddingHorizontal: 22,
-        paddingTop: 20,
-
-        // Space for the fixed bottom navigation
-        paddingBottom: 130,
+        paddingHorizontal: 20,
+        paddingTop: 22,
+        paddingBottom: 125,
     },
 
 
-    /* Header */
+    /* HEADER */
 
     header: {
         flexDirection: "row",
-        alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 30,
+        alignItems: "center",
+        marginBottom: 25,
+    },
+
+    smallGreeting: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#60729E",
+        marginBottom: 3,
     },
 
     title: {
-        fontSize: 45,
+        fontSize: 43,
         fontWeight: "800",
         color: "#173B8F",
-    },
-
-    subtitle: {
-        fontSize: 18,
-        color: "#60729E",
-        marginTop: 5,
     },
 
     shieldContainer: {
@@ -403,34 +476,25 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
 
-        shadowColor: "#7EA7EF",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.14,
+        shadowRadius: 10,
         shadowOffset: {
             width: 0,
-            height: 5,
+            height: 4,
         },
 
         elevation: 5,
     },
 
 
-    /* Feature Cards */
+    /* SAFETY CARD */
 
-    cardGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-    },
-
-    featureCard: {
-        width: "48%",
-        height: 265,
-        borderRadius: 25,
+    safetyCard: {
         backgroundColor: "#FFFFFF",
-        alignItems: "center",
-        paddingTop: 25,
-        marginBottom: 18,
+        borderRadius: 27,
+        padding: 23,
+        marginBottom: 28,
 
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
@@ -441,146 +505,221 @@ const styles = StyleSheet.create({
         },
 
         elevation: 5,
-
-        overflow: "hidden",
     },
 
-
-    /* Card Bottom Borders */
-
-    checkInCard: {
-        borderBottomWidth: 5,
-        borderBottomColor: "#8DBAFF",
+    safetyHeader: {
+        flexDirection: "row",
+        alignItems: "center",
     },
 
-    contactsCard: {
-        borderBottomWidth: 5,
-        borderBottomColor: "#8DE8BF",
-    },
-
-    historyCard: {
-        borderBottomWidth: 5,
-        borderBottomColor: "#FFD16A",
-    },
-
-    settingsCard: {
-        borderBottomWidth: 5,
-        borderBottomColor: "#C89AFF",
-    },
-
-
-    /* Card Icons */
-
-    iconCircleBlue: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: "#E5EFFF",
+    safeIcon: {
+        width: 75,
+        height: 75,
+        borderRadius: 38,
+        backgroundColor: "#E8FFF4",
         justifyContent: "center",
         alignItems: "center",
+    },
+
+    safeTextContainer: {
+        marginLeft: 16,
+    },
+
+    safeTitle: {
+        fontSize: 27,
+        fontWeight: "800",
+        color: "#08A96D",
+    },
+
+    safeSubtitle: {
+        fontSize: 16,
+        color: "#60729E",
+        marginTop: 4,
+    },
+
+    statusDivider: {
+        height: 1,
+        backgroundColor: "#E1E8F3",
+        marginVertical: 20,
+    },
+
+    safetyDescription: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: "#526487",
         marginBottom: 18,
     },
 
-    iconCircleGreen: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+    startButton: {
+        height: 62,
+        borderRadius: 19,
+        backgroundColor: "#2563E8",
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+
+        shadowColor: "#2563E8",
+        shadowOpacity: 0.22,
+        shadowRadius: 9,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 4,
+    },
+
+    startButtonText: {
+        color: "#FFFFFF",
+        fontSize: 20,
+        fontWeight: "800",
+        marginLeft: 9,
+    },
+
+
+    /* SECTION */
+
+    sectionHeader: {
+        marginBottom: 15,
+    },
+
+    sectionTitle: {
+        fontSize: 26,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    sectionSubtitle: {
+        fontSize: 15,
+        color: "#60729E",
+        marginTop: 4,
+    },
+
+
+    /* HORIZONTAL CARDS */
+
+    horizontalCard: {
+        minHeight: 100,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 22,
+        paddingHorizontal: 15,
+        paddingVertical: 15,
+
+        flexDirection: "row",
+        alignItems: "center",
+
+        marginBottom: 13,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.09,
+        shadowRadius: 9,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 4,
+    },
+
+    contactsIcon: {
+        width: 62,
+        height: 62,
+        borderRadius: 20,
+        backgroundColor: "#E7F0FF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    historyIcon: {
+        width: 62,
+        height: 62,
+        borderRadius: 20,
+        backgroundColor: "#FFF3D8",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    checkIcon: {
+        width: 62,
+        height: 62,
+        borderRadius: 20,
         backgroundColor: "#E2FAEF",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 18,
     },
 
-    iconCircleOrange: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: "#FFF1D1",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 18,
-    },
-
-    iconCirclePurple: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+    settingsIcon: {
+        width: 62,
+        height: 62,
+        borderRadius: 20,
         backgroundColor: "#F0E5FF",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 18,
     },
 
-
-    /* Card Text */
+    cardTextContainer: {
+        flex: 1,
+        marginHorizontal: 15,
+    },
 
     cardTitle: {
-        fontSize: 23,
+        fontSize: 19,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 9,
     },
 
     cardDescription: {
-        fontSize: 16,
-        lineHeight: 24,
+        fontSize: 13,
+        lineHeight: 19,
         color: "#60729E",
-        textAlign: "center",
+        marginTop: 4,
     },
 
 
-    /* Safety Banner */
+    /* SAFETY TIP */
 
-    safetyBanner: {
-        minHeight: 160,
-        borderRadius: 26,
-        backgroundColor: "#79A5F5",
+    tipCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 22,
+        padding: 18,
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 20,
         marginTop: 5,
-        marginBottom: 25,
+        marginBottom: 10,
 
-        shadowColor: "#7199E8",
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
-        elevation: 5,
+        borderWidth: 1,
+        borderColor: "#D7E5FF",
     },
 
-    safetyIcon: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        backgroundColor: "#2563E8",
+    tipIcon: {
+        width: 55,
+        height: 55,
+        borderRadius: 18,
+        backgroundColor: "#E7F0FF",
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 16,
     },
 
-    safetyTextContainer: {
+    tipTextContainer: {
         flex: 1,
+        marginLeft: 14,
     },
 
-    safetyTitle: {
-        fontSize: 22,
+    tipTitle: {
+        fontSize: 17,
         fontWeight: "800",
-        color: "#FFFFFF",
-        marginBottom: 8,
+        color: "#173B8F",
     },
 
-    safetyText: {
-        fontSize: 15,
-        lineHeight: 23,
-        color: "#FFFFFF",
+    tipText: {
+        fontSize: 14,
+        lineHeight: 20,
+        color: "#60729E",
+        marginTop: 3,
     },
 
 
-    /* Fixed Bottom Navigation */
+    /* BOTTOM NAVIGATION */
 
     bottomNav: {
         position: "absolute",
@@ -622,7 +761,7 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
-    activeHomeText: {
+    activeText: {
         color: "#2563E8",
         fontWeight: "800",
     },
