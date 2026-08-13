@@ -1,6 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -11,18 +12,73 @@ import {
 } from "react-native";
 
 export default function Home() {
+    const scrollViewRef = useRef<ScrollView>(null);
+    const isFocused = useIsFocused();
+
+    /*
+     * Scroll to the very top whenever Home
+     * becomes the active screen.
+     */
+    useEffect(() => {
+        if (!isFocused) return;
+
+        // Run several times so the scroll position
+        // is reset after navigation/layout finishes.
+        const timer1 = setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+                x: 0,
+                y: 0,
+                animated: false,
+            });
+        }, 0);
+
+        const timer2 = setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+                x: 0,
+                y: 0,
+                animated: false,
+            });
+        }, 100);
+
+        const timer3 = setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+                x: 0,
+                y: 0,
+                animated: false,
+            });
+        }, 300);
+
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+        };
+    }, [isFocused]);
+
+    /*
+     * Home button:
+     * Always scroll to the very top.
+     */
+    const goHome = () => {
+        scrollViewRef.current?.scrollTo({
+            x: 0,
+            y: 0,
+            animated: true,
+        });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
-
             <ScrollView
+                ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
+                keyboardShouldPersistTaps="handled"
+                scrollEventThrottle={16}
             >
-
                 {/* HEADER */}
 
                 <View style={styles.header}>
-
                     <View>
                         <Text style={styles.smallGreeting}>
                             Good to see you
@@ -40,16 +96,12 @@ export default function Home() {
                             color="#2563E8"
                         />
                     </View>
-
                 </View>
-
 
                 {/* SAFETY STATUS */}
 
                 <View style={styles.safetyCard}>
-
                     <View style={styles.safetyHeader}>
-
                         <View style={styles.safeIcon}>
                             <Ionicons
                                 name="shield-checkmark"
@@ -59,7 +111,6 @@ export default function Home() {
                         </View>
 
                         <View style={styles.safeTextContainer}>
-
                             <Text style={styles.safeTitle}>
                                 You're Safe
                             </Text>
@@ -67,20 +118,15 @@ export default function Home() {
                             <Text style={styles.safeSubtitle}>
                                 No active check-in
                             </Text>
-
                         </View>
-
                     </View>
 
-
                     <View style={styles.statusDivider} />
-
 
                     <Text style={styles.safetyDescription}>
                         Start a check-in whenever you want
                         someone to know you're safe.
                     </Text>
-
 
                     <TouchableOpacity
                         style={styles.startButton}
@@ -88,7 +134,6 @@ export default function Home() {
                             router.push("/(tabs)/Check_In")
                         }
                     >
-
                         <Ionicons
                             name="shield-checkmark-outline"
                             size={28}
@@ -98,16 +143,12 @@ export default function Home() {
                         <Text style={styles.startButtonText}>
                             Start Check-In
                         </Text>
-
                     </TouchableOpacity>
-
                 </View>
 
-
-                {/* TODAY'S SAFETY */}
+                {/* YOUR SAFETY */}
 
                 <View style={styles.sectionHeader}>
-
                     <Text style={styles.sectionTitle}>
                         Your Safety
                     </Text>
@@ -115,9 +156,7 @@ export default function Home() {
                     <Text style={styles.sectionSubtitle}>
                         Quick access to your SafeTap features
                     </Text>
-
                 </View>
-
 
                 {/* CONTACTS */}
 
@@ -127,7 +166,6 @@ export default function Home() {
                         router.push("/(tabs)/Contacts")
                     }
                 >
-
                     <View style={styles.contactsIcon}>
                         <Ionicons
                             name="people"
@@ -137,7 +175,6 @@ export default function Home() {
                     </View>
 
                     <View style={styles.cardTextContainer}>
-
                         <Text style={styles.cardTitle}>
                             Trusted Contacts
                         </Text>
@@ -146,7 +183,6 @@ export default function Home() {
                             Manage the people who can be
                             alerted if you miss a check-in.
                         </Text>
-
                     </View>
 
                     <Ionicons
@@ -154,9 +190,7 @@ export default function Home() {
                         size={27}
                         color="#526487"
                     />
-
                 </TouchableOpacity>
-
 
                 {/* HISTORY */}
 
@@ -166,7 +200,6 @@ export default function Home() {
                         router.push("/(tabs)/History")
                     }
                 >
-
                     <View style={styles.historyIcon}>
                         <MaterialIcons
                             name="history"
@@ -176,7 +209,6 @@ export default function Home() {
                     </View>
 
                     <View style={styles.cardTextContainer}>
-
                         <Text style={styles.cardTitle}>
                             Check-In History
                         </Text>
@@ -185,7 +217,6 @@ export default function Home() {
                             View your previous successful
                             and completed check-ins.
                         </Text>
-
                     </View>
 
                     <Ionicons
@@ -193,9 +224,7 @@ export default function Home() {
                         size={27}
                         color="#526487"
                     />
-
                 </TouchableOpacity>
-
 
                 {/* CHECK IN */}
 
@@ -205,7 +234,6 @@ export default function Home() {
                         router.push("/(tabs)/Check_In")
                     }
                 >
-
                     <View style={styles.checkIcon}>
                         <Ionicons
                             name="time"
@@ -215,7 +243,6 @@ export default function Home() {
                     </View>
 
                     <View style={styles.cardTextContainer}>
-
                         <Text style={styles.cardTitle}>
                             Check-In
                         </Text>
@@ -224,7 +251,6 @@ export default function Home() {
                             Set a time and start your
                             safety check-in.
                         </Text>
-
                     </View>
 
                     <Ionicons
@@ -232,9 +258,7 @@ export default function Home() {
                         size={27}
                         color="#526487"
                     />
-
                 </TouchableOpacity>
-
 
                 {/* SETTINGS */}
 
@@ -244,7 +268,6 @@ export default function Home() {
                         router.push("/(tabs)/Settings")
                     }
                 >
-
                     <View style={styles.settingsIcon}>
                         <Ionicons
                             name="settings"
@@ -254,7 +277,6 @@ export default function Home() {
                     </View>
 
                     <View style={styles.cardTextContainer}>
-
                         <Text style={styles.cardTitle}>
                             Settings
                         </Text>
@@ -263,7 +285,6 @@ export default function Home() {
                             Manage reminders and
                             app preferences.
                         </Text>
-
                     </View>
 
                     <Ionicons
@@ -271,14 +292,11 @@ export default function Home() {
                         size={27}
                         color="#526487"
                     />
-
                 </TouchableOpacity>
-
 
                 {/* SAFETY TIP */}
 
                 <View style={styles.tipCard}>
-
                     <View style={styles.tipIcon}>
                         <Ionicons
                             name="bulb"
@@ -288,7 +306,6 @@ export default function Home() {
                     </View>
 
                     <View style={styles.tipTextContainer}>
-
                         <Text style={styles.tipTitle}>
                             Safety Tip
                         </Text>
@@ -297,27 +314,20 @@ export default function Home() {
                             Remember to start a check-in
                             before travelling alone.
                         </Text>
-
                     </View>
-
                 </View>
-
             </ScrollView>
-
 
             {/* BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
-
                 {/* HOME */}
 
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Home")
-                    }
+                    onPress={goHome}
+                    activeOpacity={0.7}
                 >
-
                     <View style={styles.activeLine} />
 
                     <Ionicons
@@ -334,9 +344,7 @@ export default function Home() {
                     >
                         Home
                     </Text>
-
                 </TouchableOpacity>
-
 
                 {/* CHECK IN */}
 
@@ -346,7 +354,6 @@ export default function Home() {
                         router.push("/(tabs)/Check_In")
                     }
                 >
-
                     <Ionicons
                         name="shield-checkmark"
                         size={32}
@@ -356,9 +363,7 @@ export default function Home() {
                     <Text style={styles.navText}>
                         Check In
                     </Text>
-
                 </TouchableOpacity>
-
 
                 {/* CONTACTS */}
 
@@ -368,7 +373,6 @@ export default function Home() {
                         router.push("/(tabs)/Contacts")
                     }
                 >
-
                     <Ionicons
                         name="people"
                         size={32}
@@ -378,9 +382,7 @@ export default function Home() {
                     <Text style={styles.navText}>
                         Contacts
                     </Text>
-
                 </TouchableOpacity>
-
 
                 {/* HISTORY */}
 
@@ -390,7 +392,6 @@ export default function Home() {
                         router.push("/(tabs)/History")
                     }
                 >
-
                     <MaterialIcons
                         name="history"
                         size={34}
@@ -400,9 +401,7 @@ export default function Home() {
                     <Text style={styles.navText}>
                         History
                     </Text>
-
                 </TouchableOpacity>
-
 
                 {/* SETTINGS */}
 
@@ -412,7 +411,6 @@ export default function Home() {
                         router.push("/(tabs)/Settings")
                     }
                 >
-
                     <Ionicons
                         name="settings"
                         size={32}
@@ -422,18 +420,13 @@ export default function Home() {
                     <Text style={styles.navText}>
                         Settings
                     </Text>
-
                 </TouchableOpacity>
-
             </View>
-
         </SafeAreaView>
     );
 }
 
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -444,7 +437,6 @@ const styles = StyleSheet.create({
         paddingTop: 22,
         paddingBottom: 125,
     },
-
 
     /* HEADER */
 
@@ -475,7 +467,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         justifyContent: "center",
         alignItems: "center",
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.14,
         shadowRadius: 10,
@@ -483,10 +474,8 @@ const styles = StyleSheet.create({
             width: 0,
             height: 4,
         },
-
         elevation: 5,
     },
-
 
     /* SAFETY CARD */
 
@@ -495,7 +484,6 @@ const styles = StyleSheet.create({
         borderRadius: 27,
         padding: 23,
         marginBottom: 28,
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
@@ -503,7 +491,6 @@ const styles = StyleSheet.create({
             width: 0,
             height: 5,
         },
-
         elevation: 5,
     },
 
@@ -557,7 +544,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-
         shadowColor: "#2563E8",
         shadowOpacity: 0.22,
         shadowRadius: 9,
@@ -565,7 +551,6 @@ const styles = StyleSheet.create({
             width: 0,
             height: 4,
         },
-
         elevation: 4,
     },
 
@@ -575,7 +560,6 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         marginLeft: 9,
     },
-
 
     /* SECTION */
 
@@ -595,8 +579,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-
-    /* HORIZONTAL CARDS */
+    /* CARDS */
 
     horizontalCard: {
         minHeight: 100,
@@ -604,12 +587,9 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         paddingHorizontal: 15,
         paddingVertical: 15,
-
         flexDirection: "row",
         alignItems: "center",
-
         marginBottom: 13,
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.09,
         shadowRadius: 9,
@@ -617,7 +597,6 @@ const styles = StyleSheet.create({
             width: 0,
             height: 4,
         },
-
         elevation: 4,
     },
 
@@ -675,7 +654,6 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-
     /* SAFETY TIP */
 
     tipCard: {
@@ -686,7 +664,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: 5,
         marginBottom: 10,
-
         borderWidth: 1,
         borderColor: "#D7E5FF",
     },
@@ -718,7 +695,6 @@ const styles = StyleSheet.create({
         marginTop: 3,
     },
 
-
     /* BOTTOM NAVIGATION */
 
     bottomNav: {
@@ -726,15 +702,12 @@ const styles = StyleSheet.create({
         bottom: 10,
         left: 15,
         right: 15,
-
         height: 94,
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
-
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
         shadowRadius: 12,
@@ -742,7 +715,6 @@ const styles = StyleSheet.create({
             width: 0,
             height: 4,
         },
-
         elevation: 6,
     },
 
@@ -774,5 +746,4 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         backgroundColor: "#2563E8",
     },
-
 });

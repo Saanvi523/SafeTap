@@ -1,7 +1,11 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import {
+    router,
+    useFocusEffect,
+    useLocalSearchParams,
+} from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Alert,
     SafeAreaView,
@@ -23,7 +27,10 @@ export default function ActualCheckIn() {
             ? duration
             : "30 min";
 
-    /* Convert duration into seconds */
+    // Store a reference to the ScrollView.
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Convert the selected duration into seconds.
     const getDurationInSeconds = (value: string) => {
         const numberMatch = value.match(/\d+/);
 
@@ -63,7 +70,21 @@ export default function ActualCheckIn() {
     const [isActive, setIsActive] =
         useState(true);
 
-    /* Reset timer when duration changes */
+    // Automatically scroll to the top when the page becomes active.
+    useFocusEffect(
+        useCallback(() => {
+            const timer = setTimeout(() => {
+                scrollViewRef.current?.scrollTo({
+                    y: 0,
+                    animated: false,
+                });
+            }, 50);
+
+            return () => clearTimeout(timer);
+        }, [])
+    );
+
+    // Reset the timer when the selected duration changes.
     useEffect(() => {
         const newDuration =
             getDurationInSeconds(selectedDuration);
@@ -73,7 +94,7 @@ export default function ActualCheckIn() {
         setIsActive(true);
     }, [selectedDuration]);
 
-    /* TIMER */
+    // Run the countdown timer while the check-in is active.
     useEffect(() => {
         if (!isActive || timeRemaining <= 0) {
             return;
@@ -94,7 +115,7 @@ export default function ActualCheckIn() {
         return () => clearInterval(timer);
     }, [isActive, timeRemaining]);
 
-    /* FORMAT TIMER */
+    // Format the remaining seconds into a readable timer.
     const formatTime = (seconds: number) => {
         const days =
             Math.floor(seconds / (24 * 60 * 60));
@@ -145,7 +166,7 @@ export default function ActualCheckIn() {
         )}`;
     };
 
-    /* I'M SAFE */
+    // Save the completed check-in to history.
     const handleImSafe = async () => {
         const now = new Date();
 
@@ -188,7 +209,7 @@ export default function ActualCheckIn() {
                 JSON.stringify(updatedHistory)
             );
 
-            /* Reset timer */
+            // Reset the timer after the check-in is completed.
             const resetTime =
                 getDurationInSeconds(
                     selectedDuration
@@ -215,7 +236,7 @@ export default function ActualCheckIn() {
         }
     };
 
-    /* END CHECK-IN */
+    // End the current check-in after confirmation.
     const handleEndCheckIn = () => {
         Alert.alert(
             "End Check-In",
@@ -250,6 +271,7 @@ export default function ActualCheckIn() {
 
             {/* SCROLLABLE CONTENT */}
             <ScrollView
+                ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={
                     styles.scrollContainer
@@ -410,7 +432,9 @@ export default function ActualCheckIn() {
                         />
 
                         <Text
-                            style={styles.endButtonText}
+                            style={
+                                styles.endButtonText
+                            }
                         >
                             End Check-In
                         </Text>
@@ -624,8 +648,7 @@ export default function ActualCheckIn() {
     );
 }
 
-
-/* STYLES */
+// STYLES
 
 const styles = StyleSheet.create({
 
@@ -640,7 +663,7 @@ const styles = StyleSheet.create({
         paddingBottom: 150,
     },
 
-    /* HEADER */
+    // HEADER
 
     header: {
         flexDirection: "row",
@@ -682,7 +705,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
 
-    /* ACTIVE CARD */
+    // ACTIVE CARD
 
     activeCard: {
         backgroundColor: "#F7FFFB",
@@ -732,7 +755,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
 
-    /* TIMER */
+    // TIMER
 
     timerCircle: {
         width: 290,
@@ -783,7 +806,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-    /* STATUS */
+    // STATUS
 
     endTimeBox: {
         height: 55,
@@ -804,7 +827,7 @@ const styles = StyleSheet.create({
         marginLeft: 9,
     },
 
-    /* I'M SAFE */
+    // I'M SAFE
 
     safeButton: {
         height: 68,
@@ -834,7 +857,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 
-    /* END BUTTON */
+    // END BUTTON
 
     endButton: {
         height: 64,
@@ -855,7 +878,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 
-    /* REMINDER CARD */
+    // REMINDER CARD
 
     reminderCard: {
         backgroundColor: "#FFFFFF",
@@ -945,7 +968,7 @@ const styles = StyleSheet.create({
         color: "#2563E8",
     },
 
-    /* FIXED BOTTOM NAVIGATION */
+    // FIXED BOTTOM NAVIGATION
 
     bottomNav: {
         position: "absolute",

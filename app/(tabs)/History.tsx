@@ -2,7 +2,11 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, {
+    useCallback,
+    useRef,
+    useState,
+} from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -23,8 +27,9 @@ type HistoryItem = {
 const HISTORY_KEY = "@safetap_history";
 
 export default function History() {
-
     const [history, setHistory] = useState<HistoryItem[]>([]);
+
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const loadHistory = async () => {
         try {
@@ -32,30 +37,50 @@ export default function History() {
                 await AsyncStorage.getItem(HISTORY_KEY);
 
             if (savedHistory) {
-                setHistory(JSON.parse(savedHistory));
+                const parsedHistory = JSON.parse(savedHistory);
+
+                if (Array.isArray(parsedHistory)) {
+                    setHistory(parsedHistory);
+                } else {
+                    setHistory([]);
+                }
             } else {
                 setHistory([]);
             }
-
         } catch (error) {
             console.log("Error loading history:", error);
+            setHistory([]);
         }
     };
 
     /*
-     * Reload the history whenever the History
-     * page becomes visible.
+     * Reload history and return to the top
+     * whenever this page becomes visible.
      */
     useFocusEffect(
         useCallback(() => {
             loadHistory();
+
+            const timeout = setTimeout(() => {
+                scrollViewRef.current?.scrollTo({
+                    y: 0,
+                    animated: false,
+                });
+            }, 100);
+
+            return () => {
+                clearTimeout(timeout);
+            };
         }, [])
     );
 
     return (
         <SafeAreaView style={styles.container}>
 
+            {/* MAIN CONTENT */}
+
             <ScrollView
+                ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
@@ -64,7 +89,7 @@ export default function History() {
 
                 <View style={styles.header}>
 
-                    <View>
+                    <View style={styles.headerTextContainer}>
 
                         <Text style={styles.title}>
                             History
@@ -134,6 +159,8 @@ export default function History() {
                                 style={styles.historyItem}
                             >
 
+                                {/* SUCCESS ICON */}
+
                                 <View style={styles.successIcon}>
 
                                     <Ionicons
@@ -143,6 +170,9 @@ export default function History() {
                                     />
 
                                 </View>
+
+
+                                {/* HISTORY INFORMATION */}
 
                                 <View style={styles.historyInfo}>
 
@@ -175,7 +205,7 @@ export default function History() {
             </ScrollView>
 
 
-            {/* BOTTOM NAVIGATION */}
+            {/* FIXED BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
 
@@ -245,7 +275,7 @@ export default function History() {
                 </TouchableOpacity>
 
 
-                {/* HISTORY */}
+                {/* HISTORY - ACTIVE */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -304,6 +334,8 @@ export default function History() {
 
 const styles = StyleSheet.create({
 
+    /* MAIN SCREEN */
+
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -315,11 +347,19 @@ const styles = StyleSheet.create({
         paddingBottom: 130,
     },
 
+
+    /* HEADER */
+
     header: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         marginBottom: 30,
+    },
+
+    headerTextContainer: {
+        flex: 1,
+        paddingRight: 15,
     },
 
     title: {
@@ -330,6 +370,7 @@ const styles = StyleSheet.create({
 
     subtitle: {
         fontSize: 17,
+        lineHeight: 24,
         color: "#60729E",
         marginTop: 8,
     },
@@ -352,6 +393,9 @@ const styles = StyleSheet.create({
 
         elevation: 5,
     },
+
+
+    /* EMPTY HISTORY */
 
     emptyCard: {
         backgroundColor: "#FFFFFF",
@@ -395,6 +439,9 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 
+
+    /* HISTORY CARD */
+
     historyCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
@@ -419,6 +466,9 @@ const styles = StyleSheet.create({
         color: "#173B8F",
         marginBottom: 20,
     },
+
+
+    /* HISTORY ITEM */
 
     historyItem: {
         flexDirection: "row",
@@ -466,6 +516,9 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: "#7182A5",
     },
+
+
+    /* BOTTOM NAVIGATION */
 
     bottomNav: {
         position: "absolute",

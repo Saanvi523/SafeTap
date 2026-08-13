@@ -1,6 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
     Image,
     SafeAreaView,
@@ -17,8 +18,70 @@ export default function SignIn() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    /*
+     * Runs every time this page becomes visible.
+     *
+     * It:
+     * - Clears the email box
+     * - Clears the password box
+     * - Hides the password
+     * - Scrolls back to the very top
+     */
+    useFocusEffect(
+        useCallback(() => {
+            // Clear the input boxes
+            setEmail("");
+            setPassword("");
+            setShowPassword(false);
+
+            // Wait briefly for the page to finish rendering
+            const timeout = setTimeout(() => {
+                scrollViewRef.current?.scrollTo({
+                    y: 0,
+                    animated: false,
+                });
+            }, 100);
+
+            return () => {
+                clearTimeout(timeout);
+            };
+        }, [])
+    );
+
+    /*
+     * SIGN IN
+     *
+     * Checks that both fields have been filled in
+     * before checking the login details.
+     */
     const handleSignIn = () => {
-        if (email === "test@safetap.com" && password === "123456") {
+        // Both fields are empty
+        if (!email.trim() && !password.trim()) {
+            alert(
+                "Please fill in your email and password."
+            );
+            return;
+        }
+
+        // Email is empty
+        if (!email.trim()) {
+            alert("Please fill in your email.");
+            return;
+        }
+
+        // Password is empty
+        if (!password.trim()) {
+            alert("Please fill in your password.");
+            return;
+        }
+
+        // Check login details
+        if (
+            email.trim() === "test@safetap.com" &&
+            password === "123456"
+        ) {
             router.push("/(tabs)/Home");
         } else {
             alert("Incorrect email or password.");
@@ -28,13 +91,18 @@ export default function SignIn() {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView
+                ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
             >
-                {/* Back Button */}
+                {/* BACK BUTTON */}
+
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => router.back()}
+                    activeOpacity={0.7}
                 >
                     <Ionicons
                         name="arrow-back"
@@ -43,18 +111,25 @@ export default function SignIn() {
                     />
                 </TouchableOpacity>
 
-                {/* Logo */}
-                <Text style={styles.logo}>SafeTap</Text>
+                {/* LOGO */}
 
-                {/* Heading */}
-                <Text style={styles.heading}>Welcome Back</Text>
+                <Text style={styles.logo}>
+                    SafeTap
+                </Text>
+
+                {/* HEADING */}
+
+                <Text style={styles.heading}>
+                    Welcome Back
+                </Text>
 
                 <Text style={styles.subHeading}>
                     Sign in to access your{"\n"}
                     safety check-ins and alerts.
                 </Text>
 
-                {/* Email */}
+                {/* EMAIL */}
+
                 <View style={styles.inputContainer}>
                     <MaterialIcons
                         name="email"
@@ -68,13 +143,15 @@ export default function SignIn() {
                         placeholderTextColor="#6C7AA9"
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        autoCorrect={false}
                         value={email}
                         onChangeText={setEmail}
                         style={styles.input}
                     />
                 </View>
 
-                {/* Password */}
+                {/* PASSWORD */}
+
                 <View style={styles.inputContainer}>
                     <MaterialIcons
                         name="lock"
@@ -87,38 +164,60 @@ export default function SignIn() {
                         placeholder="Password"
                         placeholderTextColor="#6C7AA9"
                         secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                        autoCorrect={false}
                         value={password}
                         onChangeText={setPassword}
                         style={styles.input}
                     />
 
+                    {/* SHOW / HIDE PASSWORD */}
+
                     <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
+                        onPress={() =>
+                            setShowPassword(
+                                (previous) => !previous
+                            )
+                        }
+                        activeOpacity={0.7}
                     >
                         <Ionicons
-                            name={showPassword ? "eye-off" : "eye"}
+                            name={
+                                showPassword
+                                    ? "eye-off"
+                                    : "eye"
+                            }
                             size={24}
                             color="#7A84A7"
                         />
                     </TouchableOpacity>
                 </View>
 
-                {/* Forgot Password */}
-                <TouchableOpacity style={styles.forgotContainer}>
+                {/* FORGOT PASSWORD */}
+
+                <TouchableOpacity
+                    style={styles.forgotContainer}
+                    activeOpacity={0.7}
+                >
                     <Text style={styles.forgotText}>
                         Forgot Password?
                     </Text>
                 </TouchableOpacity>
 
-                {/* Sign In Button */}
+                {/* SIGN IN BUTTON */}
+
                 <TouchableOpacity
                     style={styles.signInButton}
                     onPress={handleSignIn}
+                    activeOpacity={0.8}
                 >
-                    <Text style={styles.signInText}>SIGN IN</Text>
+                    <Text style={styles.signInText}>
+                        SIGN IN
+                    </Text>
                 </TouchableOpacity>
 
-                {/* Shield */}
+                {/* SHIELD */}
+
                 <View style={styles.shieldContainer}>
                     <Image
                         source={require("../../assets/images/Shield 2.0. .png")}
@@ -184,6 +283,7 @@ const styles = StyleSheet.create({
         shadowColor: "#2563E8",
         shadowOpacity: 0.08,
         shadowRadius: 10,
+
         shadowOffset: {
             width: 0,
             height: 4,

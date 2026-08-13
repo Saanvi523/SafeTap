@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -15,21 +15,40 @@ export default function CheckIn() {
     const [duration, setDuration] = useState("30 min");
     const [showDurationPicker, setShowDurationPicker] = useState(false);
 
+    // Store a reference to the ScrollView.
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // CHECK IN PAGE
+
+    // Scroll to the top every time this page is opened.
+    useFocusEffect(
+        useCallback(() => {
+
+            scrollViewRef.current?.scrollTo({
+                y: 0,
+                animated: false,
+            });
+
+        }, [])
+    );
+
     return (
         <SafeAreaView style={styles.container}>
 
-            {/* Main Scrollable Content */}
+            {/* MAIN SCROLLABLE CONTENT */}
 
             <ScrollView
+                ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
-                {/* Header */}
+                {/* HEADER */}
 
                 <View style={styles.header}>
 
                     <View>
+
                         <Text style={styles.title}>
                             Check In
                         </Text>
@@ -37,20 +56,23 @@ export default function CheckIn() {
                         <Text style={styles.subtitle}>
                             Start a check in and stay safe
                         </Text>
+
                     </View>
 
                     <View style={styles.shieldContainer}>
+
                         <Ionicons
                             name="shield-checkmark"
                             size={48}
                             color="#2563E8"
                         />
+
                     </View>
 
                 </View>
 
 
-                {/* How It Works */}
+                {/* HOW IT WORKS */}
 
                 <View style={styles.howItWorksCard}>
 
@@ -59,16 +81,18 @@ export default function CheckIn() {
                     </Text>
 
 
-                    {/* Step 1 */}
+                    {/* STEP 1 */}
 
                     <View style={styles.stepRow}>
 
                         <View style={styles.stepIconBlue}>
+
                             <MaterialIcons
                                 name="event"
                                 size={45}
                                 color="#2563E8"
                             />
+
                         </View>
 
                         <View style={styles.stepTextContainer}>
@@ -88,16 +112,18 @@ export default function CheckIn() {
                     </View>
 
 
-                    {/* Step 2 */}
+                    {/* STEP 2 */}
 
                     <View style={styles.stepRow}>
 
                         <View style={styles.stepIconGreen}>
+
                             <Ionicons
                                 name="notifications"
                                 size={45}
                                 color="#08B88A"
                             />
+
                         </View>
 
                         <View style={styles.stepTextContainer}>
@@ -117,16 +143,18 @@ export default function CheckIn() {
                     </View>
 
 
-                    {/* Step 3 */}
+                    {/* STEP 3 */}
 
                     <View style={styles.stepRow}>
 
                         <View style={styles.stepIconPurple}>
+
                             <Ionicons
                                 name="people"
                                 size={45}
                                 color="#8B4DFF"
                             />
+
                         </View>
 
                         <View style={styles.stepTextContainer}>
@@ -146,7 +174,7 @@ export default function CheckIn() {
                     </View>
 
 
-                    {/* Start Check In Card */}
+                    {/* START CHECK-IN CARD */}
 
                     <View style={styles.startCard}>
 
@@ -157,7 +185,7 @@ export default function CheckIn() {
                         <View style={styles.divider} />
 
 
-                        {/* Check-In Frequency */}
+                        {/* CHECK-IN FREQUENCY */}
 
                         <TouchableOpacity
                             style={styles.optionRow}
@@ -187,7 +215,7 @@ export default function CheckIn() {
                         </TouchableOpacity>
 
 
-                        {/* Duration Picker */}
+                        {/* DURATION PICKER */}
 
                         {showDurationPicker && (
 
@@ -219,8 +247,10 @@ export default function CheckIn() {
                                                     styles.selectedDuration,
                                             ]}
                                             onPress={() => {
+
                                                 setDuration(time);
                                                 setShowDurationPicker(false);
+
                                             }}
                                         >
 
@@ -261,7 +291,7 @@ export default function CheckIn() {
                         <View style={styles.divider} />
 
 
-                        {/* When */}
+                        {/* WHEN */}
 
                         <TouchableOpacity
                             style={styles.optionRow}
@@ -291,7 +321,7 @@ export default function CheckIn() {
                         <View style={styles.divider} />
 
 
-                        {/* Start Button */}
+                        {/* START BUTTON */}
 
                         <TouchableOpacity
                             style={styles.startButton}
@@ -324,11 +354,11 @@ export default function CheckIn() {
             </ScrollView>
 
 
-            {/* Fixed Bottom Navigation */}
+            {/* FIXED BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
 
-                {/* Home */}
+                {/* HOME */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -350,7 +380,7 @@ export default function CheckIn() {
                 </TouchableOpacity>
 
 
-                {/* Check In - Active */}
+                {/* CHECK IN - ACTIVE */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -379,7 +409,7 @@ export default function CheckIn() {
                 </TouchableOpacity>
 
 
-                {/* Contacts */}
+                {/* CONTACTS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -401,7 +431,7 @@ export default function CheckIn() {
                 </TouchableOpacity>
 
 
-                {/* History */}
+                {/* HISTORY */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -423,7 +453,7 @@ export default function CheckIn() {
                 </TouchableOpacity>
 
 
-                {/* Settings */}
+                {/* SETTINGS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -453,7 +483,7 @@ export default function CheckIn() {
 
 const styles = StyleSheet.create({
 
-    /* Main Screen */
+    // MAIN SCREEN
 
     container: {
         flex: 1,
@@ -467,7 +497,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Header */
+    // HEADER
 
     header: {
         flexDirection: "row",
@@ -500,6 +530,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7EA7EF",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -509,7 +540,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* How It Works */
+    // HOW IT WORKS
 
     howItWorksCard: {
         backgroundColor: "#FFFFFF",
@@ -522,6 +553,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -591,7 +623,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Start Check In Card */
+    // START CHECK-IN CARD
 
     startCard: {
         backgroundColor: "#FFFFFF",
@@ -604,6 +636,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -649,7 +682,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Start Button */
+    // START BUTTON
 
     startButton: {
         height: 64,
@@ -663,6 +696,7 @@ const styles = StyleSheet.create({
         shadowColor: "#2563E8",
         shadowOpacity: 0.25,
         shadowRadius: 10,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -679,7 +713,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Duration Picker */
+    // DURATION PICKER
 
     durationPicker: {
         backgroundColor: "#F5F8FF",
@@ -740,7 +774,7 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Bottom Navigation - Same as Contacts */
+    // BOTTOM NAVIGATION
 
     bottomNav: {
         position: "absolute",
@@ -759,6 +793,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 4,
