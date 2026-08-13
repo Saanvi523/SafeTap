@@ -1,7 +1,8 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+    Alert,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -20,9 +21,7 @@ type Contact = {
 };
 
 export default function Contacts() {
-
-    const router = useRouter();
-
+    const [contacts, setContacts] = useState<Contact[]>([]);
     const [showAddContact, setShowAddContact] = useState(false);
 
     const [name, setName] = useState("");
@@ -30,11 +29,29 @@ export default function Contacts() {
     const [relationship, setRelationship] = useState("");
     const [email, setEmail] = useState("");
 
-    const [contacts, setContacts] = useState<Contact[]>([]);
-
     const addContact = () => {
+        // Check that all fields are filled in
+        if (
+            !name.trim() ||
+            !phone.trim() ||
+            !relationship.trim() ||
+            !email.trim()
+        ) {
+            Alert.alert(
+                "Missing Information",
+                "Please fill in all contact details."
+            );
+            return;
+        }
 
-        if (name.trim() === "" || phone.trim() === "") {
+        // Check email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email.trim())) {
+            Alert.alert(
+                "Invalid Email",
+                "Please enter a valid email address, such as example@email.com."
+            );
             return;
         }
 
@@ -43,201 +60,457 @@ export default function Contacts() {
             name: name.trim(),
             phone: phone.trim(),
             relationship: relationship.trim(),
-            email: email.trim(),
+            email: email.trim().toLowerCase(),
         };
 
         setContacts([...contacts, newContact]);
 
+        // Clear form
         setName("");
         setPhone("");
         setRelationship("");
         setEmail("");
 
         setShowAddContact(false);
-    };
 
-    const deleteContact = (id: number) => {
-
-        setContacts(
-            contacts.filter((contact) => contact.id !== id)
+        Alert.alert(
+            "Contact Added",
+            "The trusted contact has been added successfully."
         );
     };
 
+    const deleteContact = (id: number) => {
+        Alert.alert(
+            "Delete Contact",
+            "Are you sure you want to remove this contact?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => {
+                        setContacts(
+                            contacts.filter(
+                                (contact) => contact.id !== id
+                            )
+                        );
+                    },
+                },
+            ]
+        );
+    };
+
+    const getInitials = (name: string) => {
+        const words = name.trim().split(/\s+/);
+
+        if (words.length === 1) {
+            return words[0]
+                .substring(0, 2)
+                .toUpperCase();
+        }
+
+        return (
+            words[0][0] +
+            words[words.length - 1][0]
+        ).toUpperCase();
+    };
+
+    const emergencyContact = contacts[0];
+    const otherContacts = contacts.slice(1);
+
     return (
         <SafeAreaView style={styles.container}>
-
-            {/* Main Scrollable Content */}
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
-                {/* Back Button */}
+                {/* HEADER */}
 
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons
-                        name="arrow-back"
-                        size={30}
-                        color="#2563E8"
-                    />
-                </TouchableOpacity>
+                <View style={styles.header}>
 
-
-                {/* Page Title */}
-
-                <Text style={styles.title}>
-                    Contacts
-                </Text>
-
-
-                {/* Introduction */}
-
-                <View style={styles.introContainer}>
-
-                    <View style={styles.introTextContainer}>
-
-                        <Text style={styles.mainHeading}>
-                            Your Trusted Contacts
+                    <View>
+                        <Text style={styles.title}>
+                            Trusted Contacts
                         </Text>
 
                         <Text style={styles.subtitle}>
-                            Add and manage the people who will
-                            {"\n"}
-                            be alerted in case of an emergency.
+                            People who can help keep you safe
                         </Text>
-
                     </View>
 
-
-                    <View style={styles.contactIcon}>
-
+                    <View style={styles.headerIcon}>
                         <Ionicons
-                            name="person-add"
-                            size={48}
-                            color="#2563E8"
+                            name="shield-checkmark"
+                            size={38}
+                            color="#08B88A"
                         />
-
                     </View>
 
                 </View>
 
+                {/* EMERGENCY CONTACT */}
 
-                {/* Add Contact Button */}
+                <Text style={styles.sectionLabel}>
+                    EMERGENCY CONTACT
+                </Text>
 
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() =>
-                        setShowAddContact(!showAddContact)
-                    }
-                >
+                {emergencyContact ? (
 
-                    <Text style={styles.addButtonText}>
-                        Add New Contact
-                    </Text>
+                    <View style={styles.emergencyCard}>
 
-                    <View style={styles.plusCircle}>
+                        <View style={styles.emergencyTop}>
+
+                            <View style={styles.emergencyIcon}>
+
+                                <Text
+                                    style={styles.emergencyInitials}
+                                >
+                                    {getInitials(
+                                        emergencyContact.name
+                                    )}
+                                </Text>
+
+                            </View>
+
+                            <View style={styles.emergencyBadge}>
+
+                                <Ionicons
+                                    name="shield-checkmark"
+                                    size={17}
+                                    color="#08A96D"
+                                />
+
+                                <Text
+                                    style={styles.emergencyBadgeText}
+                                >
+                                    Primary Contact
+                                </Text>
+
+                            </View>
+
+                        </View>
+
+                        <Text style={styles.emergencyName}>
+                            {emergencyContact.name}
+                        </Text>
+
+                        <Text style={styles.emergencyRelationship}>
+                            {emergencyContact.relationship}
+                        </Text>
+
+                        <View style={styles.emergencyInfo}>
+
+                            <View style={styles.infoLine}>
+
+                                <Ionicons
+                                    name="call"
+                                    size={20}
+                                    color="#08A96D"
+                                />
+
+                                <Text style={styles.infoText}>
+                                    {emergencyContact.phone}
+                                </Text>
+
+                            </View>
+
+                            <View style={styles.infoLine}>
+
+                                <Ionicons
+                                    name="mail"
+                                    size={20}
+                                    color="#08A96D"
+                                />
+
+                                <Text style={styles.infoText}>
+                                    {emergencyContact.email}
+                                </Text>
+
+                            </View>
+
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.deleteEmergencyButton}
+                            onPress={() =>
+                                deleteContact(
+                                    emergencyContact.id
+                                )
+                            }
+                        >
+
+                            <MaterialIcons
+                                name="delete-outline"
+                                size={22}
+                                color="#EF2929"
+                            />
+
+                            <Text
+                                style={styles.deleteEmergencyText}
+                            >
+                                Remove Contact
+                            </Text>
+
+                        </TouchableOpacity>
+
+                    </View>
+
+                ) : (
+
+                    <View style={styles.noEmergencyCard}>
+
+                        <View style={styles.emptyIcon}>
+
+                            <Ionicons
+                                name="person-add-outline"
+                                size={40}
+                                color="#08B88A"
+                            />
+
+                        </View>
+
+                        <Text style={styles.emptyTitle}>
+                            No emergency contact
+                        </Text>
+
+                        <Text style={styles.emptyText}>
+                            Add a trusted person to receive
+                            alerts if you miss a check-in.
+                        </Text>
+
+                    </View>
+
+                )}
+
+                {/* OTHER CONTACTS */}
+
+                {contacts.length > 1 && (
+
+                    <View style={styles.otherSection}>
+
+                        <View style={styles.otherHeader}>
+
+                            <Text style={styles.sectionLabel}>
+                                OTHER TRUSTED CONTACTS
+                            </Text>
+
+                            <View style={styles.countBadge}>
+
+                                <Text style={styles.countText}>
+                                    {otherContacts.length}
+                                </Text>
+
+                            </View>
+
+                        </View>
+
+                        <View style={styles.otherContactsCard}>
+
+                            {otherContacts.map(
+                                (contact, index) => (
+
+                                    <View
+                                        key={contact.id}
+                                        style={[
+                                            styles.otherContact,
+                                            index !==
+                                                otherContacts.length - 1 &&
+                                                styles.contactDivider,
+                                        ]}
+                                    >
+
+                                        <View
+                                            style={
+                                                styles.smallInitial
+                                            }
+                                        >
+
+                                            <Text
+                                                style={
+                                                    styles.smallInitialText
+                                                }
+                                            >
+                                                {getInitials(
+                                                    contact.name
+                                                )}
+                                            </Text>
+
+                                        </View>
+
+                                        <View
+                                            style={
+                                                styles.otherContactInfo
+                                            }
+                                        >
+
+                                            <Text
+                                                style={
+                                                    styles.otherContactName
+                                                }
+                                            >
+                                                {contact.name}
+                                            </Text>
+
+                                            <Text
+                                                style={
+                                                    styles.otherContactRelationship
+                                                }
+                                            >
+                                                {contact.relationship}
+                                            </Text>
+
+                                        </View>
+
+                                        <TouchableOpacity
+                                            style={
+                                                styles.deleteSmallButton
+                                            }
+                                            onPress={() =>
+                                                deleteContact(
+                                                    contact.id
+                                                )
+                                            }
+                                        >
+
+                                            <MaterialIcons
+                                                name="delete-outline"
+                                                size={25}
+                                                color="#EF2929"
+                                            />
+
+                                        </TouchableOpacity>
+
+                                    </View>
+
+                                )
+                            )}
+
+                        </View>
+
+                    </View>
+
+                )}
+
+                {/* ADD CONTACT BUTTON */}
+
+                <View style={styles.addSection}>
+
+                    <TouchableOpacity
+                        style={styles.addOutlineButton}
+                        onPress={() =>
+                            setShowAddContact(
+                                !showAddContact
+                            )
+                        }
+                    >
 
                         <Ionicons
                             name={
                                 showAddContact
-                                    ? "remove"
+                                    ? "close"
                                     : "add"
                             }
-                            size={28}
-                            color="#FFFFFF"
+                            size={25}
+                            color="#2563E8"
                         />
 
-                    </View>
+                        <Text style={styles.addOutlineText}>
+                            {showAddContact
+                                ? "Cancel"
+                                : "Add Trusted Contact"}
+                        </Text>
 
-                </TouchableOpacity>
+                    </TouchableOpacity>
 
+                </View>
 
-                {/* Add Contact Form */}
+                {/* ADD CONTACT FORM */}
 
                 {showAddContact && (
 
-                    <View style={styles.addForm}>
-
-                        <View style={styles.dragHandle} />
+                    <View style={styles.formCard}>
 
                         <Text style={styles.formTitle}>
-                            Add New Contact
+                            Add Trusted Contact
                         </Text>
 
+                        {/* NAME */}
 
-                        {/* Name */}
-
-                        <Text style={styles.label}>
-                            Name
+                        <Text style={styles.inputLabel}>
+                            Full Name
                         </Text>
 
                         <TextInput
-                            style={styles.formInput}
-                            placeholder="Enter contact name"
-                            placeholderTextColor="#8092BC"
+                            style={styles.input}
+                            placeholder="Enter full name"
+                            placeholderTextColor="#9AA8C0"
                             value={name}
                             onChangeText={setName}
                         />
 
+                        {/* PHONE */}
 
-                        {/* Phone */}
-
-                        <Text style={styles.label}>
+                        <Text style={styles.inputLabel}>
                             Phone Number
                         </Text>
 
                         <TextInput
-                            style={styles.formInput}
-                            placeholder="02X XXX XXXX"
-                            placeholderTextColor="#8092BC"
+                            style={styles.input}
+                            placeholder="Enter phone number"
+                            placeholderTextColor="#9AA8C0"
                             keyboardType="phone-pad"
                             value={phone}
                             onChangeText={setPhone}
                         />
 
+                        {/* RELATIONSHIP */}
 
-                        {/* Relationship */}
-
-                        <Text style={styles.label}>
-                            Relationship (optional)
+                        <Text style={styles.inputLabel}>
+                            Relationship
                         </Text>
 
                         <TextInput
-                            style={styles.formInput}
-                            placeholder="e.g. Parent, Friend, Sibling"
-                            placeholderTextColor="#8092BC"
+                            style={styles.input}
+                            placeholder="e.g. Parent, Friend"
+                            placeholderTextColor="#9AA8C0"
                             value={relationship}
                             onChangeText={setRelationship}
                         />
 
+                        {/* EMAIL */}
 
-                        {/* Email */}
-
-                        <Text style={styles.label}>
-                            Email (optional)
+                        <Text style={styles.inputLabel}>
+                            Email
                         </Text>
 
                         <TextInput
-                            style={styles.formInput}
-                            placeholder="e.g. email@example.com"
-                            placeholderTextColor="#8092BC"
+                            style={styles.input}
+                            placeholder="Enter email address"
+                            placeholderTextColor="#9AA8C0"
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            autoCorrect={false}
                             value={email}
                             onChangeText={setEmail}
                         />
 
-
-                        {/* Save */}
+                        {/* SAVE */}
 
                         <TouchableOpacity
                             style={styles.saveButton}
                             onPress={addContact}
                         >
+
+                            <Ionicons
+                                name="checkmark-circle"
+                                size={25}
+                                color="#FFFFFF"
+                            />
 
                             <Text style={styles.saveButtonText}>
                                 Save Contact
@@ -249,107 +522,13 @@ export default function Contacts() {
 
                 )}
 
-
-                {/* Contacts Heading */}
-
-                {contacts.length > 0 && (
-
-                    <Text style={styles.contactsHeading}>
-                        Your Contacts
-                    </Text>
-
-                )}
-
-
-                {/* Contact Cards */}
-
-                {contacts.map((contact) => (
-
-                    <View
-                        key={contact.id}
-                        style={styles.contactCard}
-                    >
-
-                        {/* Contact Icon */}
-
-                        <View style={styles.contactBadge}>
-
-                            <Ionicons
-                                name="person"
-                                size={28}
-                                color="#2563E8"
-                            />
-
-                        </View>
-
-
-                        {/* Contact Information */}
-
-                        <View style={styles.contactInfo}>
-
-                            <Text style={styles.contactName}>
-                                {contact.name}
-                            </Text>
-
-                            <Text style={styles.contactPhone}>
-                                {contact.phone}
-                            </Text>
-
-                            {contact.relationship !== "" && (
-
-                                <Text style={styles.relationship}>
-                                    {contact.relationship}
-                                </Text>
-
-                            )}
-
-                        </View>
-
-
-                        {/* Message */}
-
-                        <TouchableOpacity
-                            style={styles.messageButton}
-                        >
-
-                            <Ionicons
-                                name="chatbubble"
-                                size={21}
-                                color="#2563E8"
-                            />
-
-                        </TouchableOpacity>
-
-
-                        {/* Delete */}
-
-                        <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() =>
-                                deleteContact(contact.id)
-                            }
-                        >
-
-                            <MaterialIcons
-                                name="delete"
-                                size={21}
-                                color="#FFFFFF"
-                            />
-
-                        </TouchableOpacity>
-
-                    </View>
-
-                ))}
-
             </ScrollView>
 
-
-            {/* FIXED BOTTOM NAVIGATION */}
+            {/* BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
 
-                {/* Home */}
+                {/* HOME */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -370,8 +549,7 @@ export default function Contacts() {
 
                 </TouchableOpacity>
 
-
-                {/* Check In */}
+                {/* CHECK IN */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -392,8 +570,7 @@ export default function Contacts() {
 
                 </TouchableOpacity>
 
-
-                {/* Contacts - Active */}
+                {/* CONTACTS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -421,8 +598,7 @@ export default function Contacts() {
 
                 </TouchableOpacity>
 
-
-                {/* History */}
+                {/* HISTORY */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -443,8 +619,7 @@ export default function Contacts() {
 
                 </TouchableOpacity>
 
-
-                {/* Settings */}
+                {/* SETTINGS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -471,129 +646,72 @@ export default function Contacts() {
     );
 }
 
-
 const styles = StyleSheet.create({
-
-    /* Main Screen */
 
     container: {
         flex: 1,
-        backgroundColor: "#F5F8FD",
+        backgroundColor: "#F5F8FF",
     },
 
     scrollContainer: {
-        paddingHorizontal: 25,
-        paddingTop: 15,
-
-        // Extra space so the last contact
-        // isn't hidden behind the fixed nav bar
-        paddingBottom: 130,
+        paddingHorizontal: 22,
+        paddingTop: 20,
+        paddingBottom: 125,
     },
 
+    /* HEADER */
 
-    /* Back Button */
-
-    backButton: {
-        marginBottom: 10,
-        alignSelf: "flex-start",
-    },
-
-
-    /* Title */
-
-    title: {
-        fontSize: 34,
-        fontWeight: "800",
-        color: "#2563E8",
-        textAlign: "center",
-        marginBottom: 35,
-    },
-
-
-    /* Introduction */
-
-    introContainer: {
+    header: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: 30,
     },
 
-    introTextContainer: {
-        flex: 1,
-    },
-
-    mainHeading: {
-        fontSize: 25,
+    title: {
+        fontSize: 36,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 10,
+        maxWidth: 280,
     },
 
     subtitle: {
         fontSize: 16,
-        lineHeight: 25,
+        lineHeight: 23,
         color: "#60729E",
+        marginTop: 7,
+        maxWidth: 270,
     },
 
-    contactIcon: {
-        width: 95,
-        height: 95,
-        borderRadius: 50,
-        backgroundColor: "#EDF4FF",
+    headerIcon: {
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        backgroundColor: "#E2FAEF",
+        alignItems: "center",
         justifyContent: "center",
-        alignItems: "center",
-        marginLeft: 10,
     },
 
+    /* SECTION LABEL */
 
-    /* Add Contact Button */
-
-    addButton: {
-        height: 78,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 22,
+    sectionLabel: {
+        fontSize: 13,
+        fontWeight: "800",
+        letterSpacing: 1,
+        color: "#60729E",
         marginBottom: 12,
-
-        shadowColor: "#7EA7EF",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
-        elevation: 5,
     },
 
-    addButtonText: {
-        fontSize: 21,
-        fontWeight: "700",
-        color: "#173B8F",
-    },
+    /* EMERGENCY CONTACT */
 
-    plusCircle: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
-        backgroundColor: "#2563E8",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-
-    /* Add Contact Form */
-
-    addForm: {
+    emergencyCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 22,
-        marginBottom: 30,
+        borderRadius: 28,
+        padding: 24,
+        borderWidth: 2,
+        borderColor: "#08B88A",
 
-        shadowColor: "#7EA7EF",
+        shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
         shadowOffset: {
@@ -604,13 +722,247 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
 
-    dragHandle: {
-        width: 48,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: "#CCD5E8",
-        alignSelf: "center",
-        marginBottom: 20,
+    emergencyTop: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    emergencyIcon: {
+        width: 82,
+        height: 82,
+        borderRadius: 41,
+        backgroundColor: "#E2FAEF",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    emergencyInitials: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#08A96D",
+    },
+
+    emergencyBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#E2FAEF",
+        borderRadius: 18,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+
+    emergencyBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#08A96D",
+        marginLeft: 5,
+    },
+
+    emergencyName: {
+        fontSize: 29,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginTop: 20,
+    },
+
+    emergencyRelationship: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#08A96D",
+        marginTop: 4,
+    },
+
+    emergencyInfo: {
+        backgroundColor: "#F5FAF8",
+        borderRadius: 18,
+        padding: 15,
+        marginTop: 20,
+    },
+
+    infoLine: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginVertical: 5,
+    },
+
+    infoText: {
+        fontSize: 15,
+        color: "#526487",
+        marginLeft: 10,
+        flex: 1,
+    },
+
+    deleteEmergencyButton: {
+        height: 48,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: "#F2CACA",
+        backgroundColor: "#FFF8F8",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 18,
+    },
+
+    deleteEmergencyText: {
+        color: "#EF2929",
+        fontSize: 15,
+        fontWeight: "800",
+        marginLeft: 7,
+    },
+
+    /* EMPTY STATE */
+
+    noEmergencyCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        padding: 28,
+        alignItems: "center",
+    },
+
+    emptyIcon: {
+        width: 75,
+        height: 75,
+        borderRadius: 38,
+        backgroundColor: "#E2FAEF",
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: 14,
+    },
+
+    emptyTitle: {
+        fontSize: 21,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    emptyText: {
+        fontSize: 15,
+        lineHeight: 23,
+        textAlign: "center",
+        color: "#60729E",
+        marginTop: 8,
+    },
+
+    /* OTHER CONTACTS */
+
+    otherSection: {
+        marginTop: 30,
+    },
+
+    otherHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    countBadge: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: "#E2FAEF",
+        alignItems: "center",
+        justifyContent: "center",
+        marginLeft: 8,
+        marginBottom: 12,
+    },
+
+    countText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#08A96D",
+    },
+
+    otherContactsCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        paddingHorizontal: 18,
+        overflow: "hidden",
+    },
+
+    otherContact: {
+        minHeight: 82,
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    contactDivider: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5EBF4",
+    },
+
+    smallInitial: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: "#F0E5FF",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    smallInitialText: {
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#8B4DFF",
+    },
+
+    otherContactInfo: {
+        flex: 1,
+        marginLeft: 14,
+    },
+
+    otherContactName: {
+        fontSize: 17,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    otherContactRelationship: {
+        fontSize: 14,
+        color: "#60729E",
+        marginTop: 3,
+    },
+
+    deleteSmallButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 13,
+        backgroundColor: "#FFF2F2",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    /* ADD CONTACT */
+
+    addSection: {
+        marginTop: 25,
+    },
+
+    addOutlineButton: {
+        height: 58,
+        borderRadius: 18,
+        borderWidth: 2,
+        borderColor: "#2563E8",
+        backgroundColor: "#FFFFFF",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    addOutlineText: {
+        fontSize: 17,
+        fontWeight: "800",
+        color: "#2563E8",
+        marginLeft: 8,
+    },
+
+    /* FORM */
+
+    formCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        padding: 22,
+        marginTop: 18,
     },
 
     formTitle: {
@@ -620,137 +972,50 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-    label: {
+    inputLabel: {
         fontSize: 15,
         fontWeight: "700",
-        color: "#60729E",
+        color: "#526487",
         marginBottom: 7,
     },
 
-    formInput: {
-        height: 55,
-        borderWidth: 1,
-        borderColor: "#D6E0F3",
+    input: {
+        height: 52,
         borderRadius: 14,
-        paddingHorizontal: 16,
+        borderWidth: 1,
+        borderColor: "#D7E1F0",
+        backgroundColor: "#F8FAFE",
+        paddingHorizontal: 15,
         fontSize: 16,
-        color: "#243F80",
-        marginBottom: 17,
-        backgroundColor: "#FBFCFF",
+        color: "#173B8F",
+        marginBottom: 15,
     },
 
-
-    /* Save Button */
-
     saveButton: {
-        height: 57,
-        borderRadius: 15,
+        height: 56,
+        borderRadius: 17,
         backgroundColor: "#2563E8",
-        justifyContent: "center",
+        flexDirection: "row",
         alignItems: "center",
+        justifyContent: "center",
         marginTop: 5,
     },
 
     saveButtonText: {
         color: "#FFFFFF",
-        fontSize: 18,
-        fontWeight: "700",
-    },
-
-
-    /* Contacts */
-
-    contactsHeading: {
-        fontSize: 21,
-        fontWeight: "800",
-        color: "#173B8F",
-        marginBottom: 14,
-    },
-
-    contactCard: {
-        minHeight: 88,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 18,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        marginBottom: 13,
-
-        shadowColor: "#7EA7EF",
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-
-        elevation: 4,
-    },
-
-    contactBadge: {
-        width: 55,
-        height: 55,
-        borderRadius: 30,
-        backgroundColor: "#E7F0FF",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 14,
-    },
-
-    contactInfo: {
-        flex: 1,
-    },
-
-    contactName: {
         fontSize: 17,
         fontWeight: "800",
-        color: "#173B8F",
-        marginBottom: 4,
+        marginLeft: 8,
     },
 
-    contactPhone: {
-        fontSize: 15,
-        color: "#60729E",
-    },
-
-    relationship: {
-        fontSize: 13,
-        color: "#8A9ABD",
-        marginTop: 3,
-    },
-
-    messageButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "#EDF4FF",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 8,
-    },
-
-    deleteButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: "#E53935",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-
-    /* FIXED BOTTOM NAVIGATION */
+    /* BOTTOM NAVIGATION */
 
     bottomNav: {
         position: "absolute",
-
         bottom: 10,
         left: 15,
         right: 15,
-
         height: 94,
-
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
 
@@ -797,5 +1062,4 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         backgroundColor: "#08B88A",
     },
-
 });
