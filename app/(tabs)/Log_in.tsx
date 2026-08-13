@@ -1,7 +1,16 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function SignIn() {
     const [email, setEmail] = useState("");
@@ -13,153 +22,209 @@ export default function SignIn() {
             router.push("/(tabs)/Home");
         } else {
             alert("Incorrect email or password.");
-        }   
+        }
     };
 
     return (
         <SafeAreaView style={styles.container}>
+
             <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContainer}>
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContainer}
+            >
 
-
-            <TouchableOpacity style={styles.backButton}>
-                <Ionicons name="arrow-back" size={30} color="#1E4FD8" />
-            </TouchableOpacity>
-
-            <Text style={styles.logo}>SafeTap</Text>
-
-            <Text style={styles.heading}>Welcome Back</Text>
-
-            <Text style={styles.subHeading}>
-                Sign in to access your{"\n"} 
-                safety check-ins and alerts.
-            </Text>
-
-
-            <View style={styles.inputContainer}>
-                <MaterialIcons
-                    name="email"
-                    size={22}
-                    color="#1E4FD8"
-                    style={styles.leftIcon}
-                />
-
-                <TextInput
-                    placeholder="Email Address"
-                    placeholderTextColor="#6C7AA9"
-                    keyboardType="email-address"
-                    value={email}
-                    onChangeText={setEmail}
-                    style={styles.input}
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <MaterialIcons
-                    name="lock"
-                    size={22}
-                    color="#1E4FD8"
-                    style={styles.leftIcon}
-                />
-                
-                <TextInput
-                placeholder="Password"
-                placeholderTextColor="#6C7AA9"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                style={styles.input}
-                />
-
+                {/* Back Button */}
                 <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
+                    style={styles.backButton}
+                    onPress={() => router.back()}
                 >
                     <Ionicons
-                    name={showPassword ? "eye" : "eye-off"}
-                    size={24}
-                    color="#7A84A7"
+                        name="arrow-back"
+                        size={30}
+                        color="#1E4FD8"
                     />
                 </TouchableOpacity>
-            </View>
 
-            <TouchableOpacity style={styles.forgotContainer}>
-                <Text style={styles.forgotText}>
-                    Forgot Password?
-                </Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity 
-                style={styles.signInButton}
-                onPress={handleSignIn}
-            >
-                <Text style={styles.signInText}>
-                    SIGN IN
-                </Text>
-            </TouchableOpacity>
-
-            <View style={styles.orContainer}>
-                <View style={styles.divider}/>
-
-                <Text style={styles.orText}>
-                    or
+                {/* Logo */}
+                <Text style={styles.logo}>
+                    SafeTap
                 </Text>
 
-                <View style={styles.divider} />
-            </View>
 
-
-            <View style={styles.createAccountContainer}>
-                <Text style={styles.noAccountText}>
-                    Don't have an account?{"\n"}
+                {/* Heading */}
+                <Text style={styles.heading}>
+                    Welcome Back
                 </Text>
 
+                <Text style={styles.subHeading}>
+                    Sign in to access your{"\n"}
+                    safety check-ins and alerts.
+                </Text>
+
+
+                {/* Email */}
+                <View style={styles.inputContainer}>
+
+                    <MaterialIcons
+                        name="email"
+                        size={22}
+                        color="#1E4FD8"
+                        style={styles.leftIcon}
+                    />
+
+                    <TextInput
+                        placeholder="Email Address"
+                        placeholderTextColor="#6C7AA9"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        value={email}
+                        onChangeText={setEmail}
+                        style={styles.input}
+                    />
+
+                </View>
+
+
+                {/* Password */}
+                <View style={styles.inputContainer}>
+
+                    <MaterialIcons
+                        name="lock"
+                        size={22}
+                        color="#1E4FD8"
+                        style={styles.leftIcon}
+                    />
+
+                    <TextInput
+                        placeholder="Password"
+                        placeholderTextColor="#6C7AA9"
+                        secureTextEntry={!showPassword}
+                        value={password}
+                        onChangeText={setPassword}
+                        style={styles.input}
+                    />
+
+                    <TouchableOpacity
+                        onPress={() =>
+                            setShowPassword(!showPassword)
+                        }
+                    >
+                        <Ionicons
+                            name={
+                                showPassword
+                                    ? "eye-off"
+                                    : "eye"
+                            }
+                            size={24}
+                            color="#7A84A7"
+                        />
+                    </TouchableOpacity>
+
+                </View>
+
+
+                {/* Forgot Password */}
                 <TouchableOpacity
-                    onPress={() => router.push("/(tabs)/Sign_up")}
+                    style={styles.forgotContainer}
                 >
-                    <Text style={styles.createAccountText}>
-                        Create Account
+                    <Text style={styles.forgotText}>
+                        Forgot Password?
                     </Text>
                 </TouchableOpacity>
-            </View>
 
-            <View style={styles.shieldContainer}>
-                <Image
-                    source={require("../../assets/images/Shield 2.0. .png")}
-                    style={styles.shieldImage}
-                    resizeMode="contain"
-                />
-            </View>
 
+                {/* Sign In Button */}
+                <TouchableOpacity
+                    style={styles.signInButton}
+                    onPress={handleSignIn}
+                >
+                    <Text style={styles.signInText}>
+                        SIGN IN
+                    </Text>
+                </TouchableOpacity>
+
+
+                {/* OR */}
+                <View style={styles.orContainer}>
+
+                    <View style={styles.divider} />
+
+                    <Text style={styles.orText}>
+                        or
+                    </Text>
+
+                    <View style={styles.divider} />
+
+                </View>
+
+
+                {/* Create Account */}
+                <View style={styles.createAccountContainer}>
+
+                    <Text style={styles.noAccountText}>
+                        Don't have an account?
+                    </Text>
+
+                    <TouchableOpacity
+                        onPress={() =>
+                            router.push("/(tabs)/Sign_up")
+                        }
+                    >
+                        <Text style={styles.createAccountText}>
+                            Create Account
+                        </Text>
+                    </TouchableOpacity>
+
+                </View>
+
+
+                {/* Shield */}
+                <View style={styles.shieldContainer}>
+
+                    <Image
+                        source={require("../../assets/images/Shield 2.0. .png")}
+                        style={styles.shieldImage}
+                        resizeMode="contain"
+                    />
+
+                </View>
 
             </ScrollView>
+
         </SafeAreaView>
     );
 }
 
+
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         backgroundColor: "#F5F7FB",
         paddingHorizontal: 28,
     },
 
+
     scrollContainer: {
         paddingBottom: 40,
     },
+
 
     backButton: {
         marginTop: 20,
         marginBottom: 20,
     },
 
+
     logo: {
         fontSize: 56,
         fontWeight: "800",
         color: "#1E4FD8",
         textAlign: "center",
-        marginTop:10,
+        marginTop: 10,
     },
+
 
     heading: {
         marginTop: 55,
@@ -169,72 +234,89 @@ const styles = StyleSheet.create({
         color: "#183C8E",
     },
 
+
     subHeading: {
         textAlign: "center",
         marginTop: 14,
         color: "#5C6E9E",
         fontSize: 18,
         lineHeight: 28,
-        marginBottom: 55,
+        marginBottom: 35,
     },
 
+
+    /*
+     * SAME INPUT BOX SIZE AS SIGN UP
+     */
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
+
         backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        height: 72,
-        marginBottom: 24,
+
+        borderRadius: 18,
+
+        height: 64,
+
+        marginBottom: 18,
+
         paddingHorizontal: 18,
-    
-        shadowColor: "#8AAEFF",
-        shadowOpacity: 0.18,
-        shadowRadius: 14,
+
+        shadowColor: "#2563E8",
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
         shadowOffset: {
             width: 0,
-            height: 6,
+            height: 4,
         },
 
-        elevation: 8,
+        elevation: 5,
     },
 
+
     leftIcon: {
-        marginRight: 18,
+        marginRight: 15,
     },
+
 
     input: {
         flex: 1,
-        fontSize: 20,
-        color: "#24428E",
+        fontSize: 17,
+        color: "#1F2937",
     },
+
 
     forgotContainer: {
         alignItems: "flex-end",
-        marginTop: -8,
-        marginBottom: 32,
+        marginTop: -3,
+        marginBottom: 25,
     },
 
+
     forgotText: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "600",
         color: "#1554D1",
     },
 
+
     signInButton: {
-        height: 64,
+        height: 60,
         backgroundColor: "#1764E8",
-        borderRadius: 22,
+        borderRadius: 18,
         alignItems: "center",
         justifyContent: "center",
         marginHorizontal: 10,
     },
 
+
     signInText: {
         color: "#FFFFFF",
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: "800",
         letterSpacing: 1,
     },
+
 
     orContainer: {
         flexDirection: "row",
@@ -243,11 +325,13 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
 
+
     divider: {
         flex: 1,
         height: 1,
         backgroundColor: "#C8D7F2",
     },
+
 
     orText: {
         marginHorizontal: 20,
@@ -255,10 +339,12 @@ const styles = StyleSheet.create({
         color: "#65769F",
     },
 
+
     createAccountContainer: {
         alignItems: "center",
         marginTop: 25,
     },
+
 
     noAccountText: {
         fontSize: 16,
@@ -266,11 +352,13 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
 
+
     createAccountText: {
         fontSize: 20,
         fontWeight: "700",
         color: "#1554D1",
     },
+
 
     shieldContainer: {
         alignItems: "center",
@@ -278,8 +366,10 @@ const styles = StyleSheet.create({
         marginTop: 25,
     },
 
+
     shieldImage: {
         width: 180,
         height: 180,
     },
+
 });

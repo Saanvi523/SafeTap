@@ -1,19 +1,31 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function CheckIn() {
+
     const [duration, setDuration] = useState("30 min");
     const [showDurationPicker, setShowDurationPicker] = useState(false);
+
     return (
         <SafeAreaView style={styles.container}>
+
+            {/* Main Scrollable Content */}
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
+                {/* Header */}
 
                 <View style={styles.header}>
 
@@ -38,12 +50,16 @@ export default function CheckIn() {
                 </View>
 
 
+                {/* How It Works */}
+
                 <View style={styles.howItWorksCard}>
 
                     <Text style={styles.sectionTitle}>
                         How It Works
                     </Text>
 
+
+                    {/* Step 1 */}
 
                     <View style={styles.stepRow}>
 
@@ -72,6 +88,8 @@ export default function CheckIn() {
                     </View>
 
 
+                    {/* Step 2 */}
+
                     <View style={styles.stepRow}>
 
                         <View style={styles.stepIconGreen}>
@@ -85,7 +103,7 @@ export default function CheckIn() {
                         <View style={styles.stepTextContainer}>
 
                             <Text style={styles.stepTitle}>
-                                2.We'll remind you
+                                2. We'll remind you
                             </Text>
 
                             <Text style={styles.stepDescription}>
@@ -98,6 +116,8 @@ export default function CheckIn() {
 
                     </View>
 
+
+                    {/* Step 3 */}
 
                     <View style={styles.stepRow}>
 
@@ -116,7 +136,7 @@ export default function CheckIn() {
                             </Text>
 
                             <Text style={styles.stepDescription}>
-                                If you don't check in, we'll 
+                                If you don't check in, we'll
                                 {"\n"}
                                 alert your trusted contacts.
                             </Text>
@@ -126,19 +146,24 @@ export default function CheckIn() {
                     </View>
 
 
+                    {/* Start Check In Card */}
+
                     <View style={styles.startCard}>
 
                         <Text style={styles.startTitle}>
                             Start a new check in
                         </Text>
 
-
                         <View style={styles.divider} />
 
 
-                        <TouchableOpacity 
+                        {/* Check-In Frequency */}
+
+                        <TouchableOpacity
                             style={styles.optionRow}
-                            onPress={() => setShowDurationPicker(true)}
+                            onPress={() =>
+                                setShowDurationPicker(true)
+                            }
                         >
 
                             <Text style={styles.optionLabel}>
@@ -148,7 +173,7 @@ export default function CheckIn() {
                             <View style={styles.optionRight}>
 
                                 <Text style={styles.optionValue}>
-                                    {duration} 
+                                    {duration}
                                 </Text>
 
                                 <Ionicons
@@ -161,7 +186,11 @@ export default function CheckIn() {
 
                         </TouchableOpacity>
 
+
+                        {/* Duration Picker */}
+
                         {showDurationPicker && (
+
                             <View style={styles.durationPicker}>
 
                                 <Text style={styles.pickerTitle}>
@@ -170,18 +199,31 @@ export default function CheckIn() {
 
                                 <View style={styles.durationOptions}>
 
-                                    {["15 min", "30 min", "45 min", "60 min", "90 min", "120 min", "1 day", "2 days", "1 week"].map((time) => (
+                                    {[
+                                        "15 min",
+                                        "30 min",
+                                        "45 min",
+                                        "60 min",
+                                        "90 min",
+                                        "120 min",
+                                        "1 day",
+                                        "2 days",
+                                        "1 week",
+                                    ].map((time) => (
+
                                         <TouchableOpacity
                                             key={time}
                                             style={[
                                                 styles.durationOption,
-                                                duration === time && styles.selectedDuration,
+                                                duration === time &&
+                                                    styles.selectedDuration,
                                             ]}
                                             onPress={() => {
                                                 setDuration(time);
                                                 setShowDurationPicker(false);
                                             }}
                                         >
+
                                             <Text
                                                 style={[
                                                     styles.durationOptionText,
@@ -189,29 +231,41 @@ export default function CheckIn() {
                                                         styles.selectedDurationText,
                                                 ]}
                                             >
-                                                {time} 
+                                                {time}
                                             </Text>
+
                                         </TouchableOpacity>
+
                                     ))}
 
                                 </View>
 
                                 <TouchableOpacity
                                     style={styles.cancelButton}
-                                    onPress={() => setShowDurationPicker(false)}
+                                    onPress={() =>
+                                        setShowDurationPicker(false)
+                                    }
                                 >
+
                                     <Text style={styles.cancelButtonText}>
                                         Cancel
                                     </Text>
+
                                 </TouchableOpacity>
 
                             </View>
+
                         )}
+
 
                         <View style={styles.divider} />
 
 
-                        <TouchableOpacity style={styles.optionRow}>
+                        {/* When */}
+
+                        <TouchableOpacity
+                            style={styles.optionRow}
+                        >
 
                             <Text style={styles.optionLabel}>
                                 When
@@ -228,7 +282,7 @@ export default function CheckIn() {
                                     size={28}
                                     color="#526487"
                                 />
-                                
+
                             </View>
 
                         </TouchableOpacity>
@@ -237,13 +291,16 @@ export default function CheckIn() {
                         <View style={styles.divider} />
 
 
+                        {/* Start Button */}
 
                         <TouchableOpacity
                             style={styles.startButton}
                             onPress={() =>
                                 router.push({
                                     pathname: "/(tabs)/Actual_Check_In",
-                                    params: { duration: duration },
+                                    params: {
+                                        duration: duration,
+                                    },
                                 })
                             }
                         >
@@ -262,130 +319,141 @@ export default function CheckIn() {
 
                     </View>
 
-
-
-                    <View style={styles.bottomNav}>
-
-                        <TouchableOpacity
-                            style={styles.navItem}
-                            onPress={() =>
-                                router.push("/(tabs)/Home")
-                            }
-                        >
-
-                            <Ionicons
-                                name="home"
-                                size={34}
-                                color="#526487"
-                            />
-
-                            <Text style={styles.navText}>
-                                Home
-                            </Text>
-
-                        </TouchableOpacity>
-
-
-                        <TouchableOpacity
-                            style={styles.navItem}
-                            onPress={() =>
-                                router.push ("/(tabs)/Check_In")
-                            }
-                        >
-
-                            <View style={styles.activeLine} />
-
-                            <Ionicons
-                                name="shield-checkmark"
-                                size={34}
-                                color="#2563E8"
-                            />
-
-                            <Text
-                                style={[
-                                    styles.navText,
-                                    styles.activeText,
-                                ]}
-                            >
-                                Check In
-                            </Text>
-
-                        </TouchableOpacity>
-
-
-
-                        <TouchableOpacity
-                            style={styles.navItem}
-                            onPress={() =>
-                                router.push("/(tabs)/Contacts")
-                            }
-                        >
-
-                            <Ionicons
-                                name="people"
-                                size={34}
-                                color="#08B88A"
-                            />
-
-                            <Text style={styles.navText}>
-                                Contacts
-                            </Text>
-
-                        </TouchableOpacity>
-
-
-                        <TouchableOpacity
-                            style={styles.navItem}
-                            onPress={() =>
-                                router.push("/(tabs)/History")
-                            }
-                        >
-
-                            <MaterialIcons
-                                name="history"
-                                size={35}
-                                color="#F59E0B"
-                            />
-
-                            <Text style={styles.navText}>
-                                History
-                            </Text>
-
-                        </TouchableOpacity>
-
-
-
-                        <TouchableOpacity
-                            style={styles.navItem}
-                            onPress={() =>
-                                router.push("/(tabs)/Settings")
-                            }
-                        >
-
-                            <Ionicons
-                                name="settings"
-                                size={34}
-                                color="#7C3AED"
-                            />
-
-                            <Text style={styles.navText}>
-                                Settings
-                            </Text>
-
-                        </TouchableOpacity>
-
-                    </View>
-                
                 </View>
-                
+
             </ScrollView>
+
+
+            {/* Fixed Bottom Navigation */}
+
+            <View style={styles.bottomNav}>
+
+                {/* Home */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Home")
+                    }
+                >
+
+                    <Ionicons
+                        name="home"
+                        size={32}
+                        color="#526487"
+                    />
+
+                    <Text style={styles.navText}>
+                        Home
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Check In - Active */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
+
+                    <View style={styles.activeLine} />
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeText,
+                        ]}
+                    >
+                        Check In
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Contacts */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <Ionicons
+                        name="people"
+                        size={32}
+                        color="#08B88A"
+                    />
+
+                    <Text style={styles.navText}>
+                        Contacts
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* History */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
+
+                    <MaterialIcons
+                        name="history"
+                        size={34}
+                        color="#F59E0B"
+                    />
+
+                    <Text style={styles.navText}>
+                        History
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Settings */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <Ionicons
+                        name="settings"
+                        size={32}
+                        color="#7C3AED"
+                    />
+
+                    <Text style={styles.navText}>
+                        Settings
+                    </Text>
+
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
 }
 
 
-const styles= StyleSheet.create({
+const styles = StyleSheet.create({
+
+    /* Main Screen */
 
     container: {
         flex: 1,
@@ -395,9 +463,11 @@ const styles= StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 25,
+        paddingBottom: 130,
     },
 
+
+    /* Header */
 
     header: {
         flexDirection: "row",
@@ -416,7 +486,7 @@ const styles= StyleSheet.create({
         fontSize: 17,
         lineHeight: 25,
         color: "#60729E",
-        marginTop: 8
+        marginTop: 8,
     },
 
     shieldContainer: {
@@ -439,6 +509,8 @@ const styles= StyleSheet.create({
     },
 
 
+    /* How It Works */
+
     howItWorksCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
@@ -456,6 +528,13 @@ const styles= StyleSheet.create({
         },
 
         elevation: 5,
+    },
+
+    sectionTitle: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 25,
     },
 
     stepRow: {
@@ -512,6 +591,7 @@ const styles= StyleSheet.create({
     },
 
 
+    /* Start Check In Card */
 
     startCard: {
         backgroundColor: "#FFFFFF",
@@ -526,7 +606,7 @@ const styles= StyleSheet.create({
         shadowRadius: 12,
         shadowOffset: {
             width: 0,
-            height: 5
+            height: 5,
         },
 
         elevation: 5,
@@ -541,7 +621,7 @@ const styles= StyleSheet.create({
 
     divider: {
         height: 1,
-        backgroundColor: "#DDE5F2"
+        backgroundColor: "#DDE5F2",
     },
 
     optionRow: {
@@ -567,6 +647,9 @@ const styles= StyleSheet.create({
         color: "#2563E8",
         marginRight: 10,
     },
+
+
+    /* Start Button */
 
     startButton: {
         height: 64,
@@ -595,66 +678,14 @@ const styles= StyleSheet.create({
         marginLeft: 10,
     },
 
-    bottomNav: {
-        height: 94,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 26,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-around",
 
-        shadowColor: "#7898DB",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-
-        elevation: 6,
-    },
-
-    navItem: {
-        flex: 1,
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-
-    navText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#526487",
-        marginTop: 5,
-    },
-
-    activeText: {
-        color: "#2563E8",
-        fontWeight: "800",
-    },
-
-    activeLine: {
-        position: "absolute",
-        top: 0,
-        width: 55,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: "#2563E8",
-    },
-
-    sectionTitle: {
-    fontSize: 25,
-    fontWeight: "800",
-    color: "#173B8F",
-    marginBottom: 25,
-    },
+    /* Duration Picker */
 
     durationPicker: {
-    backgroundColor: "#F5F8FF",
-    borderRadius: 18,
-    padding: 18,
-    marginVertical: 10,
+        backgroundColor: "#F5F8FF",
+        borderRadius: 18,
+        padding: 18,
+        marginVertical: 10,
     },
 
     pickerTitle: {
@@ -706,6 +737,63 @@ const styles= StyleSheet.create({
         fontSize: 15,
         fontWeight: "700",
         color: "#60729E",
+    },
+
+
+    /* Bottom Navigation - Same as Contacts */
+
+    bottomNav: {
+        position: "absolute",
+        bottom: 10,
+        left: 15,
+        right: 15,
+
+        height: 94,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 5,
+    },
+
+    activeText: {
+        color: "#2563E8",
+        fontWeight: "800",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#2563E8",
     },
 
 });

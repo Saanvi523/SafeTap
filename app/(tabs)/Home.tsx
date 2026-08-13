@@ -1,21 +1,32 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
+import {
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function Home() {
     return (
         <SafeAreaView style={styles.container}>
+
+            {/* Main Scrollable Content */}
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
+                {/* Header */}
 
                 <View style={styles.header}>
 
                     <View>
+
                         <Text style={styles.title}>
                             Home
                         </Text>
@@ -23,22 +34,29 @@ export default function Home() {
                         <Text style={styles.subtitle}>
                             Access all SafeTap features
                         </Text>
+
                     </View>
 
                     <View style={styles.shieldContainer}>
+
                         <Ionicons
                             name="shield-checkmark"
                             size={48}
                             color="#2563E8"
                         />
+
                     </View>
 
                 </View>
 
 
+                {/* Feature Cards */}
+
                 <View style={styles.cardGrid}>
 
-                    <TouchableOpacity 
+                    {/* Check In */}
+
+                    <TouchableOpacity
                         style={[
                             styles.featureCard,
                             styles.checkInCard,
@@ -49,11 +67,13 @@ export default function Home() {
                     >
 
                         <View style={styles.iconCircleBlue}>
+
                             <Ionicons
                                 name="shield-checkmark"
                                 size={52}
                                 color="#2563E8"
                             />
+
                         </View>
 
                         <Text style={styles.cardTitle}>
@@ -61,21 +81,15 @@ export default function Home() {
                         </Text>
 
                         <Text style={styles.cardDescription}>
-                            Start a new check in 
+                            Start a new check in
                             {"\n"}
                             and stay safe.
                         </Text>
 
-                        <View style={styles.arrowBlue}>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={30}
-                                color="#2563E8"
-                            />
-                        </View>
-
                     </TouchableOpacity>
 
+
+                    {/* Contacts */}
 
                     <TouchableOpacity
                         style={[
@@ -88,11 +102,13 @@ export default function Home() {
                     >
 
                         <View style={styles.iconCircleGreen}>
+
                             <Ionicons
                                 name="people"
                                 size={52}
                                 color="#08B88A"
                             />
+
                         </View>
 
                         <Text style={styles.cardTitle}>
@@ -105,16 +121,10 @@ export default function Home() {
                             contacts.
                         </Text>
 
-                        <View style={styles.arrowGreen}>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={30}
-                                color="#08B88A"
-                            />
-                        </View>
-
                     </TouchableOpacity>
 
+
+                    {/* History */}
 
                     <TouchableOpacity
                         style={[
@@ -127,15 +137,17 @@ export default function Home() {
                     >
 
                         <View style={styles.iconCircleOrange}>
+
                             <MaterialIcons
                                 name="history"
                                 size={55}
                                 color="#F59E0B"
                             />
+
                         </View>
 
                         <Text style={styles.cardTitle}>
-                            History 
+                            History
                         </Text>
 
                         <Text style={styles.cardDescription}>
@@ -144,16 +156,10 @@ export default function Home() {
                             check in records.
                         </Text>
 
-                        <View style={styles.arrowOrange}>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={30}
-                                color="#F59E0B"
-                            />
-                        </View>
-
                     </TouchableOpacity>
 
+
+                    {/* Settings */}
 
                     <TouchableOpacity
                         style={[
@@ -166,15 +172,17 @@ export default function Home() {
                     >
 
                         <View style={styles.iconCirclePurple}>
+
                             <Ionicons
                                 name="settings"
                                 size={54}
                                 color="#7C3AED"
                             />
+
                         </View>
 
                         <Text style={styles.cardTitle}>
-                            Settings 
+                            Settings
                         </Text>
 
                         <Text style={styles.cardDescription}>
@@ -183,27 +191,23 @@ export default function Home() {
                             preferences.
                         </Text>
 
-                        <View style={styles.arrowPurple}>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={30}
-                                color="#7C3AED"
-                            />
-                        </View>
-
                     </TouchableOpacity>
 
                 </View>
 
 
+                {/* Safety Banner */}
+
                 <View style={styles.safetyBanner}>
 
                     <View style={styles.safetyIcon}>
+
                         <Ionicons
                             name="lock-closed"
                             size={42}
                             color="#FFFFFF"
                         />
+
                     </View>
 
                     <View style={styles.safetyTextContainer}>
@@ -222,124 +226,139 @@ export default function Home() {
 
                 </View>
 
-
-                <View style={styles.bottomNav}>
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Home")
-                        }
-                    >
-
-                        <View style={styles.activeLine} />
-
-                        <Ionicons
-                            name="home"
-                            size={35}
-                            color="#2563E8"
-                        />
-
-                        <Text
-                            style={[
-                                styles.navText,
-                                styles.activeHomeText,
-                            ]}
-                        >
-                            Home
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Check_In")
-                        }
-                    >
-
-                        <Ionicons
-                            name="shield-outline"
-                            size={34}
-                            color="#173B8F"
-                        />
-
-                        <Text style={styles.navText}>
-                            Check In
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Contacts")
-                        }
-                    >
-
-                        <Ionicons
-                            name="people"
-                            size={34}
-                            color="#08B88A"
-                        />
-
-                        <Text style={styles.navText}>
-                            Contacts
-                        </Text>
-                    
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/History")
-                        }
-                    >
-
-                        <MaterialIcons
-                            name="history"
-                            size={35}
-                            color="#F59E0B"
-                        />
-
-                        <Text style={styles.navText}>
-                            History 
-                        </Text>
-
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Settings")
-                        }
-                    >
-
-                        <Ionicons
-                            name="settings"
-                            size={34}
-                            color="#7C3AED"
-                        />
-
-                        <Text style={styles.navText}>
-                            Settings
-                        </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
             </ScrollView>
+
+
+            {/* Fixed Bottom Navigation */}
+
+            <View style={styles.bottomNav}>
+
+                {/* Home - Active */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Home")
+                    }
+                >
+
+                    <View style={styles.activeLine} />
+
+                    <Ionicons
+                        name="home"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeHomeText,
+                        ]}
+                    >
+                        Home
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Check In */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text style={styles.navText}>
+                        Check In
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Contacts */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <Ionicons
+                        name="people"
+                        size={32}
+                        color="#08B88A"
+                    />
+
+                    <Text style={styles.navText}>
+                        Contacts
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* History */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
+
+                    <MaterialIcons
+                        name="history"
+                        size={34}
+                        color="#F59E0B"
+                    />
+
+                    <Text style={styles.navText}>
+                        History
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Settings */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <Ionicons
+                        name="settings"
+                        size={32}
+                        color="#7C3AED"
+                    />
+
+                    <Text style={styles.navText}>
+                        Settings
+                    </Text>
+
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
 }
 
 
-const styles= StyleSheet.create({
+const styles = StyleSheet.create({
+
+    /* Main Screen */
 
     container: {
         flex: 1,
@@ -349,9 +368,13 @@ const styles= StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 25,
+
+        // Space for the fixed bottom navigation
+        paddingBottom: 130,
     },
 
+
+    /* Header */
 
     header: {
         flexDirection: "row",
@@ -392,6 +415,8 @@ const styles= StyleSheet.create({
     },
 
 
+    /* Feature Cards */
+
     cardGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
@@ -407,7 +432,7 @@ const styles= StyleSheet.create({
         paddingTop: 25,
         marginBottom: 18,
 
-        shadowColor:"#7898D8",
+        shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
         shadowOffset: {
@@ -421,6 +446,7 @@ const styles= StyleSheet.create({
     },
 
 
+    /* Card Bottom Borders */
 
     checkInCard: {
         borderBottomWidth: 5,
@@ -429,7 +455,7 @@ const styles= StyleSheet.create({
 
     contactsCard: {
         borderBottomWidth: 5,
-        borderBottomColor: "#8DE8BF"
+        borderBottomColor: "#8DE8BF",
     },
 
     historyCard: {
@@ -443,6 +469,7 @@ const styles= StyleSheet.create({
     },
 
 
+    /* Card Icons */
 
     iconCircleBlue: {
         width: 120,
@@ -484,6 +511,9 @@ const styles= StyleSheet.create({
         marginBottom: 18,
     },
 
+
+    /* Card Text */
+
     cardTitle: {
         fontSize: 23,
         fontWeight: "800",
@@ -498,55 +528,8 @@ const styles= StyleSheet.create({
         textAlign: "center",
     },
 
-    arrowBlue: {
-        position: "absolute",
-        right: 14,
-        bottom: 14,
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: "#E5EFFF",
-        justifyContent: "center",
-        alignItems: "center",
-    },
 
-    arrowGreen: {
-        position: "absolute",
-        right: 14,
-        bottom: 14,
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: "#E2FAEF",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    arrowOrange: {
-        position: "absolute",
-        right: 14,
-        bottom: 14,
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: "#FFF1D1",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    arrowPurple: {
-        position: "absolute",
-        right: 14,
-        bottom: 14,
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: "#F0E5FF",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-
+    /* Safety Banner */
 
     safetyBanner: {
         minHeight: 160,
@@ -597,10 +580,18 @@ const styles= StyleSheet.create({
     },
 
 
+    /* Fixed Bottom Navigation */
+
     bottomNav: {
+        position: "absolute",
+        bottom: 10,
+        left: 15,
+        right: 15,
+
         height: 94,
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
+
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",

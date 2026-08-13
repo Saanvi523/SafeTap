@@ -1,7 +1,14 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
+import {
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function Settings() {
 
@@ -10,11 +17,14 @@ export default function Settings() {
     return (
         <SafeAreaView style={styles.container}>
 
+            {/* Main Scrollable Content */}
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
+                {/* Header */}
 
                 <View style={styles.header}>
 
@@ -25,15 +35,19 @@ export default function Settings() {
                     </View>
 
                     <View style={styles.shieldContainer}>
+
                         <Ionicons
                             name="shield-checkmark"
                             size={52}
                             color="#2563E8"
                         />
+
                     </View>
 
                 </View>
 
+
+                {/* Account */}
 
                 <Text style={styles.sectionTitle}>
                     Account
@@ -42,16 +56,18 @@ export default function Settings() {
                 <TouchableOpacity
                     style={styles.singleCard}
                     onPress={() => {
-                        //Profile page can be added later
+                        // Profile page can be added later
                     }}
                 >
 
                     <View style={styles.iconCircleBlue}>
+
                         <Ionicons
                             name="person"
                             size={32}
                             color="#2563E8"
                         />
+
                     </View>
 
                     <View style={styles.cardTextContainer}>
@@ -75,6 +91,8 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
+                {/* Preferences */}
+
                 <Text style={styles.sectionTitle}>
                     Preferences
                 </Text>
@@ -84,11 +102,13 @@ export default function Settings() {
                     <View style={styles.settingRow}>
 
                         <View style={styles.iconCircleBlue}>
+
                             <Ionicons
                                 name="notifications"
                                 size={30}
                                 color="#2563E8"
                             />
+
                         </View>
 
                         <View style={styles.cardTextContainer}>
@@ -120,7 +140,7 @@ export default function Settings() {
                                     styles.toggleCircle,
                                     reminderAlerts
                                         ? styles.toggleCircleOn
-                                        : styles.toggleCircleOff
+                                        : styles.toggleCircleOff,
                                 ]}
                             />
 
@@ -131,6 +151,7 @@ export default function Settings() {
                 </View>
 
 
+                {/* Safety & Alerts */}
 
                 <Text style={styles.sectionTitle}>
                     Safety & Alerts
@@ -144,11 +165,13 @@ export default function Settings() {
                 >
 
                     <View style={styles.iconCircleRed}>
+
                         <Ionicons
                             name="people"
                             size={31}
                             color="#E53935"
                         />
+
                     </View>
 
                     <View style={styles.cardTextContainer}>
@@ -172,6 +195,7 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
+                {/* Other */}
 
                 <Text style={styles.sectionTitle}>
                     Other
@@ -180,28 +204,30 @@ export default function Settings() {
                 <TouchableOpacity
                     style={styles.singleCard}
                     onPress={() => {
-                        //Logout functionality can be added later
+                        // Logout functionality can be added later
                     }}
                 >
 
                     <View style={styles.iconCircleRed}>
+
                         <MaterialIcons
                             name="logout"
                             size={31}
                             color="#E53935"
                         />
+
                     </View>
 
                     <View style={styles.cardTextContainer}>
 
                         <Text style={styles.logoutTitle}>
-                            Log Out 
+                            Log Out
                         </Text>
 
                         <Text style={styles.cardDescription}>
                             Sign out of your account
                         </Text>
-                        
+
                     </View>
 
                     <Ionicons
@@ -212,121 +238,130 @@ export default function Settings() {
 
                 </TouchableOpacity>
 
-
-
-                <View style={styles.bottomNav}>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Home")
-                        }
-                    >
-
-                        <Ionicons
-                            name="home"
-                            size={34}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Home
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Check_In")
-                        }
-                    >
-
-                        <Ionicons
-                            name="shield-checkmark-outline"
-                            size={34}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Check In
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Contacts")
-                        }
-                    >
-
-                        <Ionicons
-                            name="people"
-                            size={34}
-                            color="#08B88A"
-                        />
-
-                        <Text style={styles.navText}>
-                            Contacts
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/History")
-                        }
-                    >
-
-                        <MaterialIcons
-                            name="history"
-                            size={35}
-                            color="#F59E0B"
-                        />
-
-                        <Text style={styles.navText}>
-                            History
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-
-                    <TouchableOpacity
-                        style={[
-                            styles.navItem,
-                            styles.activeNavItem,
-                        ]}
-                        onPress={() =>
-                            router.push("/(tabs)/Settings")
-                        }
-                    >
-
-                        <View style={styles.activeLine} />
-
-                        <Ionicons
-                            name="settings"
-                            size={34}
-                            color="#7C3AED"
-                        />
-
-                        <Text style={styles.activeSettingsText}>
-                            Settings
-                        </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
             </ScrollView>
+
+
+            {/* FIXED BOTTOM NAVIGATION */}
+
+            <View style={styles.bottomNav}>
+
+                {/* Home */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Home")
+                    }
+                >
+
+                    <Ionicons
+                        name="home"
+                        size={32}
+                        color="#526487"
+                    />
+
+                    <Text style={styles.navText}>
+                        Home
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Check In */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text style={styles.navText}>
+                        Check In
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Contacts */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <Ionicons
+                        name="people"
+                        size={32}
+                        color="#08B88A"
+                    />
+
+                    <Text style={styles.navText}>
+                        Contacts
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* History */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
+
+                    <MaterialIcons
+                        name="history"
+                        size={34}
+                        color="#F59E0B"
+                    />
+
+                    <Text style={styles.navText}>
+                        History
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Settings - Active */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <View style={styles.activeLine} />
+
+                    <Ionicons
+                        name="settings"
+                        size={32}
+                        color="#7C3AED"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeSettingsText,
+                        ]}
+                    >
+                        Settings
+                    </Text>
+
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
@@ -335,17 +370,24 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
 
+    /* Main Screen */
+
     container: {
-        flex:1,
-        backgroundColor: "#F5F8FF"
+        flex: 1,
+        backgroundColor: "#F5F8FF",
     },
 
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 30,
+
+        // Extra space so the final card
+        // can scroll above the fixed navigation
+        paddingBottom: 130,
     },
 
+
+    /* Header */
 
     header: {
         flexDirection: "row",
@@ -371,7 +413,7 @@ const styles = StyleSheet.create({
         width: 82,
         height: 82,
         borderRadius: 41,
-        backgroundColor: "FFFFFF",
+        backgroundColor: "#FFFFFF",
         justifyContent: "center",
         alignItems: "center",
 
@@ -387,6 +429,8 @@ const styles = StyleSheet.create({
     },
 
 
+    /* Section Titles */
+
     sectionTitle: {
         fontSize: 27,
         fontWeight: "800",
@@ -395,6 +439,8 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
+
+    /* Cards */
 
     singleCard: {
         minHeight: 112,
@@ -441,6 +487,8 @@ const styles = StyleSheet.create({
     },
 
 
+    /* Card Text */
+
     cardTextContainer: {
         flex: 1,
         marginLeft: 20,
@@ -466,6 +514,8 @@ const styles = StyleSheet.create({
     },
 
 
+    /* Icons */
+
     iconCircleBlue: {
         width: 58,
         height: 58,
@@ -484,8 +534,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 
-    
-    
+
+    /* Toggle */
+
     toggle: {
         width: 58,
         height: 34,
@@ -501,7 +552,7 @@ const styles = StyleSheet.create({
 
     toggleOff: {
         backgroundColor: "#D7D9DE",
-        alignItems: "flex-start"
+        alignItems: "flex-start",
     },
 
     toggleCircle: {
@@ -530,20 +581,27 @@ const styles = StyleSheet.create({
         shadowOffset: {
             width: 0,
             height: 1,
-    },
+        },
 
         elevation: 2,
     },
 
 
+    /* Fixed Bottom Navigation */
+
     bottomNav: {
+        position: "absolute",
+        bottom: 10,
+        left: 15,
+        right: 15,
+
         height: 94,
-        backgroundColor: "FFFFFF",
+        backgroundColor: "#FFFFFF",
         borderRadius: 26,
+
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        marginTop: 5,
 
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
@@ -571,10 +629,6 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
-    activeNavItem: {
-        position: "relative",
-    },
-
     activeLine: {
         position: "absolute",
         top: 0,
@@ -585,10 +639,8 @@ const styles = StyleSheet.create({
     },
 
     activeSettingsText: {
-        fontSize: 12,
-        fontWeight: "800",
         color: "#7C3AED",
-        marginTop: 5,
+        fontWeight: "800",
     },
 
 });

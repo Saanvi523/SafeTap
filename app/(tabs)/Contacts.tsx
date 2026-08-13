@@ -66,6 +66,8 @@ export default function Contacts() {
     return (
         <SafeAreaView style={styles.container}>
 
+            {/* Main Scrollable Content */}
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
@@ -167,6 +169,8 @@ export default function Contacts() {
                         </Text>
 
 
+                        {/* Name */}
+
                         <Text style={styles.label}>
                             Name
                         </Text>
@@ -179,6 +183,8 @@ export default function Contacts() {
                             onChangeText={setName}
                         />
 
+
+                        {/* Phone */}
 
                         <Text style={styles.label}>
                             Phone Number
@@ -194,6 +200,8 @@ export default function Contacts() {
                         />
 
 
+                        {/* Relationship */}
+
                         <Text style={styles.label}>
                             Relationship (optional)
                         </Text>
@@ -206,6 +214,8 @@ export default function Contacts() {
                             onChangeText={setRelationship}
                         />
 
+
+                        {/* Email */}
 
                         <Text style={styles.label}>
                             Email (optional)
@@ -221,6 +231,8 @@ export default function Contacts() {
                             onChangeText={setEmail}
                         />
 
+
+                        {/* Save */}
 
                         <TouchableOpacity
                             style={styles.saveButton}
@@ -258,6 +270,8 @@ export default function Contacts() {
                         style={styles.contactCard}
                     >
 
+                        {/* Contact Icon */}
+
                         <View style={styles.contactBadge}>
 
                             <Ionicons
@@ -268,6 +282,8 @@ export default function Contacts() {
 
                         </View>
 
+
+                        {/* Contact Information */}
 
                         <View style={styles.contactInfo}>
 
@@ -290,6 +306,8 @@ export default function Contacts() {
                         </View>
 
 
+                        {/* Message */}
+
                         <TouchableOpacity
                             style={styles.messageButton}
                         >
@@ -302,6 +320,8 @@ export default function Contacts() {
 
                         </TouchableOpacity>
 
+
+                        {/* Delete */}
 
                         <TouchableOpacity
                             style={styles.deleteButton}
@@ -322,130 +342,130 @@ export default function Contacts() {
 
                 ))}
 
-
-                {/* Bottom Navigation */}
-
-                <View style={styles.bottomNav}>
-
-                    {/* Home */}
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Home")
-                        }
-                    >
-
-                        <Ionicons
-                            name="home"
-                            size={32}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Home
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    {/* Check In */}
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Check_In")
-                        }
-                    >
-
-                        <Ionicons
-                            name="shield-checkmark"
-                            size={32}
-                            color="#2563E8"
-                        />
-
-                        <Text style={styles.navText}>
-                            Check In
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    {/* Contacts - Active */}
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Contacts")
-                        }
-                    >
-
-                        <View style={styles.activeLine} />
-
-                        <Ionicons
-                            name="people"
-                            size={32}
-                            color="#08B88A"
-                        />
-
-                        <Text
-                            style={[
-                                styles.navText,
-                                styles.activeText,
-                            ]}
-                        >
-                            Contacts
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    {/* History */}
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/History")
-                        }
-                    >
-
-                        <MaterialIcons
-                            name="history"
-                            size={34}
-                            color="#F59E0B"
-                        />
-
-                        <Text style={styles.navText}>
-                            History
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    {/* Settings */}
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push("/(tabs)/Settings")
-                        }
-                    >
-
-                        <Ionicons
-                            name="settings"
-                            size={32}
-                            color="#7C3AED"
-                        />
-
-                        <Text style={styles.navText}>
-                            Settings
-                        </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
             </ScrollView>
+
+
+            {/* FIXED BOTTOM NAVIGATION */}
+
+            <View style={styles.bottomNav}>
+
+                {/* Home */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Home")
+                    }
+                >
+
+                    <Ionicons
+                        name="home"
+                        size={32}
+                        color="#526487"
+                    />
+
+                    <Text style={styles.navText}>
+                        Home
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Check In */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Check_In")
+                    }
+                >
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={32}
+                        color="#2563E8"
+                    />
+
+                    <Text style={styles.navText}>
+                        Check In
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Contacts - Active */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Contacts")
+                    }
+                >
+
+                    <View style={styles.activeLine} />
+
+                    <Ionicons
+                        name="people"
+                        size={32}
+                        color="#08B88A"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeText,
+                        ]}
+                    >
+                        Contacts
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* History */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/History")
+                    }
+                >
+
+                    <MaterialIcons
+                        name="history"
+                        size={34}
+                        color="#F59E0B"
+                    />
+
+                    <Text style={styles.navText}>
+                        History
+                    </Text>
+
+                </TouchableOpacity>
+
+
+                {/* Settings */}
+
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push("/(tabs)/Settings")
+                    }
+                >
+
+                    <Ionicons
+                        name="settings"
+                        size={32}
+                        color="#7C3AED"
+                    />
+
+                    <Text style={styles.navText}>
+                        Settings
+                    </Text>
+
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
@@ -453,6 +473,8 @@ export default function Contacts() {
 
 
 const styles = StyleSheet.create({
+
+    /* Main Screen */
 
     container: {
         flex: 1,
@@ -462,7 +484,10 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 25,
         paddingTop: 15,
-        paddingBottom: 30,
+
+        // Extra space so the last contact
+        // isn't hidden behind the fixed nav bar
+        paddingBottom: 130,
     },
 
 
@@ -715,17 +740,23 @@ const styles = StyleSheet.create({
     },
 
 
-    /* Bottom Navigation */
+    /* FIXED BOTTOM NAVIGATION */
 
     bottomNav: {
+        position: "absolute",
+
+        bottom: 10,
+        left: 15,
+        right: 15,
+
         height: 94,
+
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
+
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        marginTop: 25,
-        marginBottom: 10,
 
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
