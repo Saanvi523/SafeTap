@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Touchable, TouchableOpacity } from "react-native";
@@ -403,9 +403,446 @@ export default function ActualCheckIn() {
 
                     <TouchableOpacity
                         style={styles.navItem}
-                        onPress 
+                        onPress={() =>
+                            router.push("/(tabs)/Contacts")
+                        }
+                    >
+
+                        <Ionicons
+                            name="people"
+                            size={34}
+                            color="#08B88A"
+                        />
+
+                        <Text style={styles.navText}>
+                            Contacts
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/History")
+                        }
+                    >
+
+                        <MaterialIcons
+                            name="history"
+                            size={35}
+                            color="#F59E0B"
+                        />
+
+                        <Text style={styles.navText}>
+                            History
+                        </Text>
+                        
+                    </TouchableOpacity>
+
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/Settings")
+                        }
+                    >
+
+                        <Ionicons
+                            name="settings"
+                            size={34}
+                            color="#7C3AED"
+                        />
+
+                        <Text style={styles.navText}>
+                            Settings
+                        </Text>
+
+                    </TouchableOpacity>
+
                 </View>
+
             </ScrollView>
+
         </SafeAreaView>
-    )
+    );
 }
+
+
+const styles= StyleSheet.create({
+
+    container: {
+        flex: 1,
+        backgroundColor: "#F5F8FF",
+    },
+
+    scrollContainer: {
+        paddingHorizontal: 22,
+        paddingTop: 18,
+        paddingBottom: 25,
+    },
+
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 25,
+    },
+
+    backButton: {
+        width: 62,
+        height: 62,
+        borderRadius: 20,
+        backgroundColor: "#FFFFFF",
+        alignItems: "center",
+        justifyContent: "center",
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 5,
+    },
+
+    title: {
+        fontSize: 31,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+
+    headerShield: {
+        width: 60,
+        height: 60,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    activeCard: {
+        backgroundColor: "#F7FFFB",
+        borderRadius: 28,
+        paddingHorizontal: 22,
+        paddingTop: 35,
+        paddingBottom: 25,
+
+        borderWidth: 1,
+        borderColor: "#D8F1E6",
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.10,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    shieldCircle: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        backgroundColor: "#ECFFF5",
+        alignSelf: "center",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    activeTitle: {
+        fontSize: 36,
+        fontWeight: "800",
+        color: "#08A96D",
+        textAlign: "center",
+        marginTop: 18,
+    },
+
+    safeText: {
+        fontSize: 23,
+        fontWeight: "600",
+        color: "#526487",
+        textAlign: "center",
+        marginTop: 8,
+    },
+
+    timerCircle: {
+        width: 290,
+        height: 290,
+        borderRadius: 145,
+        borderWidth: 16,
+        borderColor: "#D8F4E8",
+        alignSelf: "center",
+        marginTop: 25,
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    progressCircle: {
+        position: "absolute",
+        width: 290,
+        height: 290,
+        borderRadius: 145,
+        borderWidth: 16,
+        borderColor: "#08A96D",
+        borderLeftColor: "transparent",
+        borderBottomColor: "transparent",
+    },
+
+    timerInside: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    timeLabel: {
+        fontSize: 19,
+        fontWeight: "600",
+        color: "#526487",
+        marginBottom: 8,
+    },
+
+    timerText: {
+        fontSize: 43,
+        fontWeight: "800",
+        color: "#08A96D",
+    },
+
+    durationLabel: {
+        fontSize: 18,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 4,
+    },
+
+    endTimeBox: {
+        height: 55,
+        borderRadius: 28,
+        backgroundColor: "#ECFFF7",
+        borderWidth: 1,
+        borderColor: "#CDEFE0",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 22,
+    },
+
+    endTimeText: {
+        fontSize: 17,
+        fontWeight: "700",
+        color: "#173B8F",
+        marginLeft: 9,
+    },
+
+    safeButton: {
+        height: 68,
+        borderRadius: 20,
+        backgroundColor: "#08A96D",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 22,
+
+        shadowColor: "#08A96D",
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    safeButtonText: {
+        color: "#FFFFFF",
+        fontSize: 23,
+        fontWeight: "800",
+        marginLeft: 10,
+    },
+
+    endButton: {
+        height: 64,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: "#EF2929",
+        backgroundColor: "#FFFFFF",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 18,
+    },
+
+    endButtonText: {
+        color: "#EF2929",
+        fontSize: 21,
+        fontWeight: "800",
+        marginLeft: 10,
+    },
+
+    infoCard: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        paddingHorizontal: 22,
+        paddingTop: 25,
+        paddingBottom: 20,
+        marginTop: 22,
+
+        shadowColor: "#7898D8",
+        shadowOpacity: 0.10,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+
+        elevation: 5,
+    },
+
+    infoTitle: {
+        fontSize: 25,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 22,
+    },
+
+    infoRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+
+    infoIconPurple: {
+        width: 65,
+        height: 65,
+        borderRadius: 33,
+        backgroundColor: "#F0E5FF",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    infoText: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 25,
+        color: "#526487",
+        marginLeft: 15,
+    },
+
+    contactBadge: {
+        backgroundColor: "#F0E5FF",
+        borderRadius: 18,
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        alignItems: "center",
+    },
+
+    contactNumber: {
+        fontSize: 17,
+        fontWeight: "800",
+        color: "#8B4DFF",
+    },
+
+    contactText: {
+        fontSize: 12,
+        fontWeight: "700",
+        color: "#8B4DFF",
+    },
+
+    reminderBox: {
+        minHeight: 105,
+        borderRadius: 20,
+        backgroundColor: "#F5F9FF",
+        borderWidth: 1,
+        borderColor: "#D7E5FF",
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+    },
+
+    infoIconBlue: {
+        width: 58,
+        height: 58,
+        borderRadius: 29,
+        backgroundColor: "#E3EEFF",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    reminderText: {
+        flex: 1,
+        fontSize: 15,
+        lineHeight: 23,
+        color: "#526487",
+        fontWeight: "600",
+        marginLeft: 12,
+    },
+
+    editButton: {
+        borderWidth: 1.5,
+        borderColor: "#2563E8",
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+    },
+
+    editButtonText: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#2563E8",
+    },
+
+    bottomNav: {
+        height: 94,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 22,
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 5,
+    },
+
+    activeText: {
+        color: "#2563E8",
+        fontWeight: "800",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#2563E8",
+    },
+
+});
+})
