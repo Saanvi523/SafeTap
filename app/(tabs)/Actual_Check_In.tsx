@@ -1,9 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Touchable, TouchableOpacity } from "react-native";
-import { ScrollView, View } from "react-native-reanimated/lib/typescript/Animated";
-
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, } from "react-native";
 export default function ActualCheckIn() {
 
     const { duration } = useLocalSearchParams<{ duration?: string }>();
@@ -11,22 +9,21 @@ export default function ActualCheckIn() {
     const selectedDuration = duration || "30 min";
 
     const getDurationInSeconds = (value: string) => {
-        if (value.includes("week")) {
-            return 7 * 24 * 60 * 60;
+        const number = parseInt(value) || 30;
+
+        if (value.toLowerCase().includes("week")) {
+            return number * 7 * 24 * 60 * 60;
         }
 
-        if (value.includes("day")) {
-            const days = parseInt(value);
-            return days * 24 * 60 * 60;
+        if (value.toLowerCase().includes("day")) {
+            return number * 24 * 60 * 60;
         }
 
-        if (value.includes("hour")) {
-            const hours = parseInt(value);
-            return hours * 60 * 60;
+        if (value.toLowerCase().includes("hour")) {
+            return number * 60 * 60;
         }
 
-        const minutes = parseInt(value);
-        return minutes * 60;
+        return number * 60;
     };
 
     const [totalSeconds, setTotalSeconds] = useState(
@@ -61,13 +58,19 @@ export default function ActualCheckIn() {
     const formatTime = (seconds: number) => {
 
         const days = Math.floor(seconds / (24 * 60 * 60));
-        const hours = Math.floor(
-            (seconds % (24 * 60 * 60)) / (24 * 60 * 60)
-        );
-        const remainingSeconds = seconds % 60;
 
+        const hours = Math.floor(
+            (seconds % (24 * 60 * 60)) / (60 * 60)
+        );
+
+        const minutes = Math.floor(
+            (seconds % (60 * 60)) / 60
+        );
+
+        const remainingSeconds = seconds % 60;
+        
         if (days > 0) {
-            return `${days}:$(String(hours).padStart(2, "0")}:${String(
+            return `${days}:${String(hours).padStart(2, "0")}:${String(
                 minutes
             ).padStart(2, "0")}:${String(remainingSeconds).padStart(
                 2,
@@ -91,6 +94,7 @@ export default function ActualCheckIn() {
     const handleImSafe = () => {
 
         setTimeRemaining(totalSeconds);
+        setIsActive(true);
 
         Alert.alert(
             "Check-In Successful",
@@ -141,7 +145,7 @@ export default function ActualCheckIn() {
                         onPress={() => router.back()}
                     >
                         <Ionicons
-                            name="arrow-black"
+                            name="arrow-back"
                             size={32}
                             color="#173B8F"
                         />
@@ -334,7 +338,7 @@ export default function ActualCheckIn() {
                         </View>
 
                         <Text style={styles.reminderText}>
-                            We'ss send a reminder{"\n"}
+                            We'll send a reminder{"\n"}
                             before your check-in ends.
                         </Text>
 
@@ -845,4 +849,3 @@ const styles= StyleSheet.create({
     },
 
 });
-})
