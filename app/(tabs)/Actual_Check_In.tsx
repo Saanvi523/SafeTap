@@ -15,89 +15,94 @@ import {
 const HISTORY_KEY = "@safetap_history";
 
 export default function ActualCheckIn() {
-
     const { duration } =
         useLocalSearchParams<{ duration?: string }>();
 
-    const selectedDuration = duration || "30 min";
+    const selectedDuration =
+        typeof duration === "string"
+            ? duration
+            : "30 min";
 
-
-    /* Convert selected duration into seconds */
-
+    /* Convert duration into seconds */
     const getDurationInSeconds = (value: string) => {
+        const numberMatch = value.match(/\d+/);
 
-        const number = parseInt(value) || 30;
+        const number = numberMatch
+            ? parseInt(numberMatch[0], 10)
+            : 30;
 
-        if (value.toLowerCase().includes("week")) {
+        const lowerValue = value.toLowerCase();
+
+        if (lowerValue.includes("week")) {
             return number * 7 * 24 * 60 * 60;
         }
 
-        if (value.toLowerCase().includes("day")) {
+        if (lowerValue.includes("day")) {
             return number * 24 * 60 * 60;
         }
 
-        if (value.toLowerCase().includes("hour")) {
+        if (
+            lowerValue.includes("hour") ||
+            lowerValue.includes("hr")
+        ) {
             return number * 60 * 60;
         }
 
         return number * 60;
     };
 
+    const currentDurationSeconds =
+        getDurationInSeconds(selectedDuration);
 
-    const [totalSeconds] = useState(
-        getDurationInSeconds(selectedDuration)
-    );
+    const [totalSeconds, setTotalSeconds] =
+        useState(currentDurationSeconds);
 
     const [timeRemaining, setTimeRemaining] =
-        useState(
-            getDurationInSeconds(selectedDuration)
-        );
+        useState(currentDurationSeconds);
 
     const [isActive, setIsActive] =
         useState(true);
 
+    /* Reset timer when duration changes */
+    useEffect(() => {
+        const newDuration =
+            getDurationInSeconds(selectedDuration);
+
+        setTotalSeconds(newDuration);
+        setTimeRemaining(newDuration);
+        setIsActive(true);
+    }, [selectedDuration]);
 
     /* TIMER */
-
     useEffect(() => {
-
         if (!isActive || timeRemaining <= 0) {
             return;
         }
 
         const timer = setInterval(() => {
-
             setTimeRemaining((previousTime) => {
-
                 if (previousTime <= 1) {
-
                     clearInterval(timer);
-
+                    setIsActive(false);
                     return 0;
                 }
 
                 return previousTime - 1;
-
             });
-
         }, 1000);
 
         return () => clearInterval(timer);
-
     }, [isActive, timeRemaining]);
 
-
     /* FORMAT TIMER */
-
     const formatTime = (seconds: number) => {
-
         const days =
             Math.floor(seconds / (24 * 60 * 60));
 
         const hours =
             Math.floor(
                 (seconds % (24 * 60 * 60)) /
-                (60 * 60)
+                    (60 * 60)
             );
 
         const minutes =
@@ -108,9 +113,7 @@ export default function ActualCheckIn() {
         const remainingSeconds =
             seconds % 60;
 
-
         if (days > 0) {
-
             return `${days}:${String(hours).padStart(
                 2,
                 "0"
@@ -121,12 +124,9 @@ export default function ActualCheckIn() {
                 2,
                 "0"
             )}`;
-
         }
 
-
         if (hours > 0) {
-
             return `${hours}:${String(minutes).padStart(
                 2,
                 "0"
@@ -134,9 +134,7 @@ export default function ActualCheckIn() {
                 2,
                 "0"
             )}`;
-
         }
-
 
         return `${String(minutes).padStart(
             2,
@@ -147,11 +145,8 @@ export default function ActualCheckIn() {
         )}`;
     };
 
-
     /* I'M SAFE */
-
     const handleImSafe = async () => {
-
         const now = new Date();
 
         const date =
@@ -163,68 +158,55 @@ export default function ActualCheckIn() {
                 minute: "2-digit",
             });
 
-
         const newHistoryItem = {
-
             id: Date.now().toString(),
-
-            date: date,
-
-            time: time,
-
+            date,
+            time,
             duration: selectedDuration,
-
             message:
                 `I'm Safe check-in completed at ${time}.`,
         };
 
-
         try {
-
             const existingHistory =
                 await AsyncStorage.getItem(
                     HISTORY_KEY
                 );
-
 
             const history =
                 existingHistory
                     ? JSON.parse(existingHistory)
                     : [];
 
-
             const updatedHistory = [
                 newHistoryItem,
                 ...history,
             ];
-
 
             await AsyncStorage.setItem(
                 HISTORY_KEY,
                 JSON.stringify(updatedHistory)
             );
 
-
             /* Reset timer */
+            const resetTime =
+                getDurationInSeconds(
+                    selectedDuration
+                );
 
-            setTimeRemaining(totalSeconds);
-
+            setTotalSeconds(resetTime);
+            setTimeRemaining(resetTime);
             setIsActive(true);
-
 
             Alert.alert(
                 "Check-In Successful",
                 `Your check-in was recorded at ${time}.`
             );
-
-
         } catch (error) {
-
             console.log(
                 "Error saving history:",
                 error
             );
-
 
             Alert.alert(
                 "Error",
@@ -233,52 +215,40 @@ export default function ActualCheckIn() {
         }
     };
 
-
     /* END CHECK-IN */
-
     const handleEndCheckIn = () => {
-
         Alert.alert(
             "End Check-In",
             "Are you sure you want to end this check-in?",
-
             [
-
                 {
                     text: "Cancel",
                     style: "cancel",
                 },
-
                 {
                     text: "End Check-In",
                     style: "destructive",
-
                     onPress: () => {
-
                         setIsActive(false);
 
-                        router.push(
+                        router.replace(
                             "/(tabs)/Check_In"
                         );
-
                     },
                 },
-
             ]
         );
     };
-
 
     const progress =
         totalSeconds > 0
             ? timeRemaining / totalSeconds
             : 0;
 
-
     return (
-
         <SafeAreaView style={styles.container}>
 
+            {/* SCROLLABLE CONTENT */}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={
@@ -286,70 +256,62 @@ export default function ActualCheckIn() {
                 }
             >
 
-
                 {/* HEADER */}
-
                 <View style={styles.header}>
 
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => router.back()}
+                        onPress={() =>
+                            router.replace(
+                                "/(tabs)/Check_In"
+                            )
+                        }
                     >
-
                         <Ionicons
                             name="arrow-back"
                             size={32}
                             color="#173B8F"
                         />
-
                     </TouchableOpacity>
-
 
                     <Text style={styles.title}>
                         Active Check-In
                     </Text>
 
-
-                    <View style={styles.headerShield}>
-
+                    <View
+                        style={styles.headerShield}
+                    >
                         <Ionicons
                             name="shield-checkmark"
                             size={42}
                             color="#2563E8"
                         />
-
                     </View>
 
                 </View>
 
-
-                {/* ACTIVE CARD */}
-
+                {/* ACTIVE CHECK-IN CARD */}
                 <View style={styles.activeCard}>
 
-                    <View style={styles.shieldCircle}>
-
+                    <View
+                        style={styles.shieldCircle}
+                    >
                         <Ionicons
                             name="shield-checkmark"
                             size={70}
                             color="#08B878"
                         />
-
                     </View>
-
 
                     <Text style={styles.activeTitle}>
                         Check-In Active
                     </Text>
 
-
                     <Text style={styles.safeText}>
                         You're Safe!
                     </Text>
 
-
                     {/* TIMER */}
-
                     <View style={styles.timerCircle}>
 
                         <View
@@ -371,290 +333,292 @@ export default function ActualCheckIn() {
                             ]}
                         />
 
-
-                        <View style={styles.timerInside}>
-
-                            <Text style={styles.timeLabel}>
+                        <View
+                            style={styles.timerInside}
+                        >
+                            <Text
+                                style={styles.timeLabel}
+                            >
                                 Time remaining
                             </Text>
 
-
-                            <Text style={styles.timerText}>
+                            <Text
+                                style={styles.timerText}
+                            >
                                 {formatTime(
                                     timeRemaining
                                 )}
                             </Text>
 
-
-                            <Text style={styles.durationLabel}>
+                            <Text
+                                style={
+                                    styles.durationLabel
+                                }
+                            >
                                 {selectedDuration}
                             </Text>
-
                         </View>
 
                     </View>
 
-
                     {/* STATUS */}
-
-                    <View style={styles.endTimeBox}>
-
+                    <View
+                        style={styles.endTimeBox}
+                    >
                         <Ionicons
                             name="time-outline"
                             size={28}
                             color="#08B878"
                         />
 
-                        <Text style={styles.endTimeText}>
+                        <Text
+                            style={styles.endTimeText}
+                        >
                             Check-in is currently active
                         </Text>
-
                     </View>
 
-
                     {/* I'M SAFE */}
-
                     <TouchableOpacity
                         style={styles.safeButton}
                         onPress={handleImSafe}
                     >
-
                         <Ionicons
                             name="shield-checkmark-outline"
                             size={34}
                             color="#FFFFFF"
                         />
 
-                        <Text style={styles.safeButtonText}>
+                        <Text
+                            style={
+                                styles.safeButtonText
+                            }
+                        >
                             I'm Safe
                         </Text>
-
                     </TouchableOpacity>
 
-
-                    {/* END */}
-
+                    {/* END CHECK-IN */}
                     <TouchableOpacity
                         style={styles.endButton}
                         onPress={handleEndCheckIn}
                     >
-
                         <Ionicons
                             name="stop-circle-outline"
                             size={32}
                             color="#EF2929"
                         />
 
-                        <Text style={styles.endButtonText}>
+                        <Text
+                            style={styles.endButtonText}
+                        >
                             End Check-In
                         </Text>
-
                     </TouchableOpacity>
 
                 </View>
 
+                {/* REMINDER SECTION */}
+                <View style={styles.reminderCard}>
 
-                {/* INFORMATION CARD */}
+                    <View
+                        style={styles.reminderHeader}
+                    >
 
-                <View style={styles.infoCard}>
-
-                    <Text style={styles.infoTitle}>
-                        If you don't check in
-                    </Text>
-
-
-                    <View style={styles.infoRow}>
-
-                        <View style={styles.infoIconPurple}>
-
-                            <Ionicons
-                                name="people"
-                                size={32}
-                                color="#8B4DFF"
-                            />
-
-                        </View>
-
-
-                        <Text style={styles.infoText}>
-                            We will alert your trusted{"\n"}
-                            contacts when the timer{"\n"}
-                            reaches zero.
-                        </Text>
-
-
-                        <View style={styles.contactBadge}>
-
-                            <Text style={styles.contactNumber}>
-                                3
-                            </Text>
-
-                            <Text style={styles.contactText}>
-                                contacts
-                            </Text>
-
-                        </View>
-
-                    </View>
-
-
-                    <View style={styles.reminderBox}>
-
-                        <View style={styles.infoIconBlue}>
-
+                        <View
+                            style={styles.infoIconBlue}
+                        >
                             <Ionicons
                                 name="notifications"
                                 size={32}
                                 color="#2563E8"
                             />
-
                         </View>
 
-
-                        <Text style={styles.reminderText}>
-                            We'll send a reminder{"\n"}
-                            before your check-in ends.
-                        </Text>
-
-
-                        <TouchableOpacity
-                            style={styles.editButton}
+                        <View
+                            style={
+                                styles.reminderHeaderText
+                            }
                         >
-
-                            <Text style={styles.editButtonText}>
-                                Edit Reminder
+                            <Text
+                                style={
+                                    styles.reminderTitle
+                                }
+                            >
+                                Reminder
                             </Text>
 
+                            <Text
+                                style={
+                                    styles.reminderDescription
+                                }
+                            >
+                                Get a reminder before your
+                                check-in ends.
+                            </Text>
+                        </View>
+
+                    </View>
+
+                    <View
+                        style={styles.reminderBottom}
+                    >
+
+                        <View
+                            style={styles.reminderStatus}
+                        >
+                            <Ionicons
+                                name="time-outline"
+                                size={23}
+                                color="#2563E8"
+                            />
+
+                            <Text
+                                style={
+                                    styles.reminderStatusText
+                                }
+                            >
+                                5 minutes before
+                            </Text>
+                        </View>
+
+                        {/* EDIT REMINDER */}
+                        <TouchableOpacity
+                            style={styles.editButton}
+                            onPress={() =>
+                                router.push(
+                                    "/(tabs)/Settings"
+                                )
+                            }
+                        >
+                            <Text
+                                style={
+                                    styles.editButtonText
+                                }
+                            >
+                                Edit Reminder
+                            </Text>
                         </TouchableOpacity>
 
                     </View>
 
                 </View>
 
-
-                {/* BOTTOM NAVIGATION */}
-
-                <View style={styles.bottomNav}>
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push(
-                                "/(tabs)/Home"
-                            )
-                        }
-                    >
-
-                        <Ionicons
-                            name="home"
-                            size={34}
-                            color="#526487"
-                        />
-
-                        <Text style={styles.navText}>
-                            Home
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push(
-                                "/(tabs)/Check_In"
-                            )
-                        }
-                    >
-
-                        <View style={styles.activeLine} />
-
-                        <Ionicons
-                            name="shield-checkmark"
-                            size={34}
-                            color="#2563E8"
-                        />
-
-                        <Text
-                            style={[
-                                styles.navText,
-                                styles.activeText,
-                            ]}
-                        >
-                            Check In
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push(
-                                "/(tabs)/Contacts"
-                            )
-                        }
-                    >
-
-                        <Ionicons
-                            name="people"
-                            size={34}
-                            color="#08B88A"
-                        />
-
-                        <Text style={styles.navText}>
-                            Contacts
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push(
-                                "/(tabs)/History"
-                            )
-                        }
-                    >
-
-                        <MaterialIcons
-                            name="history"
-                            size={35}
-                            color="#F59E0B"
-                        />
-
-                        <Text style={styles.navText}>
-                            History
-                        </Text>
-
-                    </TouchableOpacity>
-
-
-                    <TouchableOpacity
-                        style={styles.navItem}
-                        onPress={() =>
-                            router.push(
-                                "/(tabs)/Settings"
-                            )
-                        }
-                    >
-
-                        <Ionicons
-                            name="settings"
-                            size={34}
-                            color="#7C3AED"
-                        />
-
-                        <Text style={styles.navText}>
-                            Settings
-                        </Text>
-
-                    </TouchableOpacity>
-
-                </View>
-
             </ScrollView>
+
+            {/* FIXED BOTTOM NAVIGATION */}
+            <View style={styles.bottomNav}>
+
+                {/* HOME */}
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push(
+                            "/(tabs)/Home"
+                        )
+                    }
+                >
+                    <Ionicons
+                        name="home"
+                        size={34}
+                        color="#526487"
+                    />
+
+                    <Text style={styles.navText}>
+                        Home
+                    </Text>
+                </TouchableOpacity>
+
+                {/* CHECK IN */}
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.replace(
+                            "/(tabs)/Check_In"
+                        )
+                    }
+                >
+                    <View
+                        style={styles.activeLine}
+                    />
+
+                    <Ionicons
+                        name="shield-checkmark"
+                        size={34}
+                        color="#2563E8"
+                    />
+
+                    <Text
+                        style={[
+                            styles.navText,
+                            styles.activeText,
+                        ]}
+                    >
+                        Check In
+                    </Text>
+                </TouchableOpacity>
+
+                {/* CONTACTS */}
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push(
+                            "/(tabs)/Contacts"
+                        )
+                    }
+                >
+                    <Ionicons
+                        name="people"
+                        size={34}
+                        color="#08B88A"
+                    />
+
+                    <Text style={styles.navText}>
+                        Contacts
+                    </Text>
+                </TouchableOpacity>
+
+                {/* HISTORY */}
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push(
+                            "/(tabs)/History"
+                        )
+                    }
+                >
+                    <MaterialIcons
+                        name="history"
+                        size={35}
+                        color="#F59E0B"
+                    />
+
+                    <Text style={styles.navText}>
+                        History
+                    </Text>
+                </TouchableOpacity>
+
+                {/* SETTINGS */}
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() =>
+                        router.push(
+                            "/(tabs)/Settings"
+                        )
+                    }
+                >
+                    <Ionicons
+                        name="settings"
+                        size={34}
+                        color="#7C3AED"
+                    />
+
+                    <Text style={styles.navText}>
+                        Settings
+                    </Text>
+                </TouchableOpacity>
+
+            </View>
 
         </SafeAreaView>
     );
@@ -673,8 +637,10 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 18,
-        paddingBottom: 25,
+        paddingBottom: 150,
     },
+
+    /* HEADER */
 
     header: {
         flexDirection: "row",
@@ -715,6 +681,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+
+    /* ACTIVE CARD */
 
     activeCard: {
         backgroundColor: "#F7FFFB",
@@ -763,6 +731,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginTop: 8,
     },
+
+    /* TIMER */
 
     timerCircle: {
         width: 290,
@@ -813,6 +783,8 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
+    /* STATUS */
+
     endTimeBox: {
         height: 55,
         borderRadius: 28,
@@ -831,6 +803,8 @@ const styles = StyleSheet.create({
         color: "#173B8F",
         marginLeft: 9,
     },
+
+    /* I'M SAFE */
 
     safeButton: {
         height: 68,
@@ -860,6 +834,8 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 
+    /* END BUTTON */
+
     endButton: {
         height: 64,
         borderRadius: 20,
@@ -879,12 +855,13 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 
-    infoCard: {
+    /* REMINDER CARD */
+
+    reminderCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
-        paddingHorizontal: 22,
-        paddingTop: 25,
-        paddingBottom: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 22,
         marginTop: 22,
 
         shadowColor: "#7898D8",
@@ -899,92 +876,67 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
 
-    infoTitle: {
-        fontSize: 25,
-        fontWeight: "800",
-        color: "#173B8F",
-        marginBottom: 22,
-    },
-
-    infoRow: {
+    reminderHeader: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 20,
-    },
-
-    infoIconPurple: {
-        width: 65,
-        height: 65,
-        borderRadius: 33,
-        backgroundColor: "#F0E5FF",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-
-    infoText: {
-        flex: 1,
-        fontSize: 16,
-        lineHeight: 25,
-        color: "#526487",
-        marginLeft: 15,
-    },
-
-    contactBadge: {
-        backgroundColor: "#F0E5FF",
-        borderRadius: 18,
-        paddingHorizontal: 12,
-        paddingVertical: 9,
-        alignItems: "center",
-    },
-
-    contactNumber: {
-        fontSize: 17,
-        fontWeight: "800",
-        color: "#8B4DFF",
-    },
-
-    contactText: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#8B4DFF",
-    },
-
-    reminderBox: {
-        minHeight: 105,
-        borderRadius: 20,
-        backgroundColor: "#F5F9FF",
-        borderWidth: 1,
-        borderColor: "#D7E5FF",
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 12,
-        paddingVertical: 12,
     },
 
     infoIconBlue: {
-        width: 58,
-        height: 58,
-        borderRadius: 29,
+        width: 62,
+        height: 62,
+        borderRadius: 31,
         backgroundColor: "#E3EEFF",
         alignItems: "center",
         justifyContent: "center",
     },
 
-    reminderText: {
+    reminderHeaderText: {
         flex: 1,
+        marginLeft: 15,
+    },
+
+    reminderTitle: {
+        fontSize: 23,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginBottom: 5,
+    },
+
+    reminderDescription: {
         fontSize: 15,
-        lineHeight: 23,
+        lineHeight: 22,
         color: "#526487",
-        fontWeight: "600",
-        marginLeft: 12,
+    },
+
+    reminderBottom: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: 18,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: "#DDE5F2",
+    },
+
+    reminderStatus: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+    },
+
+    reminderStatusText: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#526487",
+        marginLeft: 8,
     },
 
     editButton: {
         borderWidth: 1.5,
         borderColor: "#2563E8",
         borderRadius: 16,
-        paddingHorizontal: 12,
-        paddingVertical: 12,
+        paddingHorizontal: 13,
+        paddingVertical: 11,
     },
 
     editButtonText: {
@@ -993,14 +945,19 @@ const styles = StyleSheet.create({
         color: "#2563E8",
     },
 
+    /* FIXED BOTTOM NAVIGATION */
+
     bottomNav: {
+        position: "absolute",
+        bottom: 10,
+        left: 15,
+        right: 15,
         height: 94,
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        marginTop: 22,
 
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
@@ -1011,7 +968,7 @@ const styles = StyleSheet.create({
             height: 4,
         },
 
-        elevation: 6,
+        elevation: 8,
     },
 
     navItem: {
@@ -1042,5 +999,4 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         backgroundColor: "#2563E8",
     },
-
 });

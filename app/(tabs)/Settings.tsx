@@ -1,6 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -10,28 +11,94 @@ import {
     View,
 } from "react-native";
 
+const REMINDER_KEY = "@safetap_reminder_alerts";
+
 export default function Settings() {
 
     const [reminderAlerts, setReminderAlerts] = useState(true);
 
+    /*
+     * LOAD SAVED REMINDER SETTING
+     */
+    useEffect(() => {
+
+        const loadReminderSetting = async () => {
+
+            try {
+
+                const savedSetting =
+                    await AsyncStorage.getItem(REMINDER_KEY);
+
+                if (savedSetting !== null) {
+
+                    setReminderAlerts(
+                        savedSetting === "true"
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.log(
+                    "Error loading reminder setting:",
+                    error
+                );
+
+            }
+
+        };
+
+        loadReminderSetting();
+
+    }, []);
+
+
+    /*
+     * TOGGLE AND SAVE REMINDER SETTING
+     */
+    const toggleReminderAlerts = async () => {
+
+        const newValue = !reminderAlerts;
+
+        setReminderAlerts(newValue);
+
+        try {
+
+            await AsyncStorage.setItem(
+                REMINDER_KEY,
+                String(newValue)
+            );
+
+        } catch (error) {
+
+            console.log(
+                "Error saving reminder setting:",
+                error
+            );
+
+        }
+
+    };
+
+
     return (
         <SafeAreaView style={styles.container}>
-
-            {/* Main Scrollable Content */}
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContainer}
             >
 
-                {/* Header */}
+                {/* HEADER */}
 
                 <View style={styles.header}>
 
                     <View>
+
                         <Text style={styles.title}>
                             Settings
                         </Text>
+
                     </View>
 
                     <View style={styles.shieldContainer}>
@@ -47,11 +114,12 @@ export default function Settings() {
                 </View>
 
 
-                {/* Account */}
+                {/* ACCOUNT */}
 
                 <Text style={styles.sectionTitle}>
                     Account
                 </Text>
+
 
                 <TouchableOpacity
                     style={styles.singleCard}
@@ -70,6 +138,7 @@ export default function Settings() {
 
                     </View>
 
+
                     <View style={styles.cardTextContainer}>
 
                         <Text style={styles.cardTitle}>
@@ -82,6 +151,7 @@ export default function Settings() {
 
                     </View>
 
+
                     <Ionicons
                         name="chevron-forward"
                         size={30}
@@ -91,11 +161,12 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* Preferences */}
+                {/* PREFERENCES */}
 
                 <Text style={styles.sectionTitle}>
                     Preferences
                 </Text>
+
 
                 <View style={styles.preferencesCard}>
 
@@ -111,6 +182,7 @@ export default function Settings() {
 
                         </View>
 
+
                         <View style={styles.cardTextContainer}>
 
                             <Text style={styles.cardTitle}>
@@ -123,6 +195,7 @@ export default function Settings() {
 
                         </View>
 
+
                         <TouchableOpacity
                             style={[
                                 styles.toggle,
@@ -130,9 +203,7 @@ export default function Settings() {
                                     ? styles.toggleOn
                                     : styles.toggleOff,
                             ]}
-                            onPress={() =>
-                                setReminderAlerts(!reminderAlerts)
-                            }
+                            onPress={toggleReminderAlerts}
                         >
 
                             <View
@@ -151,11 +222,12 @@ export default function Settings() {
                 </View>
 
 
-                {/* Safety & Alerts */}
+                {/* SAFETY & ALERTS */}
 
                 <Text style={styles.sectionTitle}>
                     Safety & Alerts
                 </Text>
+
 
                 <TouchableOpacity
                     style={styles.singleCard}
@@ -174,6 +246,7 @@ export default function Settings() {
 
                     </View>
 
+
                     <View style={styles.cardTextContainer}>
 
                         <Text style={styles.cardTitle}>
@@ -186,6 +259,7 @@ export default function Settings() {
 
                     </View>
 
+
                     <Ionicons
                         name="chevron-forward"
                         size={30}
@@ -195,11 +269,12 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* Other */}
+                {/* OTHER */}
 
                 <Text style={styles.sectionTitle}>
                     Other
                 </Text>
+
 
                 <TouchableOpacity
                     style={styles.singleCard}
@@ -218,6 +293,7 @@ export default function Settings() {
 
                     </View>
 
+
                     <View style={styles.cardTextContainer}>
 
                         <Text style={styles.logoutTitle}>
@@ -229,6 +305,7 @@ export default function Settings() {
                         </Text>
 
                     </View>
+
 
                     <Ionicons
                         name="chevron-forward"
@@ -245,7 +322,7 @@ export default function Settings() {
 
             <View style={styles.bottomNav}>
 
-                {/* Home */}
+                {/* HOME */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -267,7 +344,7 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* Check In */}
+                {/* CHECK IN */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -289,7 +366,7 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* Contacts */}
+                {/* CONTACTS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -311,7 +388,7 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* History */}
+                {/* HISTORY */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -333,7 +410,7 @@ export default function Settings() {
                 </TouchableOpacity>
 
 
-                {/* Settings - Active */}
+                {/* SETTINGS */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -370,8 +447,6 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
 
-    /* Main Screen */
-
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -380,14 +455,8 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-
-        // Extra space so the final card
-        // can scroll above the fixed navigation
         paddingBottom: 130,
     },
-
-
-    /* Header */
 
     header: {
         flexDirection: "row",
@@ -420,6 +489,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7EA7EF",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -428,9 +498,6 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
 
-
-    /* Section Titles */
-
     sectionTitle: {
         fontSize: 27,
         fontWeight: "800",
@@ -438,9 +505,6 @@ const styles = StyleSheet.create({
         marginBottom: 14,
         marginTop: 5,
     },
-
-
-    /* Cards */
 
     singleCard: {
         minHeight: 112,
@@ -454,6 +518,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -472,6 +537,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -485,9 +551,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
-
-
-    /* Card Text */
 
     cardTextContainer: {
         flex: 1,
@@ -513,9 +576,6 @@ const styles = StyleSheet.create({
         color: "#D62828",
     },
 
-
-    /* Icons */
-
     iconCircleBlue: {
         width: 58,
         height: 58,
@@ -533,9 +593,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-
-
-    /* Toggle */
 
     toggle: {
         width: 58,
@@ -566,6 +623,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000000",
         shadowOpacity: 0.1,
         shadowRadius: 3,
+
         shadowOffset: {
             width: 0,
             height: 1,
@@ -578,6 +636,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000000",
         shadowOpacity: 0.1,
         shadowRadius: 3,
+
         shadowOffset: {
             width: 0,
             height: 1,
@@ -585,9 +644,6 @@ const styles = StyleSheet.create({
 
         elevation: 2,
     },
-
-
-    /* Fixed Bottom Navigation */
 
     bottomNav: {
         position: "absolute",
@@ -606,6 +662,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 4,
