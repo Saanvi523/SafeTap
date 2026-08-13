@@ -1,6 +1,15 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
+import {
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 type Contact = {
     id: number;
@@ -10,7 +19,10 @@ type Contact = {
     email: string;
 };
 
-export default function Contacts () {
+export default function Contacts() {
+
+    const router = useRouter();
+
     const [showAddContact, setShowAddContact] = useState(false);
 
     const [name, setName] = useState("");
@@ -21,6 +33,7 @@ export default function Contacts () {
     const [contacts, setContacts] = useState<Contact[]>([]);
 
     const addContact = () => {
+
         if (name.trim() === "" || phone.trim() === "") {
             return;
         }
@@ -44,6 +57,7 @@ export default function Contacts () {
     };
 
     const deleteContact = (id: number) => {
+
         setContacts(
             contacts.filter((contact) => contact.id !== id)
         );
@@ -57,7 +71,12 @@ export default function Contacts () {
                 contentContainerStyle={styles.scrollContainer}
             >
 
-                <TouchableOpacity style={styles.backButton}>
+                {/* Back Button */}
+
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
                     <Ionicons
                         name="arrow-back"
                         size={30}
@@ -65,14 +84,20 @@ export default function Contacts () {
                     />
                 </TouchableOpacity>
 
+
+                {/* Page Title */}
+
                 <Text style={styles.title}>
                     Contacts
                 </Text>
 
 
+                {/* Introduction */}
+
                 <View style={styles.introContainer}>
 
                     <View style={styles.introTextContainer}>
+
                         <Text style={styles.mainHeading}>
                             Your Trusted Contacts
                         </Text>
@@ -82,17 +107,24 @@ export default function Contacts () {
                             {"\n"}
                             be alerted in case of an emergency.
                         </Text>
+
                     </View>
 
+
                     <View style={styles.contactIcon}>
+
                         <Ionicons
                             name="person-add"
                             size={48}
                             color="#2563E8"
                         />
+
                     </View>
 
                 </View>
+
+
+                {/* Add Contact Button */}
 
                 <TouchableOpacity
                     style={styles.addButton}
@@ -106,6 +138,7 @@ export default function Contacts () {
                     </Text>
 
                     <View style={styles.plusCircle}>
+
                         <Ionicons
                             name={
                                 showAddContact
@@ -115,11 +148,16 @@ export default function Contacts () {
                             size={28}
                             color="#FFFFFF"
                         />
+
                     </View>
 
                 </TouchableOpacity>
 
+
+                {/* Add Contact Form */}
+
                 {showAddContact && (
+
                     <View style={styles.addForm}>
 
                         <View style={styles.dragHandle} />
@@ -127,6 +165,7 @@ export default function Contacts () {
                         <Text style={styles.formTitle}>
                             Add New Contact
                         </Text>
+
 
                         <Text style={styles.label}>
                             Name
@@ -140,6 +179,7 @@ export default function Contacts () {
                             onChangeText={setName}
                         />
 
+
                         <Text style={styles.label}>
                             Phone Number
                         </Text>
@@ -152,6 +192,7 @@ export default function Contacts () {
                             value={phone}
                             onChangeText={setPhone}
                         />
+
 
                         <Text style={styles.label}>
                             Relationship (optional)
@@ -180,37 +221,51 @@ export default function Contacts () {
                             onChangeText={setEmail}
                         />
 
+
                         <TouchableOpacity
                             style={styles.saveButton}
                             onPress={addContact}
                         >
+
                             <Text style={styles.saveButtonText}>
                                 Save Contact
                             </Text>
+
                         </TouchableOpacity>
-                            
+
                     </View>
+
                 )}
 
+
+                {/* Contacts Heading */}
+
                 {contacts.length > 0 && (
+
                     <Text style={styles.contactsHeading}>
                         Your Contacts
                     </Text>
+
                 )}
 
 
+                {/* Contact Cards */}
+
                 {contacts.map((contact) => (
+
                     <View
                         key={contact.id}
                         style={styles.contactCard}
                     >
 
                         <View style={styles.contactBadge}>
+
                             <Ionicons
                                 name="person"
                                 size={28}
                                 color="#2563E8"
                             />
+
                         </View>
 
 
@@ -225,9 +280,11 @@ export default function Contacts () {
                             </Text>
 
                             {contact.relationship !== "" && (
+
                                 <Text style={styles.relationship}>
                                     {contact.relationship}
                                 </Text>
+
                             )}
 
                         </View>
@@ -236,12 +293,15 @@ export default function Contacts () {
                         <TouchableOpacity
                             style={styles.messageButton}
                         >
+
                             <Ionicons
                                 name="chatbubble"
                                 size={21}
                                 color="#2563E8"
                             />
+
                         </TouchableOpacity>
+
 
                         <TouchableOpacity
                             style={styles.deleteButton}
@@ -249,15 +309,141 @@ export default function Contacts () {
                                 deleteContact(contact.id)
                             }
                         >
+
                             <MaterialIcons
                                 name="delete"
                                 size={21}
                                 color="#FFFFFF"
                             />
+
                         </TouchableOpacity>
 
                     </View>
+
                 ))}
+
+
+                {/* Bottom Navigation */}
+
+                <View style={styles.bottomNav}>
+
+                    {/* Home */}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/Home")
+                        }
+                    >
+
+                        <Ionicons
+                            name="home"
+                            size={32}
+                            color="#526487"
+                        />
+
+                        <Text style={styles.navText}>
+                            Home
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+                    {/* Check In */}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/Check_In")
+                        }
+                    >
+
+                        <Ionicons
+                            name="shield-checkmark"
+                            size={32}
+                            color="#2563E8"
+                        />
+
+                        <Text style={styles.navText}>
+                            Check In
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+                    {/* Contacts - Active */}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/Contacts")
+                        }
+                    >
+
+                        <View style={styles.activeLine} />
+
+                        <Ionicons
+                            name="people"
+                            size={32}
+                            color="#08B88A"
+                        />
+
+                        <Text
+                            style={[
+                                styles.navText,
+                                styles.activeText,
+                            ]}
+                        >
+                            Contacts
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+                    {/* History */}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/History")
+                        }
+                    >
+
+                        <MaterialIcons
+                            name="history"
+                            size={34}
+                            color="#F59E0B"
+                        />
+
+                        <Text style={styles.navText}>
+                            History
+                        </Text>
+
+                    </TouchableOpacity>
+
+
+                    {/* Settings */}
+
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() =>
+                            router.push("/(tabs)/Settings")
+                        }
+                    >
+
+                        <Ionicons
+                            name="settings"
+                            size={32}
+                            color="#7C3AED"
+                        />
+
+                        <Text style={styles.navText}>
+                            Settings
+                        </Text>
+
+                    </TouchableOpacity>
+
+                </View>
 
             </ScrollView>
 
@@ -265,23 +451,30 @@ export default function Contacts () {
     );
 }
 
+
 const styles = StyleSheet.create({
 
     container: {
-        flex:1,
+        flex: 1,
         backgroundColor: "#F5F8FD",
     },
 
     scrollContainer: {
         paddingHorizontal: 25,
         paddingTop: 15,
-        paddingBottom: 50,
+        paddingBottom: 30,
     },
+
+
+    /* Back Button */
 
     backButton: {
         marginBottom: 10,
         alignSelf: "flex-start",
     },
+
+
+    /* Title */
 
     title: {
         fontSize: 34,
@@ -290,6 +483,9 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 35,
     },
+
+
+    /* Introduction */
 
     introContainer: {
         flexDirection: "row",
@@ -323,6 +519,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginLeft: 10,
     },
+
+
+    /* Add Contact Button */
 
     addButton: {
         height: 78,
@@ -359,6 +558,9 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+
+
+    /* Add Contact Form */
 
     addForm: {
         backgroundColor: "#FFFFFF",
@@ -412,6 +614,9 @@ const styles = StyleSheet.create({
         backgroundColor: "#FBFCFF",
     },
 
+
+    /* Save Button */
+
     saveButton: {
         height: 57,
         borderRadius: 15,
@@ -426,6 +631,9 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "700",
     },
+
+
+    /* Contacts */
 
     contactsHeading: {
         fontSize: 21,
@@ -466,7 +674,7 @@ const styles = StyleSheet.create({
     },
 
     contactInfo: {
-        flex:1,
+        flex: 1,
     },
 
     contactName: {
@@ -505,4 +713,58 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+
+
+    /* Bottom Navigation */
+
+    bottomNav: {
+        height: 94,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 26,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 25,
+        marginBottom: 10,
+
+        shadowColor: "#7898DB",
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+
+        elevation: 6,
+    },
+
+    navItem: {
+        flex: 1,
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+
+    navText: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "#526487",
+        marginTop: 5,
+    },
+
+    activeText: {
+        color: "#08B88A",
+        fontWeight: "800",
+    },
+
+    activeLine: {
+        position: "absolute",
+        top: 0,
+        width: 55,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: "#08B88A",
+    },
+
 });
