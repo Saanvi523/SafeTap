@@ -19,9 +19,8 @@ export default function Settings() {
     const [reminderAlerts, setReminderAlerts] = useState(true);
     const [showProfile, setShowProfile] = useState(false);
 
-    /*
-     * LOAD SAVED REMINDER SETTING
-     */
+    /* LOAD REMINDER SETTING */
+
     useEffect(() => {
         const loadReminderSetting = async () => {
             try {
@@ -42,9 +41,8 @@ export default function Settings() {
         loadReminderSetting();
     }, []);
 
-    /*
-     * TOGGLE AND SAVE REMINDER SETTING
-     */
+    /* TOGGLE REMINDER SETTING */
+
     const toggleReminderAlerts = async () => {
         const newValue = !reminderAlerts;
 
@@ -63,9 +61,8 @@ export default function Settings() {
         }
     };
 
-    /*
-     * LOG OUT
-     */
+    /* LOG OUT */
+
     const handleLogout = () => {
         Alert.alert(
             "Log Out",
@@ -81,7 +78,7 @@ export default function Settings() {
                     onPress: () => {
                         setShowProfile(false);
 
-                        // Return to index.tsx
+                        // Return to the welcome screen
                         router.replace("/");
                     },
                 },
@@ -280,6 +277,7 @@ export default function Settings() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.profileModal}>
+
                         {/* PROFILE HEADER */}
 
                         <View style={styles.profileHeader}>
@@ -350,7 +348,7 @@ export default function Settings() {
                             </Text>
                         </View>
 
-                        {/* CLOSE BUTTON */}
+                        {/* CLOSE PROFILE */}
 
                         <TouchableOpacity
                             style={styles.profileCloseButton}
@@ -370,6 +368,7 @@ export default function Settings() {
             {/* FIXED BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
+
                 {/* HOME */}
 
                 <TouchableOpacity
@@ -446,7 +445,7 @@ export default function Settings() {
                     </Text>
                 </TouchableOpacity>
 
-                {/* SETTINGS */}
+                {/* SETTINGS - ACTIVE */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -477,6 +476,9 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
+
+    /* MAIN SCREEN */
+
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -674,7 +676,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
 
-    /* PROFILE MODAL */
+    /* PROFILE POPUP */
 
     modalOverlay: {
         flex: 1,

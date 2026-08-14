@@ -179,31 +179,47 @@ export default function ActualCheckIn() {
                 minute: "2-digit",
             });
 
+        // Create a new history record.
         const newHistoryItem = {
             id: Date.now().toString(),
             date,
             time,
             duration: selectedDuration,
+
+            // Reminder information.
+            reminderEnabled: true,
+            reminderTime: "5 minutes before",
+
             message:
                 `I'm Safe check-in completed at ${time}.`,
         };
 
         try {
+            // Get existing history.
             const existingHistory =
                 await AsyncStorage.getItem(
                     HISTORY_KEY
                 );
 
+            // Convert saved history into an array.
             const history =
                 existingHistory
                     ? JSON.parse(existingHistory)
                     : [];
 
+            // Make sure the saved data is an array.
+            const validHistory =
+                Array.isArray(history)
+                    ? history
+                    : [];
+
+            // Add the newest check-in to the beginning.
             const updatedHistory = [
                 newHistoryItem,
-                ...history,
+                ...validHistory,
             ];
 
+            // Save the updated history.
             await AsyncStorage.setItem(
                 HISTORY_KEY,
                 JSON.stringify(updatedHistory)
@@ -270,6 +286,7 @@ export default function ActualCheckIn() {
         <SafeAreaView style={styles.container}>
 
             {/* SCROLLABLE CONTENT */}
+
             <ScrollView
                 ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
@@ -279,6 +296,7 @@ export default function ActualCheckIn() {
             >
 
                 {/* HEADER */}
+
                 <View style={styles.header}>
 
                     <TouchableOpacity
@@ -313,6 +331,7 @@ export default function ActualCheckIn() {
                 </View>
 
                 {/* ACTIVE CHECK-IN CARD */}
+
                 <View style={styles.activeCard}>
 
                     <View
@@ -334,6 +353,7 @@ export default function ActualCheckIn() {
                     </Text>
 
                     {/* TIMER */}
+
                     <View style={styles.timerCircle}>
 
                         <View
@@ -384,6 +404,7 @@ export default function ActualCheckIn() {
                     </View>
 
                     {/* STATUS */}
+
                     <View
                         style={styles.endTimeBox}
                     >
@@ -401,6 +422,7 @@ export default function ActualCheckIn() {
                     </View>
 
                     {/* I'M SAFE */}
+
                     <TouchableOpacity
                         style={styles.safeButton}
                         onPress={handleImSafe}
@@ -421,6 +443,7 @@ export default function ActualCheckIn() {
                     </TouchableOpacity>
 
                     {/* END CHECK-IN */}
+
                     <TouchableOpacity
                         style={styles.endButton}
                         onPress={handleEndCheckIn}
@@ -443,6 +466,7 @@ export default function ActualCheckIn() {
                 </View>
 
                 {/* REMINDER SECTION */}
+
                 <View style={styles.reminderCard}>
 
                     <View
@@ -507,6 +531,7 @@ export default function ActualCheckIn() {
                         </View>
 
                         {/* EDIT REMINDER */}
+
                         <TouchableOpacity
                             style={styles.editButton}
                             onPress={() =>
@@ -531,9 +556,11 @@ export default function ActualCheckIn() {
             </ScrollView>
 
             {/* FIXED BOTTOM NAVIGATION */}
+
             <View style={styles.bottomNav}>
 
                 {/* HOME */}
+
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
@@ -554,6 +581,7 @@ export default function ActualCheckIn() {
                 </TouchableOpacity>
 
                 {/* CHECK IN */}
+
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
@@ -583,6 +611,7 @@ export default function ActualCheckIn() {
                 </TouchableOpacity>
 
                 {/* CONTACTS */}
+
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
@@ -603,6 +632,7 @@ export default function ActualCheckIn() {
                 </TouchableOpacity>
 
                 {/* HISTORY */}
+
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
@@ -623,6 +653,7 @@ export default function ActualCheckIn() {
                 </TouchableOpacity>
 
                 {/* SETTINGS */}
+
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
@@ -647,6 +678,7 @@ export default function ActualCheckIn() {
         </SafeAreaView>
     );
 }
+
 
 // STYLES
 

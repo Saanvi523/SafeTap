@@ -18,8 +18,6 @@ export default function CheckIn() {
     // Store a reference to the ScrollView.
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // CHECK IN PAGE
-
     // Scroll to the top every time this page is opened.
     useFocusEffect(
         useCallback(() => {
@@ -286,39 +284,6 @@ export default function CheckIn() {
                             </View>
 
                         )}
-
-
-                        <View style={styles.divider} />
-
-
-                        {/* WHEN */}
-
-                        <TouchableOpacity
-                            style={styles.optionRow}
-                        >
-
-                            <Text style={styles.optionLabel}>
-                                When
-                            </Text>
-
-                            <View style={styles.optionRight}>
-
-                                <Text style={styles.optionValue}>
-                                    Today, 8:00PM
-                                </Text>
-
-                                <Ionicons
-                                    name="chevron-forward"
-                                    size={28}
-                                    color="#526487"
-                                />
-
-                            </View>
-
-                        </TouchableOpacity>
-
-
-                        <View style={styles.divider} />
 
 
                         {/* START BUTTON */}

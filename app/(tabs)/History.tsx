@@ -16,65 +16,134 @@ import {
     View,
 } from "react-native";
 
+
+// HISTORY ITEM DATA STRUCTURE
+
 type HistoryItem = {
     id: string;
     date: string;
     time: string;
     duration: string;
+    reminderEnabled?: boolean;
+    reminderTime?: string;
     message: string;
 };
 
+
+// KEY USED TO SAVE AND LOAD HISTORY
+
 const HISTORY_KEY = "@safetap_history";
 
+
 export default function History() {
-    const [history, setHistory] = useState<HistoryItem[]>([]);
 
-    const scrollViewRef = useRef<ScrollView>(null);
+    // STORES ALL PREVIOUS CHECK-IN HISTORY ITEMS
 
-    const loadHistory = async () => {
-        try {
-            const savedHistory =
-                await AsyncStorage.getItem(HISTORY_KEY);
+    const [history, setHistory] =
+        useState<HistoryItem[]>([]);
 
-            if (savedHistory) {
-                const parsedHistory = JSON.parse(savedHistory);
 
-                if (Array.isArray(parsedHistory)) {
-                    setHistory(parsedHistory);
-                } else {
-                    setHistory([]);
-                }
-            } else {
-                setHistory([]);
-            }
-        } catch (error) {
-            console.log("Error loading history:", error);
-            setHistory([]);
-        }
-    };
+    // REFERENCE TO THE SCROLLVIEW
+
+    const scrollViewRef =
+        useRef<ScrollView>(null);
+
 
     /*
-     * Reload history and return to the top
-     * whenever this page becomes visible.
+     * LOAD HISTORY FROM ASYNC STORAGE
      */
+
+    const loadHistory = async () => {
+
+        try {
+
+            // GET SAVED HISTORY
+
+            const savedHistory =
+                await AsyncStorage.getItem(
+                    HISTORY_KEY
+                );
+
+
+            // CHECK WHETHER HISTORY EXISTS
+
+            if (savedHistory) {
+
+                const parsedHistory =
+                    JSON.parse(savedHistory);
+
+
+                // MAKE SURE SAVED DATA IS AN ARRAY
+
+                if (Array.isArray(parsedHistory)) {
+
+                    setHistory(parsedHistory);
+
+                } else {
+
+                    setHistory([]);
+
+                }
+
+            } else {
+
+                setHistory([]);
+
+            }
+
+        } catch (error) {
+
+            console.log(
+                "Error loading history:",
+                error
+            );
+
+            setHistory([]);
+
+        }
+
+    };
+
+
+    /*
+     * RELOAD HISTORY WHEN PAGE BECOMES VISIBLE
+     */
+
     useFocusEffect(
         useCallback(() => {
+
+            // LOAD MOST RECENT HISTORY
+
             loadHistory();
 
-            const timeout = setTimeout(() => {
-                scrollViewRef.current?.scrollTo({
-                    y: 0,
-                    animated: false,
-                });
-            }, 100);
+
+            // RETURN TO THE TOP OF THE PAGE
+
+            const timeout =
+                setTimeout(() => {
+
+                    scrollViewRef.current?.scrollTo({
+                        y: 0,
+                        animated: false,
+                    });
+
+                }, 100);
+
+
+            // CLEAR TIMER WHEN PAGE IS LEFT
 
             return () => {
+
                 clearTimeout(timeout);
+
             };
+
         }, [])
     );
 
+
     return (
+
         <SafeAreaView style={styles.container}>
 
             {/* MAIN CONTENT */}
@@ -82,14 +151,20 @@ export default function History() {
             <ScrollView
                 ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContainer}
+                contentContainerStyle={
+                    styles.scrollContainer
+                }
             >
 
                 {/* HEADER */}
 
                 <View style={styles.header}>
 
-                    <View style={styles.headerTextContainer}>
+                    <View
+                        style={
+                            styles.headerTextContainer
+                        }
+                    >
 
                         <Text style={styles.title}>
                             History
@@ -100,6 +175,9 @@ export default function History() {
                         </Text>
 
                     </View>
+
+
+                    {/* HISTORY ICON */}
 
                     <View style={styles.headerIcon}>
 
@@ -114,7 +192,7 @@ export default function History() {
                 </View>
 
 
-                {/* NO HISTORY */}
+                {/* EMPTY STATE */}
 
                 {history.length === 0 ? (
 
@@ -148,9 +226,14 @@ export default function History() {
 
                     <View style={styles.historyCard}>
 
-                        <Text style={styles.sectionTitle}>
+                        <Text
+                            style={styles.sectionTitle}
+                        >
                             Check-In History
                         </Text>
+
+
+                        {/* DISPLAY EACH SAVED CHECK-IN */}
 
                         {history.map((item) => (
 
@@ -161,7 +244,11 @@ export default function History() {
 
                                 {/* SUCCESS ICON */}
 
-                                <View style={styles.successIcon}>
+                                <View
+                                    style={
+                                        styles.successIcon
+                                    }
+                                >
 
                                     <Ionicons
                                         name="shield-checkmark"
@@ -172,25 +259,111 @@ export default function History() {
                                 </View>
 
 
-                                {/* HISTORY INFORMATION */}
+                                {/* CHECK-IN INFORMATION */}
 
-                                <View style={styles.historyInfo}>
+                                <View
+                                    style={
+                                        styles.historyInfo
+                                    }
+                                >
 
-                                    <Text style={styles.historyTitle}>
+                                    <Text
+                                        style={
+                                            styles.historyTitle
+                                        }
+                                    >
                                         Check-In Successful
                                     </Text>
 
-                                    <Text style={styles.message}>
+
+                                    {/* MESSAGE */}
+
+                                    <Text
+                                        style={
+                                            styles.message
+                                        }
+                                    >
                                         {item.message}
                                     </Text>
 
-                                    <Text style={styles.dateTime}>
-                                        {item.date} • {item.time}
+
+                                    {/* DATE AND TIME */}
+
+                                    <Text
+                                        style={
+                                            styles.dateTime
+                                        }
+                                    >
+                                        {item.date} •{" "}
+                                        {item.time}
                                     </Text>
 
-                                    <Text style={styles.duration}>
-                                        Duration: {item.duration}
+
+                                    {/* DURATION */}
+
+                                    <Text
+                                        style={
+                                            styles.duration
+                                        }
+                                    >
+                                        Duration:{" "}
+                                        {item.duration}
                                     </Text>
+
+
+                                    {/* REMINDER */}
+
+                                    {item.reminderEnabled ? (
+
+                                        <View
+                                            style={
+                                                styles.reminderRow
+                                            }
+                                        >
+
+                                            <Ionicons
+                                                name="notifications"
+                                                size={16}
+                                                color="#08A96D"
+                                            />
+
+                                            <Text
+                                                style={
+                                                    styles.reminder
+                                                }
+                                            >
+                                                Reminder: On •{" "}
+                                                {item.reminderTime ||
+                                                    "5 minutes before"}
+                                            </Text>
+
+                                        </View>
+
+                                    ) : (
+
+                                        <View
+                                            style={
+                                                styles.reminderRow
+                                            }
+                                        >
+
+                                            <Ionicons
+                                                name="notifications-off"
+                                                size={16}
+                                                color="#7182A5"
+                                            />
+
+                                            <Text
+                                                style={
+                                                    styles.reminderOff
+                                                }
+                                            >
+                                                Reminder: Off
+                                            </Text>
+
+                                        </View>
+
+                                    )}
 
                                 </View>
 
@@ -214,7 +387,9 @@ export default function History() {
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
-                        router.push("/(tabs)/Home")
+                        router.push(
+                            "/(tabs)/Home"
+                        )
                     }
                 >
 
@@ -236,7 +411,9 @@ export default function History() {
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
-                        router.push("/(tabs)/Check_In")
+                        router.push(
+                            "/(tabs)/Check_In"
+                        )
                     }
                 >
 
@@ -258,7 +435,9 @@ export default function History() {
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
-                        router.push("/(tabs)/Contacts")
+                        router.push(
+                            "/(tabs)/Contacts"
+                        )
                     }
                 >
 
@@ -280,11 +459,15 @@ export default function History() {
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
-                        router.push("/(tabs)/History")
+                        router.push(
+                            "/(tabs)/History"
+                        )
                     }
                 >
 
-                    <View style={styles.activeLine} />
+                    <View
+                        style={styles.activeLine}
+                    />
 
                     <MaterialIcons
                         name="history"
@@ -309,7 +492,9 @@ export default function History() {
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() =>
-                        router.push("/(tabs)/Settings")
+                        router.push(
+                            "/(tabs)/Settings"
+                        )
                     }
                 >
 
@@ -328,9 +513,12 @@ export default function History() {
             </View>
 
         </SafeAreaView>
+
     );
 }
 
+
+// STYLES
 
 const styles = StyleSheet.create({
 
@@ -340,6 +528,9 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F5F8FF",
     },
+
+
+    // SCROLLABLE CONTENT
 
     scrollContainer: {
         paddingHorizontal: 22,
@@ -357,10 +548,12 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
 
+
     headerTextContainer: {
         flex: 1,
         paddingRight: 15,
     },
+
 
     title: {
         fontSize: 43,
@@ -368,12 +561,14 @@ const styles = StyleSheet.create({
         color: "#173B8F",
     },
 
+
     subtitle: {
         fontSize: 17,
         lineHeight: 24,
         color: "#60729E",
         marginTop: 8,
     },
+
 
     headerIcon: {
         width: 70,
@@ -386,6 +581,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -407,6 +603,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -414,6 +611,7 @@ const styles = StyleSheet.create({
 
         elevation: 5,
     },
+
 
     emptyIcon: {
         width: 100,
@@ -425,12 +623,14 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
+
     emptyTitle: {
         fontSize: 25,
         fontWeight: "800",
         color: "#173B8F",
         marginBottom: 10,
     },
+
 
     emptyText: {
         fontSize: 16,
@@ -452,6 +652,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 5,
@@ -459,6 +660,7 @@ const styles = StyleSheet.create({
 
         elevation: 5,
     },
+
 
     sectionTitle: {
         fontSize: 25,
@@ -477,6 +679,7 @@ const styles = StyleSheet.create({
         borderTopColor: "#E3EAF5",
     },
 
+
     successIcon: {
         width: 60,
         height: 60,
@@ -487,9 +690,11 @@ const styles = StyleSheet.create({
         marginRight: 15,
     },
 
+
     historyInfo: {
         flex: 1,
     },
+
 
     historyTitle: {
         fontSize: 18,
@@ -498,12 +703,14 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
 
+
     message: {
         fontSize: 14,
         color: "#526487",
         lineHeight: 20,
         marginBottom: 6,
     },
+
 
     dateTime: {
         fontSize: 14,
@@ -512,9 +719,35 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
 
+
     duration: {
         fontSize: 13,
         color: "#7182A5",
+    },
+
+
+    // REMINDER INFORMATION
+
+    reminderRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 6,
+    },
+
+
+    reminder: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: "#08A96D",
+        marginLeft: 5,
+    },
+
+
+    reminderOff: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#7182A5",
+        marginLeft: 5,
     },
 
 
@@ -537,6 +770,7 @@ const styles = StyleSheet.create({
         shadowColor: "#7898DB",
         shadowOpacity: 0.15,
         shadowRadius: 12,
+
         shadowOffset: {
             width: 0,
             height: 4,
@@ -544,6 +778,7 @@ const styles = StyleSheet.create({
 
         elevation: 6,
     },
+
 
     navItem: {
         flex: 1,
@@ -553,6 +788,7 @@ const styles = StyleSheet.create({
         position: "relative",
     },
 
+
     navText: {
         fontSize: 12,
         fontWeight: "600",
@@ -560,10 +796,12 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
+
     activeText: {
         color: "#F59E0B",
         fontWeight: "800",
     },
+
 
     activeLine: {
         position: "absolute",

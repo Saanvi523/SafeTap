@@ -67,3 +67,4 @@ npm install fails: This could be due to network issues or an outdated Node.js ve
 App not loading on phone: Ensure your computer and your phone are connected to the same Wi-Fi network.
 Can't find the QR code: Scroll up in your terminal to see the output from the npx expo start command.
 Login not working: Make sure the email and password exactly match the hardcoded credentials shown above.
+Note: The program may not run reliably when connected to the school Wi-Fi.

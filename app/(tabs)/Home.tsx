@@ -16,14 +16,19 @@ export default function Home() {
     const isFocused = useIsFocused();
 
     /*
-     * Scroll to the very top whenever Home
-     * becomes the active screen.
+     * AUTOMATICALLY SCROLL TO TOP
+     *
+     * Whenever the Home page becomes active,
+     * the page automatically returns to the top.
      */
     useEffect(() => {
         if (!isFocused) return;
 
-        // Run several times so the scroll position
-        // is reset after navigation/layout finishes.
+        /*
+         * Reset the scroll position several times
+         * to make sure the page returns to the top
+         * after navigation and layout finish.
+         */
         const timer1 = setTimeout(() => {
             scrollViewRef.current?.scrollTo({
                 x: 0,
@@ -56,8 +61,10 @@ export default function Home() {
     }, [isFocused]);
 
     /*
-     * Home button:
-     * Always scroll to the very top.
+     * HOME BUTTON
+     *
+     * Pressing Home scrolls the page
+     * back to the very top.
      */
     const goHome = () => {
         scrollViewRef.current?.scrollTo({
@@ -318,10 +325,10 @@ export default function Home() {
                 </View>
             </ScrollView>
 
-            {/* BOTTOM NAVIGATION */}
+            {/* FIXED BOTTOM NAVIGATION */}
 
             <View style={styles.bottomNav}>
-                {/* HOME */}
+                {/* HOME - ACTIVE */}
 
                 <TouchableOpacity
                     style={styles.navItem}
@@ -427,6 +434,8 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+    /* MAIN SCREEN */
+
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -695,7 +704,7 @@ const styles = StyleSheet.create({
         marginTop: 3,
     },
 
-    /* BOTTOM NAVIGATION */
+    /* FIXED BOTTOM NAVIGATION */
 
     bottomNav: {
         position: "absolute",

@@ -1,4 +1,3 @@
-
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -10,68 +9,101 @@ export default function HomeScreen() {
       colors={["#FFFFFF", "#FCFDFF", "#F5FAFF", "#EDF7FF"]}
       locations={[0, 0.5, 0.75, 1]}
       start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y:1}}
-      style={styles.container}>
+      end={{ x: 0.5, y: 1 }}
+      style={styles.container}
+    >
+      {/* APP TITLE */}
+
       <Text style={styles.title}>SafeTap</Text>
-    
-    <Text style={styles.subtitle}>
-      Stay connected.{"\n"}
-      Stay safe.
-    </Text>
 
-    {/* Shield Placeholder */}
-    <View style={styles.circle}>
-      <Image
-        source={require("../../assets/images/Shield 2.0. .png")}
-        style={styles.shieldImage}
-        resizeMode="contain"
+      {/* APP SUBTITLE */}
+
+      <Text style={styles.subtitle}>
+        Stay connected.{"\n"}
+        Stay safe.
+      </Text>
+
+      {/* SHIELD IMAGE */}
+
+      <View style={styles.circle}>
+        <Image
+          source={require("../../assets/images/Shield 2.0. .png")}
+          style={styles.shieldImage}
+          resizeMode="contain"
         />
-    </View>
+      </View>
 
+      {/* APP DESCRIPTION */}
 
-    <Text style={styles.description}>
-      One tap to let someone{"\n"}
-      know you're safe.
-    </Text>
+      <Text style={styles.description}>
+        One tap to let someone{"\n"}
+        know you're safe.
+      </Text>
 
-    <Pressable 
-      style={styles.button}
-      onPress={() => router.push("/Log_in")}
+      {/* GET STARTED BUTTON */}
+
+      <Pressable
+        style={styles.button}
+        onPress={() => router.push("/Log_in")}
       >
-      <Text style={styles.buttonText}>GET STARTED</Text>
-    </Pressable>
+        <Text style={styles.buttonText}>GET STARTED</Text>
+      </Pressable>
 
-    <View style={styles.footer}>
-      <View style={styles.footerItem}>
-        <Feather
-        name="lock"
-        size={15}
-        color="#2E6BEB"
-        />
-        <Text style={styles.footerText}>Secure</Text>
+      {/* APP FEATURES */}
+
+      <View style={styles.footer}>
+
+        {/* SECURE */}
+
+        <View style={styles.footerItem}>
+          <Feather
+            name="lock"
+            size={15}
+            color="#2E6BEB"
+          />
+
+          <Text style={styles.footerText}>
+            Secure
+          </Text>
         </View>
-      <View style={styles.footerItem}>
-        <MaterialCommunityIcons
-        name="shield-check-outline"
-        size={15}
-        color="#2E6BEB"
-        />
-        <Text style={styles.footerText}>Private</Text>
+
+        {/* PRIVATE */}
+
+        <View style={styles.footerItem}>
+          <MaterialCommunityIcons
+            name="shield-check-outline"
+            size={15}
+            color="#2E6BEB"
+          />
+
+          <Text style={styles.footerText}>
+            Private
+          </Text>
+        </View>
+
+        {/* RELIABLE */}
+
+        <View style={styles.footerItem}>
+          <Feather
+            name="users"
+            size={15}
+            color="#2E6BEB"
+          />
+
+          <Text style={styles.footerText}>
+            Reliable
+          </Text>
+        </View>
+
       </View>
-      <View style={styles.footerItem}>
-        <Feather
-        name="users"
-        size={15}
-        color="#2E6BEB"
-        />
-        <Text style={styles.footerText}>Reliable</Text>
-      </View>
-    </View>
-  </LinearGradient>
-);
+    </LinearGradient>
+  );
 }
 
 const styles = StyleSheet.create({
+
+  /* MAIN SCREEN */
+
   container: {
     flex: 1,
     backgroundColor: "transparent",
@@ -81,6 +113,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
 
+  /* APP TITLE */
+
   title: {
     fontSize: 46,
     fontWeight: "700",
@@ -89,13 +123,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  /* APP SUBTITLE */
+
   subtitle: {
     fontSize: 18,
-    textAlign:"center",
+    textAlign: "center",
     color: "#5E6D91",
     lineHeight: 28,
     marginBottom: 25,
   },
+
+  /* SHIELD IMAGE CONTAINER */
 
   circle: {
     width: 220,
@@ -118,32 +156,38 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 
+  /* APP DESCRIPTION */
 
   description: {
     fontSize: 18,
     textAlign: "center",
-    color: '#5E6D91',
+    color: "#5E6D91",
     lineHeight: 28,
-    marginTop:5,
+    marginTop: 5,
     marginBottom: 25,
   },
 
+  /* GET STARTED BUTTON */
+
   button: {
     width: "92%",
-    height:58,
-    justifyContent:"center",
+    height: 58,
+    justifyContent: "center",
     backgroundColor: "#4F7DD9",
     borderWidth: 2,
     borderColor: "#4F7DD9",
     borderRadius: 15,
     alignItems: "center",
   },
+
   buttonText: {
     fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
     color: "#FFFFFF",
   },
+
+  /* FOOTER FEATURES */
 
   footer: {
     flexDirection: "row",
@@ -156,7 +200,7 @@ const styles = StyleSheet.create({
 
   footerText: {
     fontSize: 12,
-    marginTop:2,
+    marginTop: 2,
     color: "2E6BEB",
     fontWeight: "600",
   },
@@ -164,6 +208,8 @@ const styles = StyleSheet.create({
   footerItem: {
     alignItems: "center",
   },
+
+  /* SHIELD IMAGE */
 
   shieldImage: {
     width: 220,

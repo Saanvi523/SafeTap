@@ -21,22 +21,20 @@ export default function SignIn() {
     const scrollViewRef = useRef<ScrollView>(null);
 
     /*
-     * Runs every time this page becomes visible.
+     * RESET SIGN IN PAGE
      *
-     * It:
-     * - Clears the email box
-     * - Clears the password box
-     * - Hides the password
-     * - Scrolls back to the very top
+     * Runs whenever this page becomes visible.
+     * Clears the input fields, hides the password,
+     * and returns the page to the top.
      */
     useFocusEffect(
         useCallback(() => {
-            // Clear the input boxes
+            // Clear the input fields
             setEmail("");
             setPassword("");
             setShowPassword(false);
 
-            // Wait briefly for the page to finish rendering
+            // Scroll back to the top
             const timeout = setTimeout(() => {
                 scrollViewRef.current?.scrollTo({
                     y: 0,
@@ -53,11 +51,11 @@ export default function SignIn() {
     /*
      * SIGN IN
      *
-     * Checks that both fields have been filled in
-     * before checking the login details.
+     * Checks that the required fields have been
+     * completed before checking the login details.
      */
     const handleSignIn = () => {
-        // Both fields are empty
+        // Check if both fields are empty
         if (!email.trim() && !password.trim()) {
             alert(
                 "Please fill in your email and password."
@@ -65,19 +63,19 @@ export default function SignIn() {
             return;
         }
 
-        // Email is empty
+        // Check if email is empty
         if (!email.trim()) {
             alert("Please fill in your email.");
             return;
         }
 
-        // Password is empty
+        // Check if password is empty
         if (!password.trim()) {
             alert("Please fill in your password.");
             return;
         }
 
-        // Check login details
+        // Check the login details
         if (
             email.trim() === "test@safetap.com" &&
             password === "123456"
@@ -111,13 +109,13 @@ export default function SignIn() {
                     />
                 </TouchableOpacity>
 
-                {/* LOGO */}
+                {/* APP LOGO */}
 
                 <Text style={styles.logo}>
                     SafeTap
                 </Text>
 
-                {/* HEADING */}
+                {/* PAGE HEADING */}
 
                 <Text style={styles.heading}>
                     Welcome Back
@@ -128,7 +126,7 @@ export default function SignIn() {
                     safety check-ins and alerts.
                 </Text>
 
-                {/* EMAIL */}
+                {/* EMAIL INPUT */}
 
                 <View style={styles.inputContainer}>
                     <MaterialIcons
@@ -150,7 +148,7 @@ export default function SignIn() {
                     />
                 </View>
 
-                {/* PASSWORD */}
+                {/* PASSWORD INPUT */}
 
                 <View style={styles.inputContainer}>
                     <MaterialIcons
@@ -193,17 +191,6 @@ export default function SignIn() {
                     </TouchableOpacity>
                 </View>
 
-                {/* FORGOT PASSWORD */}
-
-                <TouchableOpacity
-                    style={styles.forgotContainer}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.forgotText}>
-                        Forgot Password?
-                    </Text>
-                </TouchableOpacity>
-
                 {/* SIGN IN BUTTON */}
 
                 <TouchableOpacity
@@ -216,7 +203,7 @@ export default function SignIn() {
                     </Text>
                 </TouchableOpacity>
 
-                {/* SHIELD */}
+                {/* SHIELD IMAGE */}
 
                 <View style={styles.shieldContainer}>
                     <Image
@@ -231,6 +218,9 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
+
+    /* MAIN SCREEN */
+
     container: {
         flex: 1,
         backgroundColor: "#F5F7FB",
@@ -241,10 +231,14 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
 
+    /* BACK BUTTON */
+
     backButton: {
         marginTop: 20,
         marginBottom: 20,
     },
+
+    /* APP LOGO */
 
     logo: {
         fontSize: 56,
@@ -253,6 +247,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginTop: 10,
     },
+
+    /* PAGE HEADING */
 
     heading: {
         marginTop: 55,
@@ -270,6 +266,8 @@ const styles = StyleSheet.create({
         lineHeight: 28,
         marginBottom: 35,
     },
+
+    /* INPUT FIELDS */
 
     inputContainer: {
         flexDirection: "row",
@@ -302,17 +300,7 @@ const styles = StyleSheet.create({
         color: "#1F2937",
     },
 
-    forgotContainer: {
-        alignItems: "flex-end",
-        marginTop: -3,
-        marginBottom: 25,
-    },
-
-    forgotText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#1554D1",
-    },
+    /* SIGN IN BUTTON */
 
     signInButton: {
         height: 60,
@@ -329,6 +317,8 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         letterSpacing: 1,
     },
+
+    /* SHIELD IMAGE */
 
     shieldContainer: {
         alignItems: "center",
