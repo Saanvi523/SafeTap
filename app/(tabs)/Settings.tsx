@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import BottomNavigation from "../../components/Bottom_Navigation";
 
 const REMINDER_KEY = "@safetap_reminder_alerts";
 
@@ -365,112 +366,9 @@ export default function Settings() {
                 </View>
             </Modal>
 
-            {/* FIXED BOTTOM NAVIGATION */}
+            {/* REUSABLE BOTTOM NAVIGATION */}
 
-            <View style={styles.bottomNav}>
-
-                {/* HOME */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Home")
-                    }
-                >
-                    <Ionicons
-                        name="home"
-                        size={32}
-                        color="#526487"
-                    />
-
-                    <Text style={styles.navText}>
-                        Home
-                    </Text>
-                </TouchableOpacity>
-
-                {/* CHECK IN */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Check_In")
-                    }
-                >
-                    <Ionicons
-                        name="shield-checkmark"
-                        size={32}
-                        color="#2563E8"
-                    />
-
-                    <Text style={styles.navText}>
-                        Check In
-                    </Text>
-                </TouchableOpacity>
-
-                {/* CONTACTS */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Contacts")
-                    }
-                >
-                    <Ionicons
-                        name="people"
-                        size={32}
-                        color="#08B88A"
-                    />
-
-                    <Text style={styles.navText}>
-                        Contacts
-                    </Text>
-                </TouchableOpacity>
-
-                {/* HISTORY */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/History")
-                    }
-                >
-                    <MaterialIcons
-                        name="history"
-                        size={34}
-                        color="#F59E0B"
-                    />
-
-                    <Text style={styles.navText}>
-                        History
-                    </Text>
-                </TouchableOpacity>
-
-                {/* SETTINGS - ACTIVE */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Settings")
-                    }
-                >
-                    <View style={styles.activeLine} />
-
-                    <Ionicons
-                        name="settings"
-                        size={32}
-                        color="#7C3AED"
-                    />
-
-                    <Text
-                        style={[
-                            styles.navText,
-                            styles.activeSettingsText,
-                        ]}
-                    >
-                        Settings
-                    </Text>
-                </TouchableOpacity>
-            </View>
+            <BottomNavigation activeTab="Settings" />
         </SafeAreaView>
     );
 }
@@ -775,62 +673,6 @@ const styles = StyleSheet.create({
     profileCloseText: {
         color: "#FFFFFF",
         fontSize: 17,
-        fontWeight: "800",
-    },
-
-    /* BOTTOM NAVIGATION */
-
-    bottomNav: {
-        position: "absolute",
-        bottom: 10,
-        left: 15,
-        right: 15,
-        height: 94,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 26,
-
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-around",
-
-        shadowColor: "#7898DB",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-
-        elevation: 6,
-    },
-
-    navItem: {
-        flex: 1,
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-
-    navText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#526487",
-        marginTop: 5,
-    },
-
-    activeLine: {
-        position: "absolute",
-        top: 0,
-        width: 55,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: "#7C3AED",
-    },
-
-    activeSettingsText: {
-        color: "#7C3AED",
         fontWeight: "800",
     },
 });
