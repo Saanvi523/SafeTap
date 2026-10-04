@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import BottomNavigation from "../../components/Bottom_Navigation";
 
 export default function Home() {
     const scrollViewRef = useRef<ScrollView>(null);
@@ -325,110 +326,10 @@ export default function Home() {
                 </View>
             </ScrollView>
 
-            {/* FIXED BOTTOM NAVIGATION */}
-
-            <View style={styles.bottomNav}>
-                {/* HOME - ACTIVE */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={goHome}
-                    activeOpacity={0.7}
-                >
-                    <View style={styles.activeLine} />
-
-                    <Ionicons
-                        name="home"
-                        size={32}
-                        color="#2563E8"
-                    />
-
-                    <Text
-                        style={[
-                            styles.navText,
-                            styles.activeText,
-                        ]}
-                    >
-                        Home
-                    </Text>
-                </TouchableOpacity>
-
-                {/* CHECK IN */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Check_In")
-                    }
-                >
-                    <Ionicons
-                        name="shield-checkmark"
-                        size={32}
-                        color="#526487"
-                    />
-
-                    <Text style={styles.navText}>
-                        Check In
-                    </Text>
-                </TouchableOpacity>
-
-                {/* CONTACTS */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Contacts")
-                    }
-                >
-                    <Ionicons
-                        name="people"
-                        size={32}
-                        color="#08B88A"
-                    />
-
-                    <Text style={styles.navText}>
-                        Contacts
-                    </Text>
-                </TouchableOpacity>
-
-                {/* HISTORY */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/History")
-                    }
-                >
-                    <MaterialIcons
-                        name="history"
-                        size={34}
-                        color="#F59E0B"
-                    />
-
-                    <Text style={styles.navText}>
-                        History
-                    </Text>
-                </TouchableOpacity>
-
-                {/* SETTINGS */}
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() =>
-                        router.push("/(tabs)/Settings")
-                    }
-                >
-                    <Ionicons
-                        name="settings"
-                        size={32}
-                        color="#7C3AED"
-                    />
-
-                    <Text style={styles.navText}>
-                        Settings
-                    </Text>
-                </TouchableOpacity>
-            </View>
+            <BottomNavigation
+                activeTab="Home"
+                onHomePress={goHome}
+            />
         </SafeAreaView>
     );
 }
@@ -702,57 +603,5 @@ const styles = StyleSheet.create({
         lineHeight: 20,
         color: "#60729E",
         marginTop: 3,
-    },
-
-    /* FIXED BOTTOM NAVIGATION */
-
-    bottomNav: {
-        position: "absolute",
-        bottom: 10,
-        left: 15,
-        right: 15,
-        height: 94,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 26,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-around",
-        shadowColor: "#7898DB",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        elevation: 6,
-    },
-
-    navItem: {
-        flex: 1,
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-
-    navText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#526487",
-        marginTop: 5,
-    },
-
-    activeText: {
-        color: "#2563E8",
-        fontWeight: "800",
-    },
-
-    activeLine: {
-        position: "absolute",
-        top: 0,
-        width: 55,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: "#2563E8",
     },
 });
