@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { supabase } from "../../lib/supabase";
 
 export default function SignIn() {
     const [email, setEmail] = useState("");
@@ -51,15 +52,14 @@ export default function SignIn() {
     /*
      * SIGN IN
      *
-     * Checks that the required fields have been
-     * completed before checking the login details.
+     * Checks that the required fields have been completed.
+     * The original hardcoded test account is still available.
+     * Other accounts are checked using Supabase Authentication.
      */
-    const handleSignIn = () => {
+    const handleSignIn = async () => {
         // Check if both fields are empty
         if (!email.trim() && !password.trim()) {
-            alert(
-                "Please fill in your email and password."
-            );
+            alert("Please fill in your email and password.");
             return;
         }
 
@@ -75,15 +75,29 @@ export default function SignIn() {
             return;
         }
 
-        // Check the login details
+        // Keep the original hardcoded test account
         if (
             email.trim() === "test@safetap.com" &&
             password === "123456"
         ) {
             router.push("/(tabs)/Home");
-        } else {
-            alert("Incorrect email or password.");
+            return;
         }
+
+        // Try signing in using Supabase Authentication
+        const { error } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+        });
+
+        // Supabase sign-in failed
+        if (error) {
+            alert("Incorrect email or password.");
+            return;
+        }
+
+        // Supabase sign-in successful
+        router.push("/(tabs)/Home");
     };
 
     return (
@@ -203,6 +217,23 @@ export default function SignIn() {
                     </Text>
                 </TouchableOpacity>
 
+                {/* SIGN UP LINK */}
+
+                <View style={styles.signUpContainer}>
+                    <Text style={styles.signUpPrompt}>
+                        Don't have an account?
+                    </Text>
+
+                    <TouchableOpacity
+                        onPress={() => router.push("/Sign_up")}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.signUpLink}>
+                            Sign Up
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* SHIELD IMAGE */}
 
                 <View style={styles.shieldContainer}>
@@ -316,6 +347,27 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "800",
         letterSpacing: 1,
+    },
+
+    /* SIGN UP LINK */
+
+    signUpContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 24,
+    },
+
+    signUpPrompt: {
+        fontSize: 16,
+        color: "#5C6E9E",
+    },
+
+    signUpLink: {
+        fontSize: 16,
+        fontWeight: "700",
+        color: "#1764E8",
+        marginLeft: 5,
     },
 
     /* SHIELD IMAGE */
