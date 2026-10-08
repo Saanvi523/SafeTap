@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -11,10 +11,70 @@ import {
     View,
 } from "react-native";
 import BottomNavigation from "../../components/Bottom_Navigation";
+import { supabase } from "../../lib/supabase";
 
 export default function Home() {
     const scrollViewRef = useRef<ScrollView>(null);
     const isFocused = useIsFocused();
+
+    // Store the signed-in user's first name
+    const [userName, setUserName] = useState("");
+
+    /*
+     * LOAD SIGNED-IN USER'S NAME
+     *
+     * Retrieves the name saved in Supabase
+     * during registration.
+     */
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadUserName = async () => {
+            try {
+                const {
+                    data: { user },
+                    error,
+                } = await supabase.auth.getUser();
+
+                if (error) {
+                    console.error(
+                        "Error loading user name:",
+                        error.message
+                    );
+                    return;
+                }
+
+                if (isMounted && user) {
+                    const savedName =
+                        user.user_metadata?.full_name ??
+                        user.user_metadata?.name;
+
+                    if (
+                        typeof savedName === "string" &&
+                        savedName.trim()
+                    ) {
+                        // Display the user's first name
+                        setUserName(
+                            savedName.trim().split(/\s+/)[0]
+                        );
+                    } else {
+                        setUserName("");
+                    }
+                }
+            } catch (error) {
+                console.error(
+                    "Error loading user name:",
+                    error
+                );
+            }
+        };
+
+        loadUserName();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     /*
      * AUTOMATICALLY SCROLL TO TOP
@@ -89,7 +149,9 @@ export default function Home() {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.smallGreeting}>
-                            Good to see you
+                            {userName
+                                ? `Good to see you, ${userName}!`
+                                : "Good to see you"}
                         </Text>
 
                         <Text style={styles.title}>
@@ -605,3 +667,4 @@ const styles = StyleSheet.create({
         marginTop: 3,
     },
 });
+
