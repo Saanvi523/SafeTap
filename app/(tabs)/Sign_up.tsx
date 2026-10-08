@@ -1,3 +1,4 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -33,7 +34,7 @@ export default function SignUp() {
       return;
     }
 
-    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
@@ -68,29 +69,59 @@ export default function SignUp() {
       });
 
       if (error) {
-        Alert.alert("Sign Up Failed", error.message);
+        const message = error.message.toLowerCase();
+
+        const accountAlreadyExists =
+          message.includes("already registered") ||
+          message.includes("already exists") ||
+          message.includes("already been registered") ||
+          message.includes("user already");
+
+        if (accountAlreadyExists) {
+          Alert.alert(
+            "Account Already Created",
+            "An account with this email address may already exist. Please sign in instead.",
+            [
+              {
+                text: "Go to Sign In",
+                onPress: () => router.replace("/Log_in"),
+              },
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+            ]
+          );
+        } else {
+          Alert.alert("Sign Up Failed", error.message);
+        }
+
         return;
       }
 
       if (data.user) {
-        // Ask users to verify their email before signing in.
         Alert.alert(
           "Check Your Email 📩",
-          `Your SafeTap account has been created!\n\nWe've sent a verification email to ${cleanEmail}.\n\nPlease check your inbox (and spam folder) and confirm your email address before signing in.`,
+          `If registration was successful, follow the verification instructions sent to ${cleanEmail}. Check your spam folder too. If you already have an account, please sign in instead.`,
           [
             {
               text: "Go to Sign In",
-              onPress: () => {
-                router.replace("/Log_in");
-              },
+              onPress: () => router.replace("/Log_in"),
             },
           ]
         );
+      } else {
+        Alert.alert(
+          "Sign Up Incomplete",
+          "We couldn't confirm account creation. Please try again."
+        );
       }
-    } catch {
+    } catch (error) {
+      console.error("SafeTap sign-up error:", error);
+
       Alert.alert(
         "Something Went Wrong",
-        "We couldn't create your account. Please try again."
+        "We couldn't create your account. Please check your connection and try again."
       );
     } finally {
       setLoading(false);
@@ -115,7 +146,11 @@ export default function SignUp() {
 
         <View style={styles.header}>
           <View style={styles.logoCircle}>
-            <Ionicons name="shield-checkmark" size={38} color="#2563E8" />
+            <Ionicons
+              name="shield-checkmark"
+              size={38}
+              color="#2563E8"
+            />
           </View>
 
           <Text style={styles.title}>Create your account</Text>
@@ -250,7 +285,11 @@ export default function SignUp() {
           ) : (
             <>
               <Text style={styles.signUpText}>Create Account</Text>
-              <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#FFFFFF"
+              />
             </>
           )}
         </TouchableOpacity>
@@ -406,4 +445,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
