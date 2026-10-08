@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Modal,
     SafeAreaView,
@@ -13,12 +14,16 @@ import {
     View,
 } from "react-native";
 import BottomNavigation from "../../components/Bottom_Navigation";
+import { supabase } from "../../lib/supabase";
 
 const REMINDER_KEY = "@safetap_reminder_alerts";
 
 export default function Settings() {
     const [reminderAlerts, setReminderAlerts] = useState(true);
     const [showProfile, setShowProfile] = useState(false);
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [loadingProfile, setLoadingProfile] = useState(false);
 
     /* LOAD REMINDER SETTING */
 
@@ -32,15 +37,69 @@ export default function Settings() {
                     setReminderAlerts(savedSetting === "true");
                 }
             } catch (error) {
-                console.log(
-                    "Error loading reminder setting:",
-                    error
-                );
+                console.error("Error loading reminder setting:", error);
             }
         };
 
         loadReminderSetting();
     }, []);
+
+    /* LOAD SIGNED-IN USER PROFILE */
+
+    const loadProfile = async () => {
+        setLoadingProfile(true);
+
+        try {
+            const {
+                data: { user },
+                error,
+            } = await supabase.auth.getUser();
+
+            if (error) {
+                throw error;
+            }
+
+            if (!user) {
+                setFullName("");
+                setEmail("");
+                Alert.alert(
+                    "Not Signed In",
+                    "Please sign in to view your profile."
+                );
+                return;
+            }
+
+            const nameFromMetadata =
+                user.user_metadata?.full_name ??
+                user.user_metadata?.name ??
+                "";
+
+            setFullName(
+                typeof nameFromMetadata === "string" &&
+                nameFromMetadata.trim()
+                    ? nameFromMetadata.trim()
+                    : "Name not provided"
+            );
+
+            setEmail(user.email ?? "Email not available");
+        } catch (error) {
+            console.error("Error loading profile:", error);
+
+            Alert.alert(
+                "Profile Unavailable",
+                "We couldn't load your account information. Please try again."
+            );
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
+
+    /* OPEN PROFILE */
+
+    const openProfile = async () => {
+        setShowProfile(true);
+        await loadProfile();
+    };
 
     /* TOGGLE REMINDER SETTING */
 
@@ -55,9 +114,11 @@ export default function Settings() {
                 String(newValue)
             );
         } catch (error) {
-            console.log(
-                "Error saving reminder setting:",
-                error
+            console.error("Error saving reminder setting:", error);
+
+            Alert.alert(
+                "Couldn't Save Setting",
+                "Your reminder preference could not be saved."
             );
         }
     };
@@ -76,11 +137,25 @@ export default function Settings() {
                 {
                     text: "Log Out",
                     style: "destructive",
-                    onPress: () => {
-                        setShowProfile(false);
+                    onPress: async () => {
+                        try {
+                            const { error } =
+                                await supabase.auth.signOut();
 
-                        // Return to the welcome screen
-                        router.replace("/");
+                            if (error) {
+                                throw error;
+                            }
+
+                            setShowProfile(false);
+                            router.replace("/");
+                        } catch (error) {
+                            console.error("Error logging out:", error);
+
+                            Alert.alert(
+                                "Log Out Failed",
+                                "You couldn't be signed out. Please try again."
+                            );
+                        }
                     },
                 },
             ]
@@ -96,9 +171,7 @@ export default function Settings() {
                 {/* HEADER */}
 
                 <View style={styles.header}>
-                    <Text style={styles.title}>
-                        Settings
-                    </Text>
+                    <Text style={styles.title}>Settings</Text>
 
                     <View style={styles.shieldContainer}>
                         <Ionicons
@@ -111,13 +184,11 @@ export default function Settings() {
 
                 {/* ACCOUNT */}
 
-                <Text style={styles.sectionTitle}>
-                    Account
-                </Text>
+                <Text style={styles.sectionTitle}>Account</Text>
 
                 <TouchableOpacity
                     style={styles.singleCard}
-                    onPress={() => setShowProfile(true)}
+                    onPress={openProfile}
                     activeOpacity={0.8}
                 >
                     <View style={styles.iconCircleBlue}>
@@ -129,12 +200,9 @@ export default function Settings() {
                     </View>
 
                     <View style={styles.cardTextContainer}>
-                        <Text style={styles.cardTitle}>
-                            Profile
-                        </Text>
-
+                        <Text style={styles.cardTitle}>Profile</Text>
                         <Text style={styles.cardDescription}>
-                            View and edit your profile
+                            View your name and email address
                         </Text>
                     </View>
 
@@ -147,9 +215,7 @@ export default function Settings() {
 
                 {/* PREFERENCES */}
 
-                <Text style={styles.sectionTitle}>
-                    Preferences
-                </Text>
+                <Text style={styles.sectionTitle}>Preferences</Text>
 
                 <View style={styles.preferencesCard}>
                     <View style={styles.settingRow}>
@@ -180,6 +246,11 @@ export default function Settings() {
                             ]}
                             onPress={toggleReminderAlerts}
                             activeOpacity={0.8}
+                            accessibilityRole="switch"
+                            accessibilityState={{
+                                checked: reminderAlerts,
+                            }}
+                            accessibilityLabel="Reminder Alerts"
                         >
                             <View
                                 style={[
@@ -233,9 +304,7 @@ export default function Settings() {
 
                 {/* OTHER */}
 
-                <Text style={styles.sectionTitle}>
-                    Other
-                </Text>
+                <Text style={styles.sectionTitle}>Other</Text>
 
                 <TouchableOpacity
                     style={styles.singleCard}
@@ -278,9 +347,6 @@ export default function Settings() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.profileModal}>
-
-                        {/* PROFILE HEADER */}
-
                         <View style={styles.profileHeader}>
                             <View style={styles.profileIcon}>
                                 <Ionicons
@@ -292,10 +358,9 @@ export default function Settings() {
 
                             <TouchableOpacity
                                 style={styles.closeButton}
-                                onPress={() =>
-                                    setShowProfile(false)
-                                }
+                                onPress={() => setShowProfile(false)}
                                 activeOpacity={0.8}
+                                accessibilityLabel="Close profile"
                             >
                                 <Ionicons
                                     name="close"
@@ -306,56 +371,75 @@ export default function Settings() {
                         </View>
 
                         <Text style={styles.profileTitle}>
-                            Profile
+                            My Profile
                         </Text>
 
                         <Text style={styles.profileSubtitle}>
                             Your SafeTap account information
                         </Text>
 
-                        {/* NAME */}
+                        {loadingProfile ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator
+                                    size="large"
+                                    color="#2563E8"
+                                />
+                                <Text style={styles.loadingText}>
+                                    Loading your profile...
+                                </Text>
+                            </View>
+                        ) : (
+                            <>
+                                {/* NAME */}
 
-                        <View style={styles.profileInfoBox}>
-                            <Text style={styles.profileLabel}>
-                                Name
-                            </Text>
+                                <View style={styles.profileInfoBox}>
+                                    <Text style={styles.profileLabel}>
+                                        Full Name
+                                    </Text>
 
-                            <Text style={styles.profileValue}>
-                                SafeTap User
-                            </Text>
-                        </View>
+                                    <View style={styles.profileValueRow}>
+                                        <Ionicons
+                                            name="person-outline"
+                                            size={21}
+                                            color="#2563E8"
+                                        />
 
-                        {/* USERNAME */}
+                                        <Text style={styles.profileValue}>
+                                            {fullName || "Name not provided"}
+                                        </Text>
+                                    </View>
+                                </View>
 
-                        <View style={styles.profileInfoBox}>
-                            <Text style={styles.profileLabel}>
-                                Username
-                            </Text>
+                                {/* EMAIL */}
 
-                            <Text style={styles.profileValue}>
-                                test@safetap.com
-                            </Text>
-                        </View>
+                                <View style={styles.profileInfoBox}>
+                                    <Text style={styles.profileLabel}>
+                                        Email Address
+                                    </Text>
 
-                        {/* PASSWORD */}
+                                    <View style={styles.profileValueRow}>
+                                        <Ionicons
+                                            name="mail-outline"
+                                            size={21}
+                                            color="#2563E8"
+                                        />
 
-                        <View style={styles.profileInfoBox}>
-                            <Text style={styles.profileLabel}>
-                                Password
-                            </Text>
+                                        <Text style={styles.profileValue}>
+                                            {email || "Email not available"}
+                                        </Text>
+                                    </View>
+                                </View>
 
-                            <Text style={styles.profileValue}>
-                                123456
-                            </Text>
-                        </View>
-
-                        {/* CLOSE PROFILE */}
+                                <Text style={styles.profileNote}>
+                                    These details are taken from your
+                                    signed-in SafeTap account.
+                                </Text>
+                            </>
+                        )}
 
                         <TouchableOpacity
                             style={styles.profileCloseButton}
-                            onPress={() =>
-                                setShowProfile(false)
-                            }
+                            onPress={() => setShowProfile(false)}
                             activeOpacity={0.8}
                         >
                             <Text style={styles.profileCloseText}>
@@ -366,7 +450,7 @@ export default function Settings() {
                 </View>
             </Modal>
 
-            {/* REUSABLE BOTTOM NAVIGATION */}
+            {/* BOTTOM NAVIGATION */}
 
             <BottomNavigation activeTab="Settings" />
         </SafeAreaView>
@@ -374,9 +458,6 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-
-    /* MAIN SCREEN */
-
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
@@ -387,8 +468,6 @@ const styles = StyleSheet.create({
         paddingTop: 20,
         paddingBottom: 130,
     },
-
-    /* HEADER */
 
     header: {
         flexDirection: "row",
@@ -410,20 +489,12 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         justifyContent: "center",
         alignItems: "center",
-
         shadowColor: "#7EA7EF",
         shadowOpacity: 0.15,
         shadowRadius: 12,
-
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
+        shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
-
-    /* SECTION */
 
     sectionTitle: {
         fontSize: 27,
@@ -433,8 +504,6 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
 
-    /* CARDS */
-
     singleCard: {
         minHeight: 112,
         backgroundColor: "#FFFFFF",
@@ -443,16 +512,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 24,
         marginBottom: 38,
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
+        shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
 
@@ -462,16 +525,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 10,
         marginBottom: 38,
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-
+        shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
 
@@ -505,8 +562,6 @@ const styles = StyleSheet.create({
         color: "#D62828",
     },
 
-    /* ICONS */
-
     iconCircleBlue: {
         width: 58,
         height: 58,
@@ -524,8 +579,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-
-    /* TOGGLE */
 
     toggle: {
         width: 58,
@@ -556,10 +609,7 @@ const styles = StyleSheet.create({
         shadowColor: "#000000",
         shadowOpacity: 0.1,
         shadowRadius: 3,
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
+        shadowOffset: { width: 0, height: 1 },
         elevation: 2,
     },
 
@@ -567,14 +617,9 @@ const styles = StyleSheet.create({
         shadowColor: "#000000",
         shadowOpacity: 0.1,
         shadowRadius: 3,
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
+        shadowOffset: { width: 0, height: 1 },
         elevation: 2,
     },
-
-    /* PROFILE POPUP */
 
     modalOverlay: {
         flex: 1,
@@ -589,16 +634,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         borderRadius: 28,
         padding: 25,
-
         shadowColor: "#000000",
         shadowOpacity: 0.2,
         shadowRadius: 15,
-
-        shadowOffset: {
-            width: 0,
-            height: 7,
-        },
-
+        shadowOffset: { width: 0, height: 7 },
         elevation: 10,
     },
 
@@ -644,7 +683,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F5F8FF",
         borderRadius: 16,
         paddingHorizontal: 16,
-        paddingVertical: 13,
+        paddingVertical: 15,
         marginBottom: 12,
     },
 
@@ -652,13 +691,40 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: "700",
         color: "#60729E",
-        marginBottom: 4,
+        marginBottom: 8,
+    },
+
+    profileValueRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
     },
 
     profileValue: {
-        fontSize: 17,
+        flex: 1,
+        flexWrap: "wrap",
+        fontSize: 16,
         fontWeight: "700",
         color: "#173B8F",
+    },
+
+    profileNote: {
+        fontSize: 13,
+        lineHeight: 19,
+        color: "#60729E",
+        marginTop: 3,
+        marginBottom: 12,
+    },
+
+    loadingContainer: {
+        alignItems: "center",
+        paddingVertical: 30,
+    },
+
+    loadingText: {
+        fontSize: 14,
+        color: "#60729E",
+        marginTop: 12,
     },
 
     profileCloseButton: {
@@ -676,3 +742,4 @@ const styles = StyleSheet.create({
         fontWeight: "800",
     },
 });
+
