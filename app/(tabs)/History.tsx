@@ -1,8 +1,10 @@
+
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import React, {
     useCallback,
+    useEffect,
     useRef,
     useState,
 } from "react";
@@ -15,7 +17,7 @@ import {
 } from "react-native";
 
 import BottomNavigation from "../../components/Bottom_Navigation";
-
+import { supabase } from "../../lib/supabase";
 
 // HISTORY ITEM DATA STRUCTURE
 
@@ -29,389 +31,278 @@ type HistoryItem = {
     message: string;
 };
 
+// EACH ACCOUNT HAS ITS OWN HISTORY KEY
 
-// KEY USED TO SAVE AND LOAD HISTORY
-
-const HISTORY_KEY = "@safetap_history";
-
+const getHistoryKey = (userId: string) =>
+    `@safetap_history_${userId}`;
 
 export default function History() {
+    const [history, setHistory] = useState<HistoryItem[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    // STORES ALL PREVIOUS CHECK-IN HISTORY ITEMS
+    const scrollViewRef = useRef<ScrollView>(null);
 
-    const [history, setHistory] =
-        useState<HistoryItem[]>([]);
+    // LOAD HISTORY FOR THE SIGNED-IN USER
 
-
-    // REFERENCE TO THE SCROLLVIEW
-
-    const scrollViewRef =
-        useRef<ScrollView>(null);
-
-
-    /*
-     * LOAD HISTORY FROM ASYNC STORAGE
-     */
-
-    const loadHistory = async () => {
-
+    const loadHistory = useCallback(async (userId: string) => {
         try {
-
-            // GET SAVED HISTORY
-
-            const savedHistory =
-                await AsyncStorage.getItem(
-                    HISTORY_KEY
-                );
-
-
-            // CHECK WHETHER HISTORY EXISTS
-
-            if (savedHistory) {
-
-                const parsedHistory =
-                    JSON.parse(savedHistory);
-
-
-                // MAKE SURE SAVED DATA IS AN ARRAY
-
-                if (Array.isArray(parsedHistory)) {
-
-                    setHistory(parsedHistory);
-
-                } else {
-
-                    setHistory([]);
-
-                }
-
-            } else {
-
-                setHistory([]);
-
-            }
-
-        } catch (error) {
-
-            console.log(
-                "Error loading history:",
-                error
+            const savedHistory = await AsyncStorage.getItem(
+                getHistoryKey(userId)
             );
 
+            const parsedHistory: unknown = savedHistory
+                ? JSON.parse(savedHistory)
+                : [];
+
+            if (Array.isArray(parsedHistory)) {
+                setHistory(parsedHistory as HistoryItem[]);
+            } else {
+                setHistory([]);
+            }
+        } catch {
+            console.error("Unable to load check-in history.");
+            setHistory([]);
+        }
+    }, []);
+
+    // CHECK CURRENT SESSION AND WATCH FOR SIGN-IN / SIGN-OUT
+
+    useEffect(() => {
+        let active = true;
+
+        const checkCurrentUser = async () => {
+            const {
+                data: { user },
+                error,
+            } = await supabase.auth.getUser();
+
+            if (!active) return;
+
+            if (error || !user) {
+                setCurrentUserId(null);
+                setHistory([]);
+                return;
+            }
+
+            setCurrentUserId(user.id);
+            await loadHistory(user.id);
+        };
+
+        checkCurrentUser();
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_OUT" || !session?.user) {
+                setCurrentUserId(null);
+                setHistory([]);
+                return;
+            }
+
+            const userId = session.user.id;
+
+            setCurrentUserId(userId);
             setHistory([]);
 
-        }
+            // Defer storage work until the auth callback has returned.
+            setTimeout(() => {
+                loadHistory(userId);
+            }, 0);
+        });
 
-    };
+        return () => {
+            active = false;
+            subscription.unsubscribe();
+        };
+    }, [loadHistory]);
 
-
-    /*
-     * RELOAD HISTORY WHEN PAGE BECOMES VISIBLE
-     */
+    // RELOAD HISTORY WHEN THE PAGE BECOMES VISIBLE
 
     useFocusEffect(
         useCallback(() => {
+            let active = true;
 
-            // LOAD MOST RECENT HISTORY
+            const refreshHistory = async () => {
+                try {
+                    const {
+                        data: { user },
+                        error,
+                    } = await supabase.auth.getUser();
 
-            loadHistory();
+                    if (!active) return;
 
+                    if (error || !user) {
+                        setCurrentUserId(null);
+                        setHistory([]);
+                        return;
+                    }
 
-            // RETURN TO THE TOP OF THE PAGE
-
-            const timeout =
-                setTimeout(() => {
-
-                    scrollViewRef.current?.scrollTo({
-                        y: 0,
-                        animated: false,
-                    });
-
-                }, 100);
-
-
-            // CLEAR TIMER WHEN PAGE IS LEFT
-
-            return () => {
-
-                clearTimeout(timeout);
-
+                    setCurrentUserId(user.id);
+                    await loadHistory(user.id);
+                } catch {
+                    if (active) {
+                        setHistory([]);
+                    }
+                }
             };
 
-        }, [])
+            refreshHistory();
+
+            const timeout = setTimeout(() => {
+                scrollViewRef.current?.scrollTo({
+                    y: 0,
+                    animated: false,
+                });
+            }, 100);
+
+            return () => {
+                active = false;
+                clearTimeout(timeout);
+            };
+        }, [loadHistory])
     );
 
-
     return (
-
         <SafeAreaView style={styles.container}>
-
-            {/* MAIN CONTENT */}
-
             <ScrollView
                 ref={scrollViewRef}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={
-                    styles.scrollContainer
-                }
+                contentContainerStyle={styles.scrollContainer}
             >
-
                 {/* HEADER */}
 
                 <View style={styles.header}>
-
-                    <View
-                        style={
-                            styles.headerTextContainer
-                        }
-                    >
-
-                        <Text style={styles.title}>
-                            History
-                        </Text>
+                    <View style={styles.headerTextContainer}>
+                        <Text style={styles.title}>History</Text>
 
                         <Text style={styles.subtitle}>
                             Your previous safety check-ins
                         </Text>
-
                     </View>
 
-
-                    {/* HISTORY ICON */}
-
                     <View style={styles.headerIcon}>
-
                         <MaterialIcons
                             name="history"
                             size={40}
                             color="#F59E0B"
                         />
-
                     </View>
-
                 </View>
-
 
                 {/* EMPTY STATE */}
 
-                {history.length === 0 ? (
-
+                {!currentUserId || history.length === 0 ? (
                     <View style={styles.emptyCard}>
-
                         <View style={styles.emptyIcon}>
-
                             <MaterialIcons
                                 name="history"
                                 size={55}
                                 color="#F59E0B"
                             />
-
                         </View>
 
                         <Text style={styles.emptyTitle}>
-                            No Check-Ins Yet
+                            {!currentUserId
+                                ? "Sign In to View History"
+                                : "No Check-Ins Yet"}
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Your completed safety check-ins
-                            {"\n"}
-                            will appear here.
+                            {!currentUserId
+                                ? "Sign in to view your saved safety check-ins."
+                                : "Your completed safety check-ins\nwill appear here."}
                         </Text>
-
                     </View>
-
                 ) : (
-
                     /* HISTORY LIST */
 
                     <View style={styles.historyCard}>
-
-                        <Text
-                            style={styles.sectionTitle}
-                        >
+                        <Text style={styles.sectionTitle}>
                             Check-In History
                         </Text>
 
-
-                        {/* DISPLAY EACH SAVED CHECK-IN */}
-
                         {history.map((item) => (
-
                             <View
                                 key={item.id}
                                 style={styles.historyItem}
                             >
-
-                                {/* SUCCESS ICON */}
-
-                                <View
-                                    style={
-                                        styles.successIcon
-                                    }
-                                >
-
+                                <View style={styles.successIcon}>
                                     <Ionicons
                                         name="shield-checkmark"
                                         size={28}
                                         color="#08A96D"
                                     />
-
                                 </View>
 
-
-                                {/* CHECK-IN INFORMATION */}
-
-                                <View
-                                    style={
-                                        styles.historyInfo
-                                    }
-                                >
-
-                                    <Text
-                                        style={
-                                            styles.historyTitle
-                                        }
-                                    >
+                                <View style={styles.historyInfo}>
+                                    <Text style={styles.historyTitle}>
                                         Check-In Successful
                                     </Text>
 
-
-                                    {/* MESSAGE */}
-
-                                    <Text
-                                        style={
-                                            styles.message
-                                        }
-                                    >
+                                    <Text style={styles.message}>
                                         {item.message}
                                     </Text>
 
-
-                                    {/* DATE AND TIME */}
-
-                                    <Text
-                                        style={
-                                            styles.dateTime
-                                        }
-                                    >
-                                        {item.date} •{" "}
-                                        {item.time}
+                                    <Text style={styles.dateTime}>
+                                        {item.date} • {item.time}
                                     </Text>
 
-
-                                    {/* DURATION */}
-
-                                    <Text
-                                        style={
-                                            styles.duration
-                                        }
-                                    >
-                                        Duration:{" "}
-                                        {item.duration}
+                                    <Text style={styles.duration}>
+                                        Duration: {item.duration}
                                     </Text>
-
-
-                                    {/* REMINDER */}
 
                                     {item.reminderEnabled ? (
-
-                                        <View
-                                            style={
-                                                styles.reminderRow
-                                            }
-                                        >
-
+                                        <View style={styles.reminderRow}>
                                             <Ionicons
                                                 name="notifications"
                                                 size={16}
                                                 color="#08A96D"
                                             />
 
-                                            <Text
-                                                style={
-                                                    styles.reminder
-                                                }
-                                            >
+                                            <Text style={styles.reminder}>
                                                 Reminder: On •{" "}
                                                 {item.reminderTime ||
                                                     "5 minutes before"}
                                             </Text>
-
                                         </View>
-
                                     ) : (
-
-                                        <View
-                                            style={
-                                                styles.reminderRow
-                                            }
-                                        >
-
+                                        <View style={styles.reminderRow}>
                                             <Ionicons
                                                 name="notifications-off"
                                                 size={16}
                                                 color="#7182A5"
                                             />
 
-                                            <Text
-                                                style={
-                                                    styles.reminderOff
-                                                }
-                                            >
+                                            <Text style={styles.reminderOff}>
                                                 Reminder: Off
                                             </Text>
-
                                         </View>
-
                                     )}
-
                                 </View>
-
                             </View>
-
                         ))}
-
                     </View>
-
                 )}
-
             </ScrollView>
 
-
-            {/* REUSABLE BOTTOM NAVIGATION */}
-
-            <BottomNavigation
-                activeTab="History"
-            />
-
+            <BottomNavigation activeTab="History" />
         </SafeAreaView>
-
     );
 }
-
 
 // STYLES
 
 const styles = StyleSheet.create({
-
-    /* MAIN SCREEN */
-
     container: {
         flex: 1,
         backgroundColor: "#F5F8FF",
     },
-
-
-    // SCROLLABLE CONTENT
 
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
         paddingBottom: 130,
     },
-
-
-    /* HEADER */
 
     header: {
         flexDirection: "row",
@@ -420,19 +311,16 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
 
-
     headerTextContainer: {
         flex: 1,
         paddingRight: 15,
     },
-
 
     title: {
         fontSize: 43,
         fontWeight: "800",
         color: "#173B8F",
     },
-
 
     subtitle: {
         fontSize: 17,
@@ -441,7 +329,6 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
 
-
     headerIcon: {
         width: 70,
         height: 70,
@@ -449,21 +336,15 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         alignItems: "center",
         justifyContent: "center",
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.15,
         shadowRadius: 12,
-
         shadowOffset: {
             width: 0,
             height: 5,
         },
-
         elevation: 5,
     },
-
-
-    /* EMPTY HISTORY */
 
     emptyCard: {
         backgroundColor: "#FFFFFF",
@@ -471,19 +352,15 @@ const styles = StyleSheet.create({
         paddingVertical: 55,
         paddingHorizontal: 25,
         alignItems: "center",
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-
         shadowOffset: {
             width: 0,
             height: 5,
         },
-
         elevation: 5,
     },
-
 
     emptyIcon: {
         width: 100,
@@ -495,14 +372,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-
     emptyTitle: {
         fontSize: 25,
         fontWeight: "800",
         color: "#173B8F",
         marginBottom: 10,
+        textAlign: "center",
     },
-
 
     emptyText: {
         fontSize: 16,
@@ -511,28 +387,21 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 
-
-    /* HISTORY CARD */
-
     historyCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
         paddingHorizontal: 20,
         paddingTop: 25,
         paddingBottom: 10,
-
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-
         shadowOffset: {
             width: 0,
             height: 5,
         },
-
         elevation: 5,
     },
-
 
     sectionTitle: {
         fontSize: 25,
@@ -541,16 +410,12 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
 
-
-    /* HISTORY ITEM */
-
     historyItem: {
         flexDirection: "row",
         paddingVertical: 18,
         borderTopWidth: 1,
         borderTopColor: "#E3EAF5",
     },
-
 
     successIcon: {
         width: 60,
@@ -562,11 +427,9 @@ const styles = StyleSheet.create({
         marginRight: 15,
     },
 
-
     historyInfo: {
         flex: 1,
     },
-
 
     historyTitle: {
         fontSize: 18,
@@ -575,14 +438,12 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
 
-
     message: {
         fontSize: 14,
         color: "#526487",
         lineHeight: 20,
         marginBottom: 6,
     },
-
 
     dateTime: {
         fontSize: 14,
@@ -591,14 +452,10 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
 
-
     duration: {
         fontSize: 13,
         color: "#7182A5",
     },
-
-
-    // REMINDER INFORMATION
 
     reminderRow: {
         flexDirection: "row",
@@ -606,14 +463,13 @@ const styles = StyleSheet.create({
         marginTop: 6,
     },
 
-
     reminder: {
         fontSize: 13,
         fontWeight: "700",
         color: "#08A96D",
         marginLeft: 5,
+        flexShrink: 1,
     },
-
 
     reminderOff: {
         fontSize: 13,
@@ -621,5 +477,4 @@ const styles = StyleSheet.create({
         color: "#7182A5",
         marginLeft: 5,
     },
-
 });
