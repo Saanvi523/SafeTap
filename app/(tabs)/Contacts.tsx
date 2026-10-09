@@ -1,6 +1,7 @@
+
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     Alert,
@@ -33,6 +34,7 @@ const getContactsStorageKey = (userId: string) =>
 export default function Contacts() {
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [userId, setUserId] = useState<string | null>(null);
+    const [authLoaded, setAuthLoaded] = useState(false);
     const [contactsLoaded, setContactsLoaded] = useState(false);
     const [showAddContact, setShowAddContact] = useState(false);
     const [name, setName] = useState("");
@@ -45,99 +47,106 @@ export default function Contacts() {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const scrollViewRef = useRef<ScrollView | null>(null);
+    const currentUserIdRef = useRef<string | null>(null);
 
-    // Load contacts belonging to a particular signed-in user.
+    // Load only the contacts belonging to the selected account.
     const loadContacts = useCallback(async (id: string) => {
         setContactsLoaded(false);
 
         try {
-            const storageKey = getContactsStorageKey(id);
-            const storedContacts =
-                await AsyncStorage.getItem(storageKey);
-
-            const parsedContacts = storedContacts
-                ? JSON.parse(storedContacts)
-                : [];
-
-            setContacts(
-                Array.isArray(parsedContacts)
-                    ? parsedContacts
-                    : []
+            const stored = await AsyncStorage.getItem(
+                getContactsStorageKey(id)
             );
+            const parsed: unknown = stored ? JSON.parse(stored) : [];
+
+            // Ignore results if the account changed while loading.
+            if (currentUserIdRef.current !== id) return;
+
+            setContacts(Array.isArray(parsed) ? parsed as Contact[] : []);
         } catch (error) {
             console.error("Error loading contacts:", error);
-            setContacts([]);
-            Alert.alert(
-                "Loading Error",
-                "Your contacts could not be loaded."
-            );
+
+            if (currentUserIdRef.current === id) {
+                setContacts([]);
+                Alert.alert(
+                    "Loading Error",
+                    "Your contacts could not be loaded."
+                );
+            }
         } finally {
-            setContactsLoaded(true);
+            if (currentUserIdRef.current === id) {
+                setContactsLoaded(true);
+            }
         }
     }, []);
 
-    // Load the correct user's contacts and respond to sign-in changes.
+    // Check the current session and respond to sign-in/sign-out.
     useEffect(() => {
         let active = true;
 
-        const loadCurrentUser = async () => {
-            const {
-                data: { user },
-                error,
-            } = await supabase.auth.getUser();
-
+        const applySession = async (id: string | null) => {
             if (!active) return;
 
-            if (error || !user) {
-                setUserId(null);
-                setContacts([]);
+            currentUserIdRef.current = id;
+            setUserId(id);
+            setContacts([]);
+            setContactsLoaded(false);
+            setShowAddContact(false);
+            setEditingContactId(null);
+            setName("");
+            setPhone("");
+            setRelationship("");
+            setEmail("");
+            setPrimary(false);
+
+            if (!id) {
                 setContactsLoaded(true);
+                setAuthLoaded(true);
                 return;
             }
 
-            setUserId(user.id);
-            await loadContacts(user.id);
+            await loadContacts(id);
+
+            if (active) setAuthLoaded(true);
         };
 
-        loadCurrentUser();
+        const initialise = async () => {
+            const { data, error } = await supabase.auth.getSession();
+
+            if (!active) return;
+
+            if (error) {
+                currentUserIdRef.current = null;
+                setUserId(null);
+                setContacts([]);
+                setContactsLoaded(true);
+                setAuthLoaded(true);
+                return;
+            }
+
+            await applySession(data.session?.user.id ?? null);
+        };
+
+        void initialise();
 
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                if (!active) return;
-
-                const id = session?.user?.id;
-
-                if (!id) {
-                    setUserId(null);
-                    setContacts([]);
-                    setContactsLoaded(true);
-                    setShowAddContact(false);
-                    setEditingContactId(null);
-                    return;
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            // Defer storage work until the auth callback has finished.
+            void Promise.resolve().then(() => {
+                if (active) {
+                    void applySession(session?.user.id ?? null);
                 }
-
-                setUserId(id);
-                setContacts([]);
-                setContactsLoaded(false);
-
-                // Load storage after the authentication callback.
-                setTimeout(() => {
-                    if (active) {
-                        loadContacts(id);
-                    }
-                }, 0);
-            }
-        );
+            });
+        });
 
         return () => {
             active = false;
+            currentUserIdRef.current = null;
             subscription.unsubscribe();
         };
     }, [loadContacts]);
 
-    // Scroll to the top when the Contacts page is opened.
     useFocusEffect(
         useCallback(() => {
             const timer = setTimeout(() => {
@@ -151,30 +160,27 @@ export default function Contacts() {
         }, [])
     );
 
-    // Track keyboard visibility so the bottom navigation
-    // can be hidden while someone is entering contact details.
     useEffect(() => {
-        const keyboardShowListener = Keyboard.addListener(
+        const showListener = Keyboard.addListener(
             "keyboardDidShow",
             () => setKeyboardVisible(true)
         );
-
-        const keyboardHideListener = Keyboard.addListener(
+        const hideListener = Keyboard.addListener(
             "keyboardDidHide",
             () => setKeyboardVisible(false)
         );
 
         return () => {
-            keyboardShowListener.remove();
-            keyboardHideListener.remove();
+            showListener.remove();
+            hideListener.remove();
         };
     }, []);
 
-    // Save a contact list to the correct user's local storage.
-    const persistContacts = async (
-        updatedContacts: Contact[]
-    ) => {
-        if (!userId) {
+    // Save to the current account's storage key.
+    const persistContacts = async (updated: Contact[]) => {
+        const id = currentUserIdRef.current;
+
+        if (!id) {
             Alert.alert(
                 "Sign In Required",
                 "Please sign in to manage your trusted contacts."
@@ -182,37 +188,32 @@ export default function Contacts() {
             return false;
         }
 
-        if (!contactsLoaded) {
-            Alert.alert(
-                "Please Wait",
-                "Your contacts are still loading."
-            );
+        if (!contactsLoaded || id !== userId) {
+            Alert.alert("Please Wait", "Your contacts are still loading.");
             return false;
         }
 
         try {
-            const storageKey = getContactsStorageKey(userId);
-
             await AsyncStorage.setItem(
-                storageKey,
-                JSON.stringify(updatedContacts)
+                getContactsStorageKey(id),
+                JSON.stringify(updated)
             );
 
-            setContacts(updatedContacts);
+            // Do not update the screen if the account changed during saving.
+            if (currentUserIdRef.current !== id) return false;
+
+            setContacts(updated);
             return true;
         } catch (error) {
             console.error("Error saving contacts:", error);
-
             Alert.alert(
                 "Saving Error",
                 "Your contacts could not be saved. Please try again."
             );
-
             return false;
         }
     };
 
-    // Reset the add/edit form.
     const finishForm = () => {
         setName("");
         setPhone("");
@@ -224,7 +225,6 @@ export default function Contacts() {
         Keyboard.dismiss();
     };
 
-    // Validate and save a new contact or updated contact.
     const saveContact = async () => {
         if (!userId) {
             Alert.alert(
@@ -244,20 +244,16 @@ export default function Contacts() {
 
         const phoneDigits = phone.replace(/\D/g, "");
 
-        if (
-            phoneDigits.length < 7 ||
-            phoneDigits.length > 15
-        ) {
+        if (phoneDigits.length < 7 || phoneDigits.length > 15) {
             Alert.alert(
                 "Invalid Phone Number",
-                "Please enter a valid phone number."
+                "Please enter a phone number containing 7 to 15 digits."
             );
             return;
         }
 
         if (email.trim()) {
-            const emailRegex =
-                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
             if (!emailRegex.test(email.trim())) {
                 Alert.alert(
@@ -269,10 +265,7 @@ export default function Contacts() {
         }
 
         if (!contactsLoaded) {
-            Alert.alert(
-                "Please Wait",
-                "Your contacts are still loading."
-            );
+            Alert.alert("Please Wait", "Your contacts are still loading.");
             return;
         }
 
@@ -285,45 +278,35 @@ export default function Contacts() {
             primary,
         };
 
-        let updatedContacts: Contact[];
+        let updated: Contact[];
 
         if (editingContactId !== null) {
-            updatedContacts = contacts.map((contact) => {
-                const isBeingEdited =
-                    contact.id === editingContactId;
-
-                if (isBeingEdited) {
+            updated = contacts.map((contact) => {
+                if (contact.id === editingContactId) {
                     return cleanedContact;
                 }
 
                 if (primary) {
-                    return {
-                        ...contact,
-                        primary: false,
-                    };
+                    return { ...contact, primary: false };
                 }
 
                 return contact;
             });
         } else {
-            const contactsToKeep = primary
+            const existing = primary
                 ? contacts.map((contact) => ({
                     ...contact,
                     primary: false,
                 }))
                 : contacts;
 
-            updatedContacts = [
-                ...contactsToKeep,
-                cleanedContact,
-            ];
+            updated = [...existing, cleanedContact];
         }
 
-        const saved = await persistContacts(updatedContacts);
+        const wasEditing = editingContactId !== null;
+        const saved = await persistContacts(updated);
 
         if (!saved) return;
-
-        const wasEditing = editingContactId !== null;
 
         finishForm();
 
@@ -335,7 +318,6 @@ export default function Contacts() {
         );
     };
 
-    // Open an existing contact in the edit form.
     const editContact = (contact: Contact) => {
         setName(contact.name);
         setPhone(contact.phone);
@@ -346,32 +328,24 @@ export default function Contacts() {
         setShowAddContact(true);
 
         setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({
-                animated: true,
-            });
+            scrollViewRef.current?.scrollToEnd({ animated: true });
         }, 100);
     };
 
-    // Delete a contact after confirmation.
     const deleteContact = (id: number) => {
         Alert.alert(
             "Delete Contact",
             "Are you sure you want to remove this contact?",
             [
-                {
-                    text: "Cancel",
-                    style: "cancel",
-                },
+                { text: "Cancel", style: "cancel" },
                 {
                     text: "Delete",
                     style: "destructive",
                     onPress: async () => {
-                        const updatedContacts = contacts.filter(
+                        const updated = contacts.filter(
                             (contact) => contact.id !== id
                         );
-
-                        const saved =
-                            await persistContacts(updatedContacts);
+                        const saved = await persistContacts(updated);
 
                         if (saved) {
                             Alert.alert(
@@ -385,7 +359,6 @@ export default function Contacts() {
         );
     };
 
-    // Generate initials for a contact's icon.
     const getInitials = (contactName: string) => {
         const words = contactName.trim().split(/\s+/);
 
@@ -394,29 +367,19 @@ export default function Contacts() {
         }
 
         return (
-            words[0][0] +
-            words[words.length - 1][0]
+            words[0][0] + words[words.length - 1][0]
         ).toUpperCase();
     };
 
-    const primaryContact = contacts.find(
-        (contact) => contact.primary
-    );
-
-    const otherContacts = contacts.filter(
-        (contact) => !contact.primary
-    );
+    const primaryContact = contacts.find((contact) => contact.primary);
+    const otherContacts = contacts.filter((contact) => !contact.primary);
 
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
                 style={styles.keyboardContainer}
-                behavior={
-                    Platform.OS === "ios" ? "padding" : "height"
-                }
-                keyboardVerticalOffset={
-                    Platform.OS === "ios" ? 0 : 20
-                }
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
             >
                 <ScrollView
                     ref={scrollViewRef}
@@ -424,18 +387,13 @@ export default function Contacts() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.scrollContainer}
                 >
-                    {/* HEADER */}
                     <View style={styles.header}>
                         <View>
-                            <Text style={styles.title}>
-                                Trusted Contacts
-                            </Text>
-
+                            <Text style={styles.title}>Trusted Contacts</Text>
                             <Text style={styles.subtitle}>
                                 People who can help keep you safe
                             </Text>
                         </View>
-
                         <View style={styles.headerIcon}>
                             <Ionicons
                                 name="shield-checkmark"
@@ -445,7 +403,11 @@ export default function Contacts() {
                         </View>
                     </View>
 
-                    {!userId ? (
+                    {!authLoaded ? (
+                        <View style={styles.noEmergencyCard}>
+                            <Text style={styles.emptyTitle}>Checking Sign In...</Text>
+                        </View>
+                    ) : !userId ? (
                         <View style={styles.noEmergencyCard}>
                             <View style={styles.emptyIcon}>
                                 <Ionicons
@@ -458,36 +420,53 @@ export default function Contacts() {
                             <Text style={styles.emptyTitle}>
                                 Sign In to View Contacts
                             </Text>
-
                             <Text style={styles.emptyText}>
-                                Sign in to manage your trusted contacts.
-                                Your contacts are kept separately for
-                                each account.
+                                Sign in to add and manage your trusted contacts.
+                                Your contacts are kept separately for each account.
                             </Text>
+
+                            <TouchableOpacity
+                                style={styles.signInButton}
+                                activeOpacity={0.8}
+                                onPress={() => router.push("/(tabs)/Log_in")}
+                            >
+                                <Ionicons
+                                    name="log-in-outline"
+                                    size={22}
+                                    color="#FFFFFF"
+                                />
+                                <Text style={styles.signInButtonText}>Sign In</Text>
+                                <Ionicons
+                                    name="arrow-forward"
+                                    size={18}
+                                    color="#FFFFFF"
+                                />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.signUpButton}
+                                activeOpacity={0.8}
+                                onPress={() => router.push("/(tabs)/Sign_up")}
+                            >
+                                <Text style={styles.signUpButtonText}>
+                                    Don't have an account? Sign Up
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                     ) : !contactsLoaded ? (
                         <View style={styles.noEmergencyCard}>
-                            <Text style={styles.emptyTitle}>
-                                Loading Contacts...
-                            </Text>
+                            <Text style={styles.emptyTitle}>Loading Contacts...</Text>
                         </View>
                     ) : (
                         <>
-                            {/* PRIMARY CONTACT */}
-                            <Text style={styles.sectionLabel}>
-                                PRIMARY CONTACT
-                            </Text>
+                            <Text style={styles.sectionLabel}>PRIMARY CONTACT</Text>
 
                             {primaryContact ? (
                                 <View style={styles.emergencyCard}>
                                     <View style={styles.emergencyTop}>
                                         <View style={styles.emergencyIcon}>
-                                            <Text
-                                                style={styles.emergencyInitials}
-                                            >
-                                                {getInitials(
-                                                    primaryContact.name
-                                                )}
+                                            <Text style={styles.emergencyInitials}>
+                                                {getInitials(primaryContact.name)}
                                             </Text>
                                         </View>
 
@@ -497,10 +476,7 @@ export default function Contacts() {
                                                 size={17}
                                                 color="#08A96D"
                                             />
-
-                                            <Text
-                                                style={styles.emergencyBadgeText}
-                                            >
+                                            <Text style={styles.emergencyBadgeText}>
                                                 Primary Contact
                                             </Text>
                                         </View>
@@ -509,10 +485,7 @@ export default function Contacts() {
                                     <Text style={styles.emergencyName}>
                                         {primaryContact.name}
                                     </Text>
-
-                                    <Text
-                                        style={styles.emergencyRelationship}
-                                    >
+                                    <Text style={styles.emergencyRelationship}>
                                         {primaryContact.relationship ||
                                             "Relationship not provided"}
                                     </Text>
@@ -524,39 +497,34 @@ export default function Contacts() {
                                                 size={20}
                                                 color="#08A96D"
                                             />
-
                                             <Text style={styles.infoText}>
                                                 {primaryContact.phone}
                                             </Text>
                                         </View>
 
-                                        {primaryContact.email ? (
+                                        {!!primaryContact.email && (
                                             <View style={styles.infoLine}>
                                                 <Ionicons
                                                     name="mail"
                                                     size={20}
                                                     color="#08A96D"
                                                 />
-
                                                 <Text style={styles.infoText}>
                                                     {primaryContact.email}
                                                 </Text>
                                             </View>
-                                        ) : null}
+                                        )}
                                     </View>
 
                                     <TouchableOpacity
                                         style={styles.editContactButton}
-                                        onPress={() =>
-                                            editContact(primaryContact)
-                                        }
+                                        onPress={() => editContact(primaryContact)}
                                     >
                                         <MaterialIcons
                                             name="edit"
                                             size={22}
                                             color="#2563E8"
                                         />
-
                                         <Text style={styles.editContactText}>
                                             Edit This Contact
                                         </Text>
@@ -564,19 +532,14 @@ export default function Contacts() {
 
                                     <TouchableOpacity
                                         style={styles.deleteEmergencyButton}
-                                        onPress={() =>
-                                            deleteContact(primaryContact.id)
-                                        }
+                                        onPress={() => deleteContact(primaryContact.id)}
                                     >
                                         <MaterialIcons
                                             name="delete-outline"
                                             size={22}
                                             color="#EF2929"
                                         />
-
-                                        <Text
-                                            style={styles.deleteEmergencyText}
-                                        >
+                                        <Text style={styles.deleteEmergencyText}>
                                             Remove Contact
                                         </Text>
                                     </TouchableOpacity>
@@ -590,11 +553,9 @@ export default function Contacts() {
                                             color="#08B88A"
                                         />
                                     </View>
-
                                     <Text style={styles.emptyTitle}>
                                         No primary contact
                                     </Text>
-
                                     <Text style={styles.emptyText}>
                                         Add a trusted person and select
                                         "Set as Primary Contact".
@@ -602,14 +563,12 @@ export default function Contacts() {
                                 </View>
                             )}
 
-                            {/* OTHER CONTACTS */}
                             {otherContacts.length > 0 && (
                                 <View style={styles.otherSection}>
                                     <View style={styles.otherHeader}>
                                         <Text style={styles.sectionLabel}>
                                             OTHER TRUSTED CONTACTS
                                         </Text>
-
                                         <View style={styles.countBadge}>
                                             <Text style={styles.countText}>
                                                 {otherContacts.length}
@@ -618,93 +577,57 @@ export default function Contacts() {
                                     </View>
 
                                     <View style={styles.otherContactsCard}>
-                                        {otherContacts.map(
-                                            (contact, index) => (
-                                                <View
-                                                    key={contact.id}
-                                                    style={[
-                                                        styles.otherContact,
-                                                        index !==
-                                                            otherContacts.length - 1 &&
-                                                            styles.contactDivider,
-                                                    ]}
-                                                >
-                                                    <View
-                                                        style={styles.smallInitial}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.smallInitialText
-                                                            }
-                                                        >
-                                                            {getInitials(
-                                                                contact.name
-                                                            )}
-                                                        </Text>
-                                                    </View>
-
-                                                    <View
-                                                        style={
-                                                            styles.otherContactInfo
-                                                        }
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.otherContactName
-                                                            }
-                                                        >
-                                                            {contact.name}
-                                                        </Text>
-
-                                                        <Text
-                                                            style={
-                                                                styles.otherContactRelationship
-                                                            }
-                                                        >
-                                                            {contact.relationship ||
-                                                                contact.phone}
-                                                        </Text>
-                                                    </View>
-
-                                                    <TouchableOpacity
-                                                        style={
-                                                            styles.editSmallButton
-                                                        }
-                                                        onPress={() =>
-                                                            editContact(contact)
-                                                        }
-                                                    >
-                                                        <MaterialIcons
-                                                            name="edit"
-                                                            size={21}
-                                                            color="#2563E8"
-                                                        />
-                                                    </TouchableOpacity>
-
-                                                    <TouchableOpacity
-                                                        style={
-                                                            styles.deleteSmallButton
-                                                        }
-                                                        onPress={() =>
-                                                            deleteContact(
-                                                                contact.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <MaterialIcons
-                                                            name="delete-outline"
-                                                            size={24}
-                                                            color="#EF2929"
-                                                        />
-                                                    </TouchableOpacity>
+                                        {otherContacts.map((contact, index) => (
+                                            <View
+                                                key={contact.id}
+                                                style={[
+                                                    styles.otherContact,
+                                                    index !== otherContacts.length - 1 &&
+                                                        styles.contactDivider,
+                                                ]}
+                                            >
+                                                <View style={styles.smallInitial}>
+                                                    <Text style={styles.smallInitialText}>
+                                                        {getInitials(contact.name)}
+                                                    </Text>
                                                 </View>
-                                            )
-                                        )}
+
+                                                <View style={styles.otherContactInfo}>
+                                                    <Text style={styles.otherContactName}>
+                                                        {contact.name}
+                                                    </Text>
+                                                    <Text style={styles.otherContactRelationship}>
+                                                        {contact.relationship || contact.phone}
+                                                    </Text>
+                                                </View>
+
+                                                <TouchableOpacity
+                                                    style={styles.editSmallButton}
+                                                    onPress={() => editContact(contact)}
+                                                >
+                                                    <MaterialIcons
+                                                        name="edit"
+                                                        size={21}
+                                                        color="#2563E8"
+                                                    />
+                                                </TouchableOpacity>
+
+                                                <TouchableOpacity
+                                                    style={styles.deleteSmallButton}
+                                                    onPress={() => deleteContact(contact.id)}
+                                                >
+                                                    <MaterialIcons
+                                                        name="delete-outline"
+                                                        size={24}
+                                                        color="#EF2929"
+                                                    />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
                                     </View>
                                 </View>
                             )}
 
-                            {/* ADD CONTACT BUTTON */}
                             <View style={styles.addSection}>
                                 <TouchableOpacity
                                     style={styles.addOutlineButton}
@@ -723,13 +646,10 @@ export default function Contacts() {
                                     }}
                                 >
                                     <Ionicons
-                                        name={
-                                            showAddContact ? "close" : "add"
-                                        }
+                                        name={showAddContact ? "close" : "add"}
                                         size={25}
                                         color="#2563E8"
                                     />
-
                                     <Text style={styles.addOutlineText}>
                                         {showAddContact
                                             ? "Cancel"
@@ -738,7 +658,6 @@ export default function Contacts() {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* ADD / EDIT FORM */}
                             {showAddContact && (
                                 <View style={styles.formCard}>
                                     <Text style={styles.formTitle}>
@@ -747,17 +666,10 @@ export default function Contacts() {
                                             : "Add Trusted Contact"}
                                     </Text>
 
-                                    {/* NAME */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Full Name
-                                        </Text>
-
-                                        <Text style={styles.requiredText}>
-                                            Required
-                                        </Text>
+                                        <Text style={styles.inputLabel}>Full Name</Text>
+                                        <Text style={styles.requiredText}>Required</Text>
                                     </View>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter full name"
@@ -767,17 +679,10 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* PHONE */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Phone Number
-                                        </Text>
-
-                                        <Text style={styles.requiredText}>
-                                            Required
-                                        </Text>
+                                        <Text style={styles.inputLabel}>Phone Number</Text>
+                                        <Text style={styles.requiredText}>Required</Text>
                                     </View>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter phone number"
@@ -788,17 +693,10 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* RELATIONSHIP */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Relationship
-                                        </Text>
-
-                                        <Text style={styles.optionalText}>
-                                            Optional
-                                        </Text>
+                                        <Text style={styles.inputLabel}>Relationship</Text>
+                                        <Text style={styles.optionalText}>Optional</Text>
                                     </View>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="e.g. Parent, Friend (optional)"
@@ -808,17 +706,10 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* EMAIL */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Email
-                                        </Text>
-
-                                        <Text style={styles.optionalText}>
-                                            Optional
-                                        </Text>
+                                        <Text style={styles.inputLabel}>Email</Text>
+                                        <Text style={styles.optionalText}>Optional</Text>
                                     </View>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter email address (optional)"
@@ -831,19 +722,15 @@ export default function Contacts() {
                                         returnKeyType="done"
                                     />
 
-                                    {/* PRIMARY CONTACT OPTION */}
                                     <TouchableOpacity
                                         style={styles.primaryOption}
                                         activeOpacity={0.8}
-                                        onPress={() =>
-                                            setPrimary(!primary)
-                                        }
+                                        onPress={() => setPrimary(!primary)}
                                     >
                                         <View
                                             style={[
                                                 styles.checkbox,
-                                                primary &&
-                                                    styles.checkboxSelected,
+                                                primary && styles.checkboxSelected,
                                             ]}
                                         >
                                             {primary && (
@@ -855,40 +742,20 @@ export default function Contacts() {
                                             )}
                                         </View>
 
-                                        <View
-                                            style={styles.primaryOptionText}
-                                        >
-                                            <View
-                                                style={styles.primaryTitleRow}
-                                            >
-                                                <Text
-                                                    style={
-                                                        styles.primaryOptionTitle
-                                                    }
-                                                >
+                                        <View style={styles.primaryOptionText}>
+                                            <View style={styles.primaryTitleRow}>
+                                                <Text style={styles.primaryOptionTitle}>
                                                     Set as Primary Contact
                                                 </Text>
-
-                                                <Text
-                                                    style={styles.optionalText}
-                                                >
-                                                    Optional
-                                                </Text>
+                                                <Text style={styles.optionalText}>Optional</Text>
                                             </View>
-
-                                            <Text
-                                                style={
-                                                    styles.primaryOptionDescription
-                                                }
-                                            >
-                                                This person will appear at
-                                                the top as your primary
-                                                contact.
+                                            <Text style={styles.primaryOptionDescription}>
+                                                This person will appear at the top as your
+                                                primary contact.
                                             </Text>
                                         </View>
                                     </TouchableOpacity>
 
-                                    {/* SAVE */}
                                     <TouchableOpacity
                                         style={styles.saveButton}
                                         onPress={saveContact}
@@ -902,10 +769,7 @@ export default function Contacts() {
                                             size={25}
                                             color="#FFFFFF"
                                         />
-
-                                        <Text
-                                            style={styles.saveButtonText}
-                                        >
+                                        <Text style={styles.saveButtonText}>
                                             {editingContactId !== null
                                                 ? "Save Changes"
                                                 : "Save Contact"}
@@ -917,7 +781,6 @@ export default function Contacts() {
                     )}
                 </ScrollView>
 
-                {/* BOTTOM NAVIGATION */}
                 {!keyboardVisible && (
                     <BottomNavigation activeTab="Contacts" />
                 )}
@@ -927,13 +790,8 @@ export default function Contacts() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F5F8FF",
-    },
-    keyboardContainer: {
-        flex: 1,
-    },
+    container: { flex: 1, backgroundColor: "#F5F8FF" },
+    keyboardContainer: { flex: 1 },
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
@@ -1108,13 +966,35 @@ const styles = StyleSheet.create({
         color: "#60729E",
         marginTop: 8,
     },
-    otherSection: {
-        marginTop: 30,
-    },
-    otherHeader: {
+    signInButton: {
+        minHeight: 54,
+        width: "100%",
+        backgroundColor: "#2563E8",
+        borderRadius: 15,
+        paddingHorizontal: 20,
+        marginTop: 22,
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
     },
+    signInButtonText: {
+        color: "#FFFFFF",
+        fontSize: 17,
+        fontWeight: "800",
+    },
+    signUpButton: {
+        padding: 14,
+        marginTop: 4,
+    },
+    signUpButtonText: {
+        color: "#2563E8",
+        fontSize: 14,
+        fontWeight: "700",
+        textAlign: "center",
+    },
+    otherSection: { marginTop: 30 },
+    otherHeader: { flexDirection: "row", alignItems: "center" },
     countBadge: {
         width: 30,
         height: 30,
@@ -1158,10 +1038,7 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#8B4DFF",
     },
-    otherContactInfo: {
-        flex: 1,
-        marginLeft: 14,
-    },
+    otherContactInfo: { flex: 1, marginLeft: 14 },
     otherContactName: {
         fontSize: 17,
         fontWeight: "800",
@@ -1189,9 +1066,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    addSection: {
-        marginTop: 25,
-    },
+    addSection: { marginTop: 25 },
     addOutlineButton: {
         height: 58,
         borderRadius: 18,
@@ -1282,10 +1157,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#08B88A",
         borderColor: "#08B88A",
     },
-    primaryOptionText: {
-        flex: 1,
-        marginLeft: 12,
-    },
+    primaryOptionText: { flex: 1, marginLeft: 12 },
     primaryTitleRow: {
         flexDirection: "row",
         alignItems: "center",
