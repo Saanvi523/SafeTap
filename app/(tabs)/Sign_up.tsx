@@ -79,16 +79,12 @@ export default function SignUp() {
 
         if (accountAlreadyExists) {
           Alert.alert(
-            "Account Already Created",
-            "An account with this email address may already exist. Please sign in instead.",
+            "Account Already Registered",
+            "An account with this email may already exist. Please sign in instead.",
             [
               {
                 text: "Go to Sign In",
                 onPress: () => router.replace("/Log_in"),
-              },
-              {
-                text: "Cancel",
-                style: "cancel",
               },
             ]
           );
@@ -96,6 +92,21 @@ export default function SignUp() {
           Alert.alert("Sign Up Failed", error.message);
         }
 
+        return;
+      }
+
+      // Supabase may return an empty identities array for an existing account.
+      if (data.user && data.user.identities?.length === 0) {
+        Alert.alert(
+          "Account Already Registered",
+          "An account with this email may already exist. Redirecting you to Sign In.",
+          [
+            {
+              text: "Go to Sign In",
+              onPress: () => router.replace("/Log_in"),
+            },
+          ]
+        );
         return;
       }
 
@@ -116,9 +127,7 @@ export default function SignUp() {
           "We couldn't confirm account creation. Please try again."
         );
       }
-    } catch (error) {
-      console.error("SafeTap sign-up error:", error);
-
+    } catch {
       Alert.alert(
         "Something Went Wrong",
         "We couldn't create your account. Please check your connection and try again."

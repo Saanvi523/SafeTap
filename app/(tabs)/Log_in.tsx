@@ -225,7 +225,7 @@ export default function SignIn() {
                     </Text>
 
                     <TouchableOpacity
-                        onPress={() => router.push("/Log_in")}
+                        onPress={() => router.push("/(tabs)/Sign_up")}
                         activeOpacity={0.7}
                     >
                         <Text style={styles.signUpLink}>
