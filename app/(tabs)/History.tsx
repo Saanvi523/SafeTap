@@ -1,12 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
-import React, {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -34,129 +29,161 @@ const getHistoryKey = (userId: string) =>
 
 export default function History() {
     const [history, setHistory] = useState<HistoryItem[]>([]);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [authLoaded, setAuthLoaded] = useState(false);
     const [historyLoaded, setHistoryLoaded] = useState(false);
 
-    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<ScrollView | null>(null);
+    const currentUserIdRef = useRef<string | null>(null);
 
-    // Load only the history belonging to the specified account.
-    const loadHistory = useCallback(async (userId: string) => {
+    // Load history belonging only to the selected account.
+    const loadHistory = useCallback(async (id: string) => {
         setHistoryLoaded(false);
 
         try {
-            const savedHistory = await AsyncStorage.getItem(
-                getHistoryKey(userId)
+            const stored = await AsyncStorage.getItem(
+                getHistoryKey(id)
             );
 
-            const parsedHistory: unknown = savedHistory
-                ? JSON.parse(savedHistory)
+            const parsed: unknown = stored
+                ? JSON.parse(stored)
                 : [];
 
+            // Ignore results if the account changes while loading.
+            if (currentUserIdRef.current !== id) return;
+
             setHistory(
-                Array.isArray(parsedHistory)
-                    ? (parsedHistory as HistoryItem[])
+                Array.isArray(parsed)
+                    ? (parsed as HistoryItem[])
                     : []
             );
         } catch (error) {
-            console.error("Unable to load check-in history:", error);
-            setHistory([]);
+            console.error("Error loading history:", error);
+
+            if (currentUserIdRef.current === id) {
+                setHistory([]);
+            }
         } finally {
-            setHistoryLoaded(true);
+            if (currentUserIdRef.current === id) {
+                setHistoryLoaded(true);
+            }
         }
     }, []);
 
-    // Check the current session and respond to sign-in/sign-out.
+    // Initialise the current session and handle sign-in/sign-out.
     useEffect(() => {
         let active = true;
 
-        const checkCurrentUser = async () => {
+        const applySession = async (id: string | null) => {
+            if (!active) return;
+
+            currentUserIdRef.current = id;
+            setUserId(id);
+            setHistory([]);
+            setHistoryLoaded(false);
+
+            if (!id) {
+                setHistoryLoaded(true);
+                setAuthLoaded(true);
+                return;
+            }
+
+            await loadHistory(id);
+
+            if (active) {
+                setAuthLoaded(true);
+            }
+        };
+
+        const initialise = async () => {
             try {
-                const {
-                    data: { user },
-                    error,
-                } = await supabase.auth.getUser();
+                const { data, error } =
+                    await supabase.auth.getSession();
 
                 if (!active) return;
 
-                if (error || !user) {
-                    setCurrentUserId(null);
-                    setHistory([]);
-                    setHistoryLoaded(true);
+                if (error) {
+                    await applySession(null);
                     return;
                 }
 
-                setCurrentUserId(user.id);
-                await loadHistory(user.id);
+                await applySession(
+                    data.session?.user.id ?? null
+                );
             } catch (error) {
+                console.error("Error checking session:", error);
+
                 if (active) {
-                    console.error("Unable to check signed-in user:", error);
-                    setCurrentUserId(null);
-                    setHistory([]);
-                    setHistoryLoaded(true);
+                    await applySession(null);
                 }
             }
         };
 
-        void checkCurrentUser();
+        void initialise();
 
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((event, session) => {
-            if (!active) return;
-
-            if (event === "SIGNED_OUT" || !session?.user) {
-                setCurrentUserId(null);
-                setHistory([]);
-                setHistoryLoaded(true);
-                return;
+        } = supabase.auth.onAuthStateChange(
+            (_event, session) => {
+                // Defer storage operations until the auth callback ends.
+                void Promise.resolve().then(() => {
+                    if (active) {
+                        void applySession(
+                            session?.user.id ?? null
+                        );
+                    }
+                });
             }
-
-            const userId = session.user.id;
-
-            setCurrentUserId(userId);
-            setHistory([]);
-            setHistoryLoaded(false);
-
-            // Defer storage work until the authentication callback returns.
-            setTimeout(() => {
-                if (active) {
-                    void loadHistory(userId);
-                }
-            }, 0);
-        });
+        );
 
         return () => {
             active = false;
+            currentUserIdRef.current = null;
             subscription.unsubscribe();
         };
     }, [loadHistory]);
 
-    // Refresh the current user's history whenever this page is opened.
+    // Refresh history whenever the page comes into focus.
     useFocusEffect(
         useCallback(() => {
             let active = true;
 
             const refreshHistory = async () => {
                 try {
-                    const {
-                        data: { user },
-                        error,
-                    } = await supabase.auth.getUser();
+                    const { data, error } =
+                        await supabase.auth.getSession();
 
                     if (!active) return;
 
-                    if (error || !user) {
-                        setCurrentUserId(null);
+                    if (error) {
+                        currentUserIdRef.current = null;
+                        setUserId(null);
                         setHistory([]);
                         setHistoryLoaded(true);
+                        setAuthLoaded(true);
                         return;
                     }
 
-                    setCurrentUserId(user.id);
-                    await loadHistory(user.id);
+                    const id = data.session?.user.id ?? null;
+
+                    if (currentUserIdRef.current !== id) {
+                        currentUserIdRef.current = id;
+                        setUserId(id);
+                        setHistory([]);
+                    }
+
+                    setAuthLoaded(true);
+
+                    if (id) {
+                        await loadHistory(id);
+                    } else {
+                        setHistory([]);
+                        setHistoryLoaded(true);
+                    }
                 } catch (error) {
+                    console.error("Error refreshing history:", error);
+
                     if (active) {
-                        console.error("Unable to refresh history:", error);
                         setHistory([]);
                         setHistoryLoaded(true);
                     }
@@ -165,7 +192,7 @@ export default function History() {
 
             void refreshHistory();
 
-            const timeout = setTimeout(() => {
+            const timer = setTimeout(() => {
                 scrollViewRef.current?.scrollTo({
                     y: 0,
                     animated: false,
@@ -174,14 +201,17 @@ export default function History() {
 
             return () => {
                 active = false;
-                clearTimeout(timeout);
+                clearTimeout(timer);
             };
         }, [loadHistory])
     );
 
-    // Navigate to the existing sign-in screen.
     const goToSignIn = () => {
-        router.push("/Log_in");
+        router.push("/(tabs)/Log_in");
+    };
+
+    const goToSignUp = () => {
+        router.push("/(tabs)/Sign_up");
     };
 
     return (
@@ -193,7 +223,7 @@ export default function History() {
             >
                 {/* HEADER */}
                 <View style={styles.header}>
-                    <View style={styles.headerTextContainer}>
+                    <View style={styles.headerText}>
                         <Text style={styles.title}>History</Text>
 
                         <Text style={styles.subtitle}>
@@ -204,30 +234,30 @@ export default function History() {
                     <View style={styles.headerIcon}>
                         <MaterialIcons
                             name="history"
-                            size={40}
+                            size={38}
                             color="#F59E0B"
                         />
                     </View>
                 </View>
 
-                {/* LOADING STATE */}
-                {!historyLoaded ? (
+                {/* CHECKING AUTHENTICATION */}
+                {!authLoaded ? (
                     <View style={styles.emptyCard}>
                         <Text style={styles.emptyTitle}>
-                            Loading History...
+                            Checking Sign In...
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Please wait while your check-ins load.
+                            Please wait while we check your account.
                         </Text>
                     </View>
-                ) : !currentUserId ? (
+                ) : !userId ? (
                     /* SIGN-IN REQUIRED */
                     <View style={styles.emptyCard}>
                         <View style={styles.emptyIcon}>
-                            <MaterialIcons
-                                name="history"
-                                size={55}
+                            <Ionicons
+                                name="lock-closed-outline"
+                                size={40}
                                 color="#F59E0B"
                             />
                         </View>
@@ -243,27 +273,62 @@ export default function History() {
 
                         <TouchableOpacity
                             style={styles.signInButton}
-                            onPress={goToSignIn}
                             activeOpacity={0.8}
+                            onPress={goToSignIn}
                         >
                             <Ionicons
                                 name="log-in-outline"
-                                size={23}
+                                size={22}
                                 color="#FFFFFF"
                             />
 
                             <Text style={styles.signInButtonText}>
                                 Sign In
                             </Text>
+
+                            <Ionicons
+                                name="arrow-forward"
+                                size={18}
+                                color="#FFFFFF"
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.signUpButton}
+                            activeOpacity={0.8}
+                            onPress={goToSignUp}
+                        >
+                            <Text style={styles.signUpButtonText}>
+                                Don't have an account? Sign Up
+                            </Text>
                         </TouchableOpacity>
                     </View>
-                ) : history.length === 0 ? (
-                    /* SIGNED IN, BUT NO HISTORY */
+                ) : !historyLoaded ? (
+                    /* LOADING HISTORY */
                     <View style={styles.emptyCard}>
                         <View style={styles.emptyIcon}>
                             <MaterialIcons
                                 name="history"
-                                size={55}
+                                size={40}
+                                color="#F59E0B"
+                            />
+                        </View>
+
+                        <Text style={styles.emptyTitle}>
+                            Loading History...
+                        </Text>
+
+                        <Text style={styles.emptyText}>
+                            Please wait while your check-ins load.
+                        </Text>
+                    </View>
+                ) : history.length === 0 ? (
+                    /* NO CHECK-INS */
+                    <View style={styles.emptyCard}>
+                        <View style={styles.emptyIcon}>
+                            <MaterialIcons
+                                name="history"
+                                size={40}
                                 color="#F59E0B"
                             />
                         </View>
@@ -273,74 +338,117 @@ export default function History() {
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            Your completed safety check-ins{"\n"}
-                            will appear here.
+                            Your completed safety check-ins will
+                            appear here.
                         </Text>
                     </View>
                 ) : (
                     /* HISTORY LIST */
                     <View style={styles.historyCard}>
-                        <Text style={styles.sectionTitle}>
-                            Check-In History
-                        </Text>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>
+                                Check-In History
+                            </Text>
 
-                        {history.map((item) => (
+                            <View style={styles.countBadge}>
+                                <Text style={styles.countText}>
+                                    {history.length}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {history.map((item, index) => (
                             <View
                                 key={item.id}
-                                style={styles.historyItem}
+                                style={[
+                                    styles.historyItem,
+                                    index !== history.length - 1 &&
+                                        styles.historyDivider,
+                                ]}
                             >
                                 <View style={styles.successIcon}>
                                     <Ionicons
                                         name="shield-checkmark"
-                                        size={28}
+                                        size={27}
                                         color="#08A96D"
                                     />
                                 </View>
 
                                 <View style={styles.historyInfo}>
+                                    <View style={styles.successBadge}>
+                                        <Ionicons
+                                            name="checkmark-circle"
+                                            size={15}
+                                            color="#08A96D"
+                                        />
+
+                                        <Text style={styles.successBadgeText}>
+                                            Successful
+                                        </Text>
+                                    </View>
+
                                     <Text style={styles.historyTitle}>
-                                        Check-In Successful
+                                        Check-In Complete
                                     </Text>
 
                                     <Text style={styles.message}>
                                         {item.message}
                                     </Text>
 
-                                    <Text style={styles.dateTime}>
-                                        {item.date} • {item.time}
-                                    </Text>
+                                    <View style={styles.detailRow}>
+                                        <Ionicons
+                                            name="calendar-outline"
+                                            size={16}
+                                            color="#2563E8"
+                                        />
 
-                                    <Text style={styles.duration}>
-                                        Duration: {item.duration}
-                                    </Text>
+                                        <Text style={styles.dateTime}>
+                                            {item.date} • {item.time}
+                                        </Text>
+                                    </View>
 
-                                    {item.reminderEnabled ? (
-                                        <View style={styles.reminderRow}>
-                                            <Ionicons
-                                                name="notifications"
-                                                size={16}
-                                                color="#08A96D"
-                                            />
+                                    <View style={styles.detailRow}>
+                                        <Ionicons
+                                            name="time-outline"
+                                            size={16}
+                                            color="#60729E"
+                                        />
 
-                                            <Text style={styles.reminder}>
-                                                Reminder: On •{" "}
-                                                {item.reminderTime ||
-                                                    "5 minutes before"}
-                                            </Text>
-                                        </View>
-                                    ) : (
-                                        <View style={styles.reminderRow}>
-                                            <Ionicons
-                                                name="notifications-off"
-                                                size={16}
-                                                color="#7182A5"
-                                            />
+                                        <Text style={styles.duration}>
+                                            Duration: {item.duration}
+                                        </Text>
+                                    </View>
 
-                                            <Text style={styles.reminderOff}>
-                                                Reminder: Off
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <View style={styles.reminderRow}>
+                                        <Ionicons
+                                            name={
+                                                item.reminderEnabled
+                                                    ? "notifications"
+                                                    : "notifications-off"
+                                            }
+                                            size={16}
+                                            color={
+                                                item.reminderEnabled
+                                                    ? "#08A96D"
+                                                    : "#7182A5"
+                                            }
+                                        />
+
+                                        <Text
+                                            style={
+                                                item.reminderEnabled
+                                                    ? styles.reminder
+                                                    : styles.reminderOff
+                                            }
+                                        >
+                                            {item.reminderEnabled
+                                                ? `Reminder: On • ${
+                                                    item.reminderTime ||
+                                                    "5 minutes before"
+                                                }`
+                                                : "Reminder: Off"}
+                                        </Text>
+                                    </View>
                                 </View>
                             </View>
                         ))}
@@ -362,7 +470,7 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 130,
+        paddingBottom: 180,
     },
 
     header: {
@@ -372,147 +480,189 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
 
-    headerTextContainer: {
+    headerText: {
         flex: 1,
-        paddingRight: 15,
+        paddingRight: 12,
     },
 
     title: {
-        fontSize: 43,
+        fontSize: 36,
         fontWeight: "800",
         color: "#173B8F",
     },
 
     subtitle: {
-        fontSize: 17,
-        lineHeight: 24,
+        fontSize: 16,
+        lineHeight: 23,
         color: "#60729E",
-        marginTop: 8,
+        marginTop: 7,
     },
 
     headerIcon: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: "#FFFFFF",
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        backgroundColor: "#FFF5DD",
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: "#7898D8",
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-        elevation: 5,
     },
 
     emptyCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
-        paddingVertical: 45,
-        paddingHorizontal: 25,
+        padding: 28,
         alignItems: "center",
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
+        shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
 
     emptyIcon: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 75,
+        height: 75,
+        borderRadius: 38,
         backgroundColor: "#FFF5DD",
         alignItems: "center",
         justifyContent: "center",
-        marginBottom: 20,
+        marginBottom: 14,
     },
 
     emptyTitle: {
-        fontSize: 25,
+        fontSize: 21,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 10,
         textAlign: "center",
     },
 
     emptyText: {
-        fontSize: 16,
-        lineHeight: 25,
-        color: "#60729E",
+        fontSize: 15,
+        lineHeight: 23,
         textAlign: "center",
+        color: "#60729E",
+        marginTop: 8,
     },
 
     signInButton: {
-        minWidth: 180,
-        height: 54,
-        borderRadius: 16,
+        minHeight: 54,
+        width: "100%",
         backgroundColor: "#2563E8",
+        borderRadius: 15,
+        paddingHorizontal: 20,
+        marginTop: 22,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        paddingHorizontal: 25,
-        marginTop: 24,
+        gap: 10,
     },
 
     signInButtonText: {
+        color: "#FFFFFF",
         fontSize: 17,
         fontWeight: "800",
-        color: "#FFFFFF",
-        marginLeft: 9,
+    },
+
+    signUpButton: {
+        padding: 14,
+        marginTop: 4,
+    },
+
+    signUpButtonText: {
+        color: "#2563E8",
+        fontSize: 14,
+        fontWeight: "700",
+        textAlign: "center",
     },
 
     historyCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
         paddingHorizontal: 20,
-        paddingTop: 25,
-        paddingBottom: 10,
+        paddingTop: 24,
+        paddingBottom: 8,
         shadowColor: "#7898D8",
         shadowOpacity: 0.12,
         shadowRadius: 12,
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
+        shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
 
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+    },
+
     sectionTitle: {
-        fontSize: 25,
+        fontSize: 23,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 20,
+        flex: 1,
+    },
+
+    countBadge: {
+        minWidth: 32,
+        height: 32,
+        paddingHorizontal: 8,
+        borderRadius: 16,
+        backgroundColor: "#FFF5DD",
+        alignItems: "center",
+        justifyContent: "center",
+        marginLeft: 10,
+    },
+
+    countText: {
+        fontSize: 13,
+        fontWeight: "800",
+        color: "#B77900",
     },
 
     historyItem: {
         flexDirection: "row",
-        paddingVertical: 18,
-        borderTopWidth: 1,
-        borderTopColor: "#E3EAF5",
+        paddingVertical: 20,
+    },
+
+    historyDivider: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5EBF4",
     },
 
     successIcon: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "#E8FFF4",
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: "#E2FAEF",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 15,
+        marginRight: 13,
     },
 
     historyInfo: {
         flex: 1,
     },
 
+    successBadge: {
+        alignSelf: "flex-start",
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#E2FAEF",
+        borderRadius: 12,
+        paddingHorizontal: 9,
+        paddingVertical: 5,
+        marginBottom: 8,
+    },
+
+    successBadgeText: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#08A96D",
+        marginLeft: 4,
+    },
+
     historyTitle: {
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: "800",
         color: "#173B8F",
         marginBottom: 5,
@@ -522,39 +672,49 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#526487",
         lineHeight: 20,
+        marginBottom: 10,
+    },
+
+    detailRow: {
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 6,
     },
 
     dateTime: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: "700",
         color: "#2563E8",
-        marginBottom: 4,
+        marginLeft: 6,
+        flexShrink: 1,
     },
 
     duration: {
         fontSize: 13,
         color: "#7182A5",
+        marginLeft: 6,
+        flexShrink: 1,
     },
 
     reminderRow: {
         flexDirection: "row",
-        alignItems: "center",
-        marginTop: 6,
+        alignItems: "flex-start",
+        marginTop: 3,
     },
 
     reminder: {
+        flex: 1,
         fontSize: 13,
         fontWeight: "700",
         color: "#08A96D",
-        marginLeft: 5,
-        flexShrink: 1,
+        marginLeft: 6,
     },
 
     reminderOff: {
+        flex: 1,
         fontSize: 13,
         fontWeight: "600",
         color: "#7182A5",
-        marginLeft: 5,
+        marginLeft: 6,
     },
 });
