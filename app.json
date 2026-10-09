@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SafeTap",
-    "slug": "SafeTap",
+    "slug": "safetap-saanvi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -44,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "139a96dc-7bfe-4ed5-b3bb-40be7deb9707"
+      }
+    },
+    "owner": "saanvi-projects"
   }
 }
