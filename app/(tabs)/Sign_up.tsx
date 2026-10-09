@@ -20,7 +20,6 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,16 +28,20 @@ export default function SignUp() {
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
 
+    // Validate required fields
     if (!cleanName || !cleanEmail || !password || !confirmPassword) {
       Alert.alert("Missing Information", "Please fill in all fields.");
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(cleanEmail)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
+    // Validate password length
     if (password.length < 6) {
       Alert.alert(
         "Password Too Short",
@@ -47,6 +50,7 @@ export default function SignUp() {
       return;
     }
 
+    // Check password confirmation
     if (password !== confirmPassword) {
       Alert.alert(
         "Passwords Do Not Match",
@@ -84,8 +88,10 @@ export default function SignUp() {
             [
               {
                 text: "Go to Sign In",
-                onPress: () => router.replace("/Log_in"),
+                onPress: () =>
+                  router.replace("/(tabs)/Log_in" as any),
               },
+              { text: "Cancel", style: "cancel" },
             ]
           );
         } else {
@@ -95,16 +101,19 @@ export default function SignUp() {
         return;
       }
 
-      // Supabase may return an empty identities array for an existing account.
+      // Some Supabase configurations return no identities
+      // when an email is already registered.
       if (data.user && data.user.identities?.length === 0) {
         Alert.alert(
           "Account Already Registered",
-          "An account with this email may already exist. Redirecting you to Sign In.",
+          "An account with this email may already exist. Please sign in instead.",
           [
             {
               text: "Go to Sign In",
-              onPress: () => router.replace("/Log_in"),
+              onPress: () =>
+                router.replace("/(tabs)/Log_in" as any),
             },
+            { text: "Cancel", style: "cancel" },
           ]
         );
         return;
@@ -117,7 +126,8 @@ export default function SignUp() {
           [
             {
               text: "Go to Sign In",
-              onPress: () => router.replace("/Log_in"),
+              onPress: () =>
+                router.replace("/(tabs)/Log_in" as any),
             },
           ]
         );
@@ -146,13 +156,16 @@ export default function SignUp() {
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Back button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
+          activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={25} color="#1F2937" />
         </TouchableOpacity>
 
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoCircle}>
             <Ionicons
@@ -168,8 +181,10 @@ export default function SignUp() {
           </Text>
         </View>
 
+        {/* Full name */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Full Name</Text>
+
           <View style={styles.inputWrapper}>
             <Ionicons
               name="person-outline"
@@ -177,6 +192,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
             <TextInput
               style={styles.input}
               placeholder="Enter your name"
@@ -189,8 +205,10 @@ export default function SignUp() {
           </View>
         </View>
 
+        {/* Email */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
+
           <View style={styles.inputWrapper}>
             <Ionicons
               name="mail-outline"
@@ -198,6 +216,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
             <TextInput
               style={styles.input}
               placeholder="Enter your email"
@@ -211,8 +230,10 @@ export default function SignUp() {
           </View>
         </View>
 
+        {/* Password */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
+
           <View style={styles.inputWrapper}>
             <Ionicons
               name="lock-closed-outline"
@@ -220,6 +241,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
             <TextInput
               style={styles.input}
               placeholder="Create a password"
@@ -230,24 +252,33 @@ export default function SignUp() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+
             <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
+              onPress={() =>
+                setShowPassword((previous) => !previous)
+              }
               style={styles.eyeButton}
+              activeOpacity={0.7}
             >
               <Ionicons
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                name={
+                  showPassword ? "eye-off-outline" : "eye-outline"
+                }
                 size={21}
                 color="#6B7280"
               />
             </TouchableOpacity>
           </View>
+
           <Text style={styles.helperText}>
             Password must be at least 6 characters.
           </Text>
         </View>
 
+        {/* Confirm password */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Confirm Password</Text>
+
           <View style={styles.inputWrapper}>
             <Ionicons
               name="lock-closed-outline"
@@ -255,6 +286,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
             <TextInput
               style={styles.input}
               placeholder="Confirm your password"
@@ -265,11 +297,13 @@ export default function SignUp() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+
             <TouchableOpacity
               onPress={() =>
-                setShowConfirmPassword(!showConfirmPassword)
+                setShowConfirmPassword((previous) => !previous)
               }
               style={styles.eyeButton}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name={
@@ -284,13 +318,20 @@ export default function SignUp() {
           </View>
         </View>
 
+        {/* Create account button */}
         <TouchableOpacity
-          style={[styles.signUpButton, loading && styles.disabledButton]}
+          style={[
+            styles.signUpButton,
+            loading && styles.disabledButton,
+          ]}
           onPress={handleSignUp}
           disabled={loading}
+          activeOpacity={0.8}
         >
           {loading ? (
-            <Text style={styles.signUpText}>Creating Account...</Text>
+            <Text style={styles.signUpText}>
+              Creating Account...
+            </Text>
           ) : (
             <>
               <Text style={styles.signUpText}>Create Account</Text>
@@ -303,21 +344,30 @@ export default function SignUp() {
           )}
         </TouchableOpacity>
 
+        {/* Sign in link */}
         <View style={styles.loginContainer}>
           <Text style={styles.loginText}>
             Already have an account?
           </Text>
-          <TouchableOpacity onPress={() => router.push("/Log_in")}>
+
+          <TouchableOpacity
+            onPress={() =>
+              router.push("/(tabs)/Log_in" as any)
+            }
+            activeOpacity={0.7}
+          >
             <Text style={styles.loginLink}> Sign In</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Privacy message */}
         <View style={styles.privacyContainer}>
           <Ionicons
             name="shield-checkmark-outline"
             size={17}
             color="#6B7280"
           />
+
           <Text style={styles.privacyText}>
             Your information is kept private and secure.
           </Text>
@@ -401,6 +451,7 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   helperText: {
     fontSize: 12,
@@ -429,6 +480,7 @@ const styles = StyleSheet.create({
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
     marginTop: 24,
   },
   loginText: {

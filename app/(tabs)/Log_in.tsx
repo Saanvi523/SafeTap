@@ -1,8 +1,10 @@
+
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
+    Alert,
     Image,
     SafeAreaView,
     ScrollView,
@@ -18,24 +20,17 @@ export default function SignIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const scrollViewRef = useRef<ScrollView>(null);
 
-    /*
-     * RESET SIGN IN PAGE
-     *
-     * Runs whenever this page becomes visible.
-     * Clears the input fields, hides the password,
-     * and returns the page to the top.
-     */
+    // Reset the sign-in page whenever it becomes visible.
     useFocusEffect(
         useCallback(() => {
-            // Clear the input fields
             setEmail("");
             setPassword("");
             setShowPassword(false);
 
-            // Scroll back to the top
             const timeout = setTimeout(() => {
                 scrollViewRef.current?.scrollTo({
                     y: 0,
@@ -43,61 +38,69 @@ export default function SignIn() {
                 });
             }, 100);
 
-            return () => {
-                clearTimeout(timeout);
-            };
+            return () => clearTimeout(timeout);
         }, [])
     );
 
-    /*
-     * SIGN IN
-     *
-     * Checks that the required fields have been completed.
-     * The original hardcoded test account is still available.
-     * Other accounts are checked using Supabase Authentication.
-     */
+    // Sign in using the test account or Supabase.
     const handleSignIn = async () => {
-        // Check if both fields are empty
-        if (!email.trim() && !password.trim()) {
-            alert("Please fill in your email and password.");
+        const cleanEmail = email.trim().toLowerCase();
+
+        if (!cleanEmail && !password) {
+            Alert.alert(
+                "Missing Information",
+                "Please fill in your email and password."
+            );
             return;
         }
 
-        // Check if email is empty
-        if (!email.trim()) {
-            alert("Please fill in your email.");
+        if (!cleanEmail) {
+            Alert.alert("Missing Email", "Please fill in your email.");
             return;
         }
 
-        // Check if password is empty
-        if (!password.trim()) {
-            alert("Please fill in your password.");
+        if (!password) {
+            Alert.alert(
+                "Missing Password",
+                "Please fill in your password."
+            );
             return;
         }
 
-        // Keep the original hardcoded test account
+        // Keep the original hardcoded test account.
         if (
-            email.trim() === "test@safetap.com" &&
+            cleanEmail === "test@safetap.com" &&
             password === "123456"
         ) {
-            router.push("/(tabs)/Home");
+            router.replace("/(tabs)/Home" as any);
             return;
         }
 
-        // Try signing in using Supabase Authentication
-        const { error } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-        });
+        setLoading(true);
 
-        // Supabase sign-in failed
-        if (error) {
-            alert("Incorrect email or password.");
-            return;
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+            });
+
+            if (error) {
+                Alert.alert(
+                    "Sign In Failed",
+                    "Incorrect email or password. Please try again."
+                );
+                return;
+            }
+
+            router.replace("/(tabs)/Home" as any);
+        } catch {
+            Alert.alert(
+                "Connection Error",
+                "Unable to sign in. Please check your connection and try again."
+            );
+        } finally {
+            setLoading(false);
         }
-
-        // Supabase sign-in successful
-        router.push("/(tabs)/Home");
     };
 
     return (
@@ -109,8 +112,7 @@ export default function SignIn() {
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode="on-drag"
             >
-                {/* BACK BUTTON */}
-
+                {/* Back button */}
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => router.back()}
@@ -123,25 +125,18 @@ export default function SignIn() {
                     />
                 </TouchableOpacity>
 
-                {/* APP LOGO */}
+                {/* App logo */}
+                <Text style={styles.logo}>SafeTap</Text>
 
-                <Text style={styles.logo}>
-                    SafeTap
-                </Text>
-
-                {/* PAGE HEADING */}
-
-                <Text style={styles.heading}>
-                    Welcome Back
-                </Text>
+                {/* Page heading */}
+                <Text style={styles.heading}>Welcome Back</Text>
 
                 <Text style={styles.subHeading}>
                     Sign in to access your{"\n"}
                     safety check-ins and alerts.
                 </Text>
 
-                {/* EMAIL INPUT */}
-
+                {/* Email input */}
                 <View style={styles.inputContainer}>
                     <MaterialIcons
                         name="email"
@@ -162,8 +157,7 @@ export default function SignIn() {
                     />
                 </View>
 
-                {/* PASSWORD INPUT */}
-
+                {/* Password input */}
                 <View style={styles.inputContainer}>
                     <MaterialIcons
                         name="lock"
@@ -183,49 +177,49 @@ export default function SignIn() {
                         style={styles.input}
                     />
 
-                    {/* SHOW / HIDE PASSWORD */}
-
+                    {/* Show or hide password */}
                     <TouchableOpacity
                         onPress={() =>
-                            setShowPassword(
-                                (previous) => !previous
-                            )
+                            setShowPassword((previous) => !previous)
                         }
                         activeOpacity={0.7}
+                        accessibilityLabel={
+                            showPassword ? "Hide password" : "Show password"
+                        }
                     >
                         <Ionicons
-                            name={
-                                showPassword
-                                    ? "eye-off"
-                                    : "eye"
-                            }
+                            name={showPassword ? "eye-off" : "eye"}
                             size={24}
                             color="#7A84A7"
                         />
                     </TouchableOpacity>
                 </View>
 
-                {/* SIGN IN BUTTON */}
-
+                {/* Sign in button */}
                 <TouchableOpacity
-                    style={styles.signInButton}
+                    style={[
+                        styles.signInButton,
+                        loading && styles.disabledButton,
+                    ]}
                     onPress={handleSignIn}
+                    disabled={loading}
                     activeOpacity={0.8}
                 >
                     <Text style={styles.signInText}>
-                        SIGN IN
+                        {loading ? "SIGNING IN..." : "SIGN IN"}
                     </Text>
                 </TouchableOpacity>
 
-                {/* SIGN UP LINK */}
-
+                {/* Sign up link */}
                 <View style={styles.signUpContainer}>
                     <Text style={styles.signUpPrompt}>
                         Don't have an account?
                     </Text>
 
                     <TouchableOpacity
-                        onPress={() => router.push("/(tabs)/Sign_up")}
+                        onPress={() =>
+                            router.push("/(tabs)/Sign_up" as any)
+                        }
                         activeOpacity={0.7}
                     >
                         <Text style={styles.signUpLink}>
@@ -234,8 +228,7 @@ export default function SignIn() {
                     </TouchableOpacity>
                 </View>
 
-                {/* SHIELD IMAGE */}
-
+                {/* Shield image */}
                 <View style={styles.shieldContainer}>
                     <Image
                         source={require("../../assets/images/Shield 2.0. .png")}
@@ -249,9 +242,6 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
-
-    /* MAIN SCREEN */
-
     container: {
         flex: 1,
         backgroundColor: "#F5F7FB",
@@ -262,14 +252,10 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
 
-    /* BACK BUTTON */
-
     backButton: {
         marginTop: 20,
         marginBottom: 20,
     },
-
-    /* APP LOGO */
 
     logo: {
         fontSize: 56,
@@ -278,8 +264,6 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginTop: 10,
     },
-
-    /* PAGE HEADING */
 
     heading: {
         marginTop: 55,
@@ -298,8 +282,6 @@ const styles = StyleSheet.create({
         marginBottom: 35,
     },
 
-    /* INPUT FIELDS */
-
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -308,16 +290,13 @@ const styles = StyleSheet.create({
         height: 64,
         marginBottom: 18,
         paddingHorizontal: 18,
-
         shadowColor: "#2563E8",
         shadowOpacity: 0.08,
         shadowRadius: 10,
-
         shadowOffset: {
             width: 0,
             height: 4,
         },
-
         elevation: 5,
     },
 
@@ -331,8 +310,6 @@ const styles = StyleSheet.create({
         color: "#1F2937",
     },
 
-    /* SIGN IN BUTTON */
-
     signInButton: {
         height: 60,
         backgroundColor: "#1764E8",
@@ -342,14 +319,16 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
     },
 
+    disabledButton: {
+        opacity: 0.6,
+    },
+
     signInText: {
         color: "#FFFFFF",
         fontSize: 22,
         fontWeight: "800",
         letterSpacing: 1,
     },
-
-    /* SIGN UP LINK */
 
     signUpContainer: {
         flexDirection: "row",
@@ -369,8 +348,6 @@ const styles = StyleSheet.create({
         color: "#1764E8",
         marginLeft: 5,
     },
-
-    /* SHIELD IMAGE */
 
     shieldContainer: {
         alignItems: "center",
