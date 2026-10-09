@@ -1,7 +1,6 @@
-
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { router, useFocusEffect } from "expo-router";
 import React, {
     useCallback,
     useEffect,
@@ -13,13 +12,12 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from "react-native";
 
 import BottomNavigation from "../../components/Bottom_Navigation";
 import { supabase } from "../../lib/supabase";
-
-// HISTORY ITEM DATA STRUCTURE
 
 type HistoryItem = {
     id: string;
@@ -31,20 +29,20 @@ type HistoryItem = {
     message: string;
 };
 
-// EACH ACCOUNT HAS ITS OWN HISTORY KEY
-
 const getHistoryKey = (userId: string) =>
     `@safetap_history_${userId}`;
 
 export default function History() {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
 
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // LOAD HISTORY FOR THE SIGNED-IN USER
-
+    // Load only the history belonging to the specified account.
     const loadHistory = useCallback(async (userId: string) => {
+        setHistoryLoaded(false);
+
         try {
             const savedHistory = await AsyncStorage.getItem(
                 getHistoryKey(userId)
@@ -54,48 +52,62 @@ export default function History() {
                 ? JSON.parse(savedHistory)
                 : [];
 
-            if (Array.isArray(parsedHistory)) {
-                setHistory(parsedHistory as HistoryItem[]);
-            } else {
-                setHistory([]);
-            }
-        } catch {
-            console.error("Unable to load check-in history.");
+            setHistory(
+                Array.isArray(parsedHistory)
+                    ? (parsedHistory as HistoryItem[])
+                    : []
+            );
+        } catch (error) {
+            console.error("Unable to load check-in history:", error);
             setHistory([]);
+        } finally {
+            setHistoryLoaded(true);
         }
     }, []);
 
-    // CHECK CURRENT SESSION AND WATCH FOR SIGN-IN / SIGN-OUT
-
+    // Check the current session and respond to sign-in/sign-out.
     useEffect(() => {
         let active = true;
 
         const checkCurrentUser = async () => {
-            const {
-                data: { user },
-                error,
-            } = await supabase.auth.getUser();
+            try {
+                const {
+                    data: { user },
+                    error,
+                } = await supabase.auth.getUser();
 
-            if (!active) return;
+                if (!active) return;
 
-            if (error || !user) {
-                setCurrentUserId(null);
-                setHistory([]);
-                return;
+                if (error || !user) {
+                    setCurrentUserId(null);
+                    setHistory([]);
+                    setHistoryLoaded(true);
+                    return;
+                }
+
+                setCurrentUserId(user.id);
+                await loadHistory(user.id);
+            } catch (error) {
+                if (active) {
+                    console.error("Unable to check signed-in user:", error);
+                    setCurrentUserId(null);
+                    setHistory([]);
+                    setHistoryLoaded(true);
+                }
             }
-
-            setCurrentUserId(user.id);
-            await loadHistory(user.id);
         };
 
-        checkCurrentUser();
+        void checkCurrentUser();
 
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!active) return;
+
             if (event === "SIGNED_OUT" || !session?.user) {
                 setCurrentUserId(null);
                 setHistory([]);
+                setHistoryLoaded(true);
                 return;
             }
 
@@ -103,10 +115,13 @@ export default function History() {
 
             setCurrentUserId(userId);
             setHistory([]);
+            setHistoryLoaded(false);
 
-            // Defer storage work until the auth callback has returned.
+            // Defer storage work until the authentication callback returns.
             setTimeout(() => {
-                loadHistory(userId);
+                if (active) {
+                    void loadHistory(userId);
+                }
             }, 0);
         });
 
@@ -116,8 +131,7 @@ export default function History() {
         };
     }, [loadHistory]);
 
-    // RELOAD HISTORY WHEN THE PAGE BECOMES VISIBLE
-
+    // Refresh the current user's history whenever this page is opened.
     useFocusEffect(
         useCallback(() => {
             let active = true;
@@ -134,19 +148,22 @@ export default function History() {
                     if (error || !user) {
                         setCurrentUserId(null);
                         setHistory([]);
+                        setHistoryLoaded(true);
                         return;
                     }
 
                     setCurrentUserId(user.id);
                     await loadHistory(user.id);
-                } catch {
+                } catch (error) {
                     if (active) {
+                        console.error("Unable to refresh history:", error);
                         setHistory([]);
+                        setHistoryLoaded(true);
                     }
                 }
             };
 
-            refreshHistory();
+            void refreshHistory();
 
             const timeout = setTimeout(() => {
                 scrollViewRef.current?.scrollTo({
@@ -162,6 +179,11 @@ export default function History() {
         }, [loadHistory])
     );
 
+    // Navigate to the existing sign-in screen.
+    const goToSignIn = () => {
+        router.push("/Log_in");
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView
@@ -170,7 +192,6 @@ export default function History() {
                 contentContainerStyle={styles.scrollContainer}
             >
                 {/* HEADER */}
-
                 <View style={styles.header}>
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.title}>History</Text>
@@ -189,9 +210,19 @@ export default function History() {
                     </View>
                 </View>
 
-                {/* EMPTY STATE */}
+                {/* LOADING STATE */}
+                {!historyLoaded ? (
+                    <View style={styles.emptyCard}>
+                        <Text style={styles.emptyTitle}>
+                            Loading History...
+                        </Text>
 
-                {!currentUserId || history.length === 0 ? (
+                        <Text style={styles.emptyText}>
+                            Please wait while your check-ins load.
+                        </Text>
+                    </View>
+                ) : !currentUserId ? (
+                    /* SIGN-IN REQUIRED */
                     <View style={styles.emptyCard}>
                         <View style={styles.emptyIcon}>
                             <MaterialIcons
@@ -202,20 +233,52 @@ export default function History() {
                         </View>
 
                         <Text style={styles.emptyTitle}>
-                            {!currentUserId
-                                ? "Sign In to View History"
-                                : "No Check-Ins Yet"}
+                            Sign In to View History
                         </Text>
 
                         <Text style={styles.emptyText}>
-                            {!currentUserId
-                                ? "Sign in to view your saved safety check-ins."
-                                : "Your completed safety check-ins\nwill appear here."}
+                            Sign in to view your saved safety check-ins.
+                            Your history is kept separately for each account.
+                        </Text>
+
+                        <TouchableOpacity
+                            style={styles.signInButton}
+                            onPress={goToSignIn}
+                            activeOpacity={0.8}
+                        >
+                            <Ionicons
+                                name="log-in-outline"
+                                size={23}
+                                color="#FFFFFF"
+                            />
+
+                            <Text style={styles.signInButtonText}>
+                                Sign In
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : history.length === 0 ? (
+                    /* SIGNED IN, BUT NO HISTORY */
+                    <View style={styles.emptyCard}>
+                        <View style={styles.emptyIcon}>
+                            <MaterialIcons
+                                name="history"
+                                size={55}
+                                color="#F59E0B"
+                            />
+                        </View>
+
+                        <Text style={styles.emptyTitle}>
+                            No Check-Ins Yet
+                        </Text>
+
+                        <Text style={styles.emptyText}>
+                            Your completed safety check-ins{"\n"}
+                            will appear here.
                         </Text>
                     </View>
                 ) : (
                     /* HISTORY LIST */
-
                     <View style={styles.historyCard}>
                         <Text style={styles.sectionTitle}>
                             Check-In History
@@ -290,8 +353,6 @@ export default function History() {
     );
 }
 
-// STYLES
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -349,7 +410,7 @@ const styles = StyleSheet.create({
     emptyCard: {
         backgroundColor: "#FFFFFF",
         borderRadius: 26,
-        paddingVertical: 55,
+        paddingVertical: 45,
         paddingHorizontal: 25,
         alignItems: "center",
         shadowColor: "#7898D8",
@@ -385,6 +446,25 @@ const styles = StyleSheet.create({
         lineHeight: 25,
         color: "#60729E",
         textAlign: "center",
+    },
+
+    signInButton: {
+        minWidth: 180,
+        height: 54,
+        borderRadius: 16,
+        backgroundColor: "#2563E8",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 25,
+        marginTop: 24,
+    },
+
+    signInButtonText: {
+        fontSize: 17,
+        fontWeight: "800",
+        color: "#FFFFFF",
+        marginLeft: 9,
     },
 
     historyCard: {
