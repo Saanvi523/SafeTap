@@ -1,3 +1,4 @@
+
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
@@ -24,6 +25,7 @@ type Contact = {
     phone: string;
     relationship: string;
     email: string;
+    emailVerified?: boolean;
     primary: boolean;
 };
 
@@ -36,11 +38,13 @@ export default function Contacts() {
     const [authLoaded, setAuthLoaded] = useState(false);
     const [contactsLoaded, setContactsLoaded] = useState(false);
     const [showAddContact, setShowAddContact] = useState(false);
+
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
-    const [relationship, setRelationship] = useState("");
     const [email, setEmail] = useState("");
+    const [relationship, setRelationship] = useState("");
     const [primary, setPrimary] = useState(false);
+    const [emailVerified, setEmailVerified] = useState(false);
     const [editingContactId, setEditingContactId] =
         useState<number | null>(null);
     const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -48,7 +52,7 @@ export default function Contacts() {
     const scrollViewRef = useRef<ScrollView | null>(null);
     const currentUserIdRef = useRef<string | null>(null);
 
-    // Load contacts belonging to the selected account.
+    // Load contacts for the signed-in account.
     const loadContacts = useCallback(async (id: string) => {
         setContactsLoaded(false);
 
@@ -56,9 +60,9 @@ export default function Contacts() {
             const stored = await AsyncStorage.getItem(
                 getContactsStorageKey(id)
             );
+
             const parsed: unknown = stored ? JSON.parse(stored) : [];
 
-            // Ignore results if the account changed while loading.
             if (currentUserIdRef.current !== id) return;
 
             setContacts(Array.isArray(parsed) ? parsed as Contact[] : []);
@@ -79,7 +83,7 @@ export default function Contacts() {
         }
     }, []);
 
-    // Check the current session and respond to sign-in/sign-out.
+    // Check the session and respond to sign-in/sign-out.
     useEffect(() => {
         let active = true;
 
@@ -94,9 +98,10 @@ export default function Contacts() {
             setEditingContactId(null);
             setName("");
             setPhone("");
-            setRelationship("");
             setEmail("");
+            setRelationship("");
             setPrimary(false);
+            setEmailVerified(false);
 
             if (!id) {
                 setContactsLoaded(true);
@@ -131,7 +136,6 @@ export default function Contacts() {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
-            // Defer storage work until the auth callback has finished.
             void Promise.resolve().then(() => {
                 if (active) {
                     void applySession(session?.user.id ?? null);
@@ -146,7 +150,7 @@ export default function Contacts() {
         };
     }, [loadContacts]);
 
-    // Return the screen to the top when it gains focus.
+    // Scroll to the top when the page becomes active.
     useFocusEffect(
         useCallback(() => {
             const timer = setTimeout(() => {
@@ -160,12 +164,13 @@ export default function Contacts() {
         }, [])
     );
 
-    // Track keyboard visibility to manage bottom navigation.
+    // Hide bottom navigation while the keyboard is open.
     useEffect(() => {
         const showListener = Keyboard.addListener(
             "keyboardDidShow",
             () => setKeyboardVisible(true)
         );
+
         const hideListener = Keyboard.addListener(
             "keyboardDidHide",
             () => setKeyboardVisible(false)
@@ -177,7 +182,7 @@ export default function Contacts() {
         };
     }, []);
 
-    // Save contacts to the current account's storage key.
+    // Save contacts to the current account's storage.
     const persistContacts = async (updated: Contact[]) => {
         const id = currentUserIdRef.current;
 
@@ -190,7 +195,10 @@ export default function Contacts() {
         }
 
         if (!contactsLoaded || id !== userId) {
-            Alert.alert("Please Wait", "Your contacts are still loading.");
+            Alert.alert(
+                "Please Wait",
+                "Your contacts are still loading."
+            );
             return false;
         }
 
@@ -200,34 +208,36 @@ export default function Contacts() {
                 JSON.stringify(updated)
             );
 
-            // Do not update the screen if the account changed during saving.
             if (currentUserIdRef.current !== id) return false;
 
             setContacts(updated);
             return true;
         } catch (error) {
             console.error("Error saving contacts:", error);
+
             Alert.alert(
                 "Saving Error",
                 "Your contacts could not be saved. Please try again."
             );
+
             return false;
         }
     };
 
-    // Clear and close the contact form.
+    // Clear and close the form.
     const finishForm = () => {
         setName("");
         setPhone("");
-        setRelationship("");
         setEmail("");
+        setRelationship("");
         setPrimary(false);
+        setEmailVerified(false);
         setEditingContactId(null);
         setShowAddContact(false);
         Keyboard.dismiss();
     };
 
-    // Validate and save a new or edited contact.
+    // Validate and save a contact.
     const saveContact = async () => {
         if (!userId) {
             Alert.alert(
@@ -237,50 +247,94 @@ export default function Contacts() {
             return;
         }
 
-        if (!name.trim() || !phone.trim()) {
+        if (!name.trim()) {
             Alert.alert(
-                "Missing Information",
-                "Please enter a name and phone number."
+                "Name Required",
+                "Please enter the contact's full name."
             );
             return;
         }
 
-        const phoneDigits = phone.replace(/\D/g, "");
+        if (!phone.trim()) {
+            Alert.alert(
+                "Phone Required",
+                "Please enter the contact's phone number."
+            );
+            return;
+        }
 
-        if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+        // Allow digits, spaces, hyphens, brackets and an optional +.
+        const cleanedPhone = phone.trim();
+        const phoneDigits = cleanedPhone.replace(/\D/g, "");
+        const validPhoneCharacters = /^\+?[0-9\s()\-]+$/.test(cleanedPhone);
+
+        if (
+            !validPhoneCharacters ||
+            phoneDigits.length < 7 ||
+            phoneDigits.length > 15
+        ) {
             Alert.alert(
                 "Invalid Phone Number",
-                "Please enter a phone number containing 7 to 15 digits."
+                "Enter a phone number containing 7 to 15 digits. You can use spaces, hyphens, brackets or a + at the beginning."
             );
             return;
         }
 
-        // Email is optional, but it must be valid when supplied.
-        const cleanedEmail = email.trim();
+        // Email is required and must have a valid format.
+        const cleanedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (cleanedEmail) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!cleanedEmail) {
+            Alert.alert(
+                "Email Required",
+                "Please enter the trusted contact's email address."
+            );
+            return;
+        }
 
-            if (!emailRegex.test(cleanedEmail)) {
-                Alert.alert(
-                    "Invalid Email",
-                    "Please enter a valid email address or leave the email field empty."
-                );
-                return;
-            }
+        if (!emailRegex.test(cleanedEmail)) {
+            Alert.alert(
+                "Invalid Email",
+                "Please enter a valid email address, such as name@example.com."
+            );
+            return;
         }
 
         if (!contactsLoaded) {
-            Alert.alert("Please Wait", "Your contacts are still loading.");
+            Alert.alert(
+                "Please Wait",
+                "Your contacts are still loading."
+            );
+            return;
+        }
+
+        // Prevent duplicate phone numbers and email addresses.
+        const duplicate = contacts.find((contact) => {
+            if (contact.id === editingContactId) return false;
+
+            const existingPhoneDigits = contact.phone.replace(/\D/g, "");
+
+            return (
+                contact.email.trim().toLowerCase() === cleanedEmail ||
+                existingPhoneDigits === phoneDigits
+            );
+        });
+
+        if (duplicate) {
+            Alert.alert(
+                "Duplicate Contact",
+                "A contact with this email address or phone number already exists."
+            );
             return;
         }
 
         const cleanedContact: Contact = {
             id: editingContactId ?? Date.now(),
             name: name.trim(),
-            phone: phone.trim(),
+            phone: cleanedPhone,
+            email: cleanedEmail,
             relationship: relationship.trim(),
-            email: cleanedEmail.toLowerCase(),
+            emailVerified,
             primary,
         };
 
@@ -324,13 +378,33 @@ export default function Contacts() {
         );
     };
 
-    // Populate the form with the selected contact's details.
+    // Placeholder until a real email verification service is connected.
+    const requestEmailVerification = () => {
+        const cleanedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!cleanedEmail || !emailRegex.test(cleanedEmail)) {
+            Alert.alert(
+                "Enter a Valid Email",
+                "Enter a valid email address before requesting verification."
+            );
+            return;
+        }
+
+        Alert.alert(
+            "Verification Not Set Up",
+            "Email verification is not connected yet. No verification email has been sent."
+        );
+    };
+
+    // Load an existing contact into the form for editing.
     const editContact = (contact: Contact) => {
         setName(contact.name);
         setPhone(contact.phone);
-        setRelationship(contact.relationship);
         setEmail(contact.email);
+        setRelationship(contact.relationship);
         setPrimary(contact.primary);
+        setEmailVerified(contact.emailVerified === true);
         setEditingContactId(contact.id);
         setShowAddContact(true);
 
@@ -339,7 +413,7 @@ export default function Contacts() {
         }, 100);
     };
 
-    // Ask for confirmation before removing a contact.
+    // Confirm before deleting a contact.
     const deleteContact = (id: number) => {
         Alert.alert(
             "Delete Contact",
@@ -353,6 +427,7 @@ export default function Contacts() {
                         const updated = contacts.filter(
                             (contact) => contact.id !== id
                         );
+
                         const saved = await persistContacts(updated);
 
                         if (saved) {
@@ -367,7 +442,7 @@ export default function Contacts() {
         );
     };
 
-    // Generate initials for contact avatars.
+    // Create initials for contact avatars.
     const getInitials = (contactName: string) => {
         const words = contactName.trim().split(/\s+/);
 
@@ -396,9 +471,12 @@ export default function Contacts() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.scrollContainer}
                 >
+                    {/* Page header */}
                     <View style={styles.header}>
-                        <View>
-                            <Text style={styles.title}>Trusted Contacts</Text>
+                        <View style={styles.headerTextContainer}>
+                            <Text style={styles.title}>
+                                Trusted Contacts
+                            </Text>
                             <Text style={styles.subtitle}>
                                 People who can help keep you safe
                             </Text>
@@ -407,27 +485,25 @@ export default function Contacts() {
                         <View style={styles.headerIcon}>
                             <Ionicons
                                 name="shield-checkmark"
-                                size={38}
-                                color="#08B88A"
+                                size={36}
+                                color="#08A96D"
                             />
                         </View>
                     </View>
 
                     {!authLoaded ? (
-                        <View style={styles.noEmergencyCard}>
+                        <View style={styles.emptyCard}>
                             <Text style={styles.emptyTitle}>
                                 Checking Sign In...
                             </Text>
                         </View>
                     ) : !userId ? (
-                        <View style={styles.noEmergencyCard}>
-                            <View style={styles.emptyIcon}>
-                                <Ionicons
-                                    name="lock-closed-outline"
-                                    size={40}
-                                    color="#08B88A"
-                                />
-                            </View>
+                        <View style={styles.emptyCard}>
+                            <Ionicons
+                                name="lock-closed-outline"
+                                size={42}
+                                color="#08A96D"
+                            />
 
                             <Text style={styles.emptyTitle}>
                                 Sign In to View Contacts
@@ -435,32 +511,19 @@ export default function Contacts() {
 
                             <Text style={styles.emptyText}>
                                 Sign in to add and manage your trusted contacts.
-                                Your contacts are kept separately for each account.
                             </Text>
 
                             <TouchableOpacity
                                 style={styles.signInButton}
-                                activeOpacity={0.8}
                                 onPress={() => router.push("/(tabs)/Log_in")}
                             >
-                                <Ionicons
-                                    name="log-in-outline"
-                                    size={22}
-                                    color="#FFFFFF"
-                                />
                                 <Text style={styles.signInButtonText}>
                                     Sign In
                                 </Text>
-                                <Ionicons
-                                    name="arrow-forward"
-                                    size={18}
-                                    color="#FFFFFF"
-                                />
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.signUpButton}
-                                activeOpacity={0.8}
                                 onPress={() => router.push("/(tabs)/Sign_up")}
                             >
                                 <Text style={styles.signUpButtonText}>
@@ -469,113 +532,123 @@ export default function Contacts() {
                             </TouchableOpacity>
                         </View>
                     ) : !contactsLoaded ? (
-                        <View style={styles.noEmergencyCard}>
+                        <View style={styles.emptyCard}>
                             <Text style={styles.emptyTitle}>
                                 Loading Contacts...
                             </Text>
                         </View>
                     ) : (
                         <>
+                            {/* Primary contact */}
                             <Text style={styles.sectionLabel}>
                                 PRIMARY CONTACT
                             </Text>
 
                             {primaryContact ? (
-                                <View style={styles.emergencyCard}>
-                                    <View style={styles.emergencyTop}>
-                                        <View style={styles.emergencyIcon}>
-                                            <Text style={styles.emergencyInitials}>
+                                <View style={styles.primaryCard}>
+                                    <View style={styles.primaryCardHeader}>
+                                        <View style={styles.avatar}>
+                                            <Text style={styles.avatarText}>
                                                 {getInitials(primaryContact.name)}
                                             </Text>
                                         </View>
 
-                                        <View style={styles.emergencyBadge}>
+                                        <View style={styles.primaryBadge}>
                                             <Ionicons
                                                 name="shield-checkmark"
-                                                size={17}
+                                                size={16}
                                                 color="#08A96D"
                                             />
-                                            <Text style={styles.emergencyBadgeText}>
-                                                Primary Contact
+                                            <Text style={styles.primaryBadgeText}>
+                                                Primary
                                             </Text>
                                         </View>
                                     </View>
 
-                                    <Text style={styles.emergencyName}>
+                                    <Text style={styles.contactName}>
                                         {primaryContact.name}
                                     </Text>
 
-                                    <Text style={styles.emergencyRelationship}>
+                                    <Text style={styles.relationshipText}>
                                         {primaryContact.relationship ||
                                             "Relationship not provided"}
                                     </Text>
 
-                                    <View style={styles.emergencyInfo}>
-                                        <View style={styles.infoLine}>
+                                    <View style={styles.contactDetails}>
+                                        <View style={styles.detailRow}>
                                             <Ionicons
-                                                name="call"
-                                                size={20}
+                                                name="call-outline"
+                                                size={19}
                                                 color="#08A96D"
                                             />
-                                            <Text style={styles.infoText}>
+                                            <Text style={styles.detailText}>
                                                 {primaryContact.phone}
                                             </Text>
                                         </View>
 
-                                        {!!primaryContact.email && (
-                                            <View style={styles.infoLine}>
-                                                <Ionicons
-                                                    name="mail"
-                                                    size={20}
-                                                    color="#08A96D"
-                                                />
-                                                <Text style={styles.infoText}>
-                                                    {primaryContact.email}
-                                                </Text>
-                                            </View>
-                                        )}
+                                        <View style={styles.detailRow}>
+                                            <Ionicons
+                                                name="mail-outline"
+                                                size={19}
+                                                color="#08A96D"
+                                            />
+                                            <Text style={styles.detailText}>
+                                                {primaryContact.email}
+                                            </Text>
+                                        </View>
+
+                                        <View style={styles.detailRow}>
+                                            <Ionicons
+                                                name="information-circle-outline"
+                                                size={19}
+                                                color="#F59E0B"
+                                            />
+                                            <Text style={styles.detailText}>
+                                                {primaryContact.emailVerified
+                                                    ? "Email marked as verified"
+                                                    : "Email verification not confirmed"}
+                                            </Text>
+                                        </View>
                                     </View>
 
                                     <TouchableOpacity
-                                        style={styles.editContactButton}
+                                        style={styles.editButton}
                                         onPress={() => editContact(primaryContact)}
                                     >
                                         <MaterialIcons
                                             name="edit"
-                                            size={22}
+                                            size={20}
                                             color="#2563E8"
                                         />
-                                        <Text style={styles.editContactText}>
-                                            Edit This Contact
+                                        <Text style={styles.editButtonText}>
+                                            Edit Contact
                                         </Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.deleteEmergencyButton}
+                                        style={styles.deleteButton}
                                         onPress={() => deleteContact(primaryContact.id)}
                                     >
                                         <MaterialIcons
                                             name="delete-outline"
-                                            size={22}
-                                            color="#EF2929"
+                                            size={21}
+                                            color="#E53935"
                                         />
-                                        <Text style={styles.deleteEmergencyText}>
+                                        <Text style={styles.deleteButtonText}>
                                             Remove Contact
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
                             ) : (
-                                <View style={styles.noEmergencyCard}>
-                                    <View style={styles.emptyIcon}>
-                                        <Ionicons
-                                            name="person-add-outline"
-                                            size={40}
-                                            color="#08B88A"
-                                        />
-                                    </View>
+                                <View style={styles.emptyCard}>
+                                    <Ionicons
+                                        name="person-add-outline"
+                                        size={42}
+                                        color="#08A96D"
+                                    />
 
                                     <Text style={styles.emptyTitle}>
-                                        No primary contact
+                                        No Primary Contact
                                     </Text>
 
                                     <Text style={styles.emptyText}>
@@ -585,32 +658,25 @@ export default function Contacts() {
                                 </View>
                             )}
 
+                            {/* Other contacts */}
                             {otherContacts.length > 0 && (
                                 <View style={styles.otherSection}>
-                                    <View style={styles.otherHeader}>
-                                        <Text style={styles.sectionLabel}>
-                                            OTHER TRUSTED CONTACTS
-                                        </Text>
-
-                                        <View style={styles.countBadge}>
-                                            <Text style={styles.countText}>
-                                                {otherContacts.length}
-                                            </Text>
-                                        </View>
-                                    </View>
+                                    <Text style={styles.sectionLabel}>
+                                        OTHER TRUSTED CONTACTS ({otherContacts.length})
+                                    </Text>
 
                                     <View style={styles.otherContactsCard}>
                                         {otherContacts.map((contact, index) => (
                                             <View
                                                 key={contact.id}
                                                 style={[
-                                                    styles.otherContact,
-                                                    index !== otherContacts.length - 1 &&
+                                                    styles.otherContactRow,
+                                                    index < otherContacts.length - 1 &&
                                                         styles.contactDivider,
                                                 ]}
                                             >
-                                                <View style={styles.smallInitial}>
-                                                    <Text style={styles.smallInitialText}>
+                                                <View style={styles.smallAvatar}>
+                                                    <Text style={styles.smallAvatarText}>
                                                         {getInitials(contact.name)}
                                                     </Text>
                                                 </View>
@@ -620,30 +686,36 @@ export default function Contacts() {
                                                         {contact.name}
                                                     </Text>
 
-                                                    <Text style={styles.otherContactRelationship}>
+                                                    <Text style={styles.otherContactSubtext}>
                                                         {contact.relationship || contact.phone}
+                                                    </Text>
+
+                                                    <Text style={styles.verificationStatus}>
+                                                        {contact.emailVerified
+                                                            ? "Email marked as verified"
+                                                            : "Email not verified"}
                                                     </Text>
                                                 </View>
 
                                                 <TouchableOpacity
-                                                    style={styles.editSmallButton}
+                                                    style={styles.smallActionButton}
                                                     onPress={() => editContact(contact)}
                                                 >
                                                     <MaterialIcons
                                                         name="edit"
-                                                        size={21}
+                                                        size={20}
                                                         color="#2563E8"
                                                     />
                                                 </TouchableOpacity>
 
                                                 <TouchableOpacity
-                                                    style={styles.deleteSmallButton}
+                                                    style={styles.smallDeleteButton}
                                                     onPress={() => deleteContact(contact.id)}
                                                 >
                                                     <MaterialIcons
                                                         name="delete-outline"
-                                                        size={24}
-                                                        color="#EF2929"
+                                                        size={22}
+                                                        color="#E53935"
                                                     />
                                                 </TouchableOpacity>
                                             </View>
@@ -652,37 +724,43 @@ export default function Contacts() {
                                 </View>
                             )}
 
-                            <View style={styles.addSection}>
-                                <TouchableOpacity
-                                    style={styles.addOutlineButton}
-                                    onPress={() => {
-                                        if (showAddContact) {
-                                            finishForm();
-                                        } else {
-                                            setName("");
-                                            setPhone("");
-                                            setRelationship("");
-                                            setEmail("");
-                                            setPrimary(false);
-                                            setEditingContactId(null);
-                                            setShowAddContact(true);
-                                        }
-                                    }}
-                                >
-                                    <Ionicons
-                                        name={showAddContact ? "close" : "add"}
-                                        size={25}
-                                        color="#2563E8"
-                                    />
+                            {/* Add contact button */}
+                            <TouchableOpacity
+                                style={styles.addButton}
+                                onPress={() => {
+                                    if (showAddContact) {
+                                        finishForm();
+                                    } else {
+                                        setName("");
+                                        setPhone("");
+                                        setEmail("");
+                                        setRelationship("");
+                                        setPrimary(false);
+                                        setEmailVerified(false);
+                                        setEditingContactId(null);
+                                        setShowAddContact(true);
 
-                                    <Text style={styles.addOutlineText}>
-                                        {showAddContact
-                                            ? "Cancel"
-                                            : "Add Trusted Contact"}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
+                                        setTimeout(() => {
+                                            scrollViewRef.current?.scrollToEnd({
+                                                animated: true,
+                                            });
+                                        }, 100);
+                                    }
+                                }}
+                            >
+                                <Ionicons
+                                    name={showAddContact ? "close" : "add"}
+                                    size={24}
+                                    color="#2563E8"
+                                />
+                                <Text style={styles.addButtonText}>
+                                    {showAddContact
+                                        ? "Cancel"
+                                        : "Add Trusted Contact"}
+                                </Text>
+                            </TouchableOpacity>
 
+                            {/* Contact form */}
                             {showAddContact && (
                                 <View style={styles.formCard}>
                                     <Text style={styles.formTitle}>
@@ -691,15 +769,9 @@ export default function Contacts() {
                                             : "Add Trusted Contact"}
                                     </Text>
 
-                                    {/* Full Name */}
-                                    <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Full Name
-                                        </Text>
-                                        <Text style={styles.requiredText}>
-                                            Required
-                                        </Text>
-                                    </View>
+                                    <Text style={styles.inputLabel}>
+                                        Full Name *
+                                    </Text>
 
                                     <TextInput
                                         style={styles.input}
@@ -711,15 +783,9 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* Phone Number */}
-                                    <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Phone Number
-                                        </Text>
-                                        <Text style={styles.requiredText}>
-                                            Required
-                                        </Text>
-                                    </View>
+                                    <Text style={styles.inputLabel}>
+                                        Phone Number *
+                                    </Text>
 
                                     <TextInput
                                         style={styles.input}
@@ -731,15 +797,9 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* Email - positioned above Relationship */}
-                                    <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Email
-                                        </Text>
-                                        <Text style={styles.optionalText}>
-                                            Optional
-                                        </Text>
-                                    </View>
+                                    <Text style={styles.inputLabel}>
+                                        Email *
+                                    </Text>
 
                                     <TextInput
                                         style={styles.input}
@@ -749,30 +809,61 @@ export default function Contacts() {
                                         autoCapitalize="none"
                                         autoCorrect={false}
                                         value={email}
-                                        onChangeText={setEmail}
+                                        onChangeText={(value) => {
+                                            setEmail(value);
+                                            setEmailVerified(false);
+                                        }}
                                         returnKeyType="next"
                                     />
 
-                                    {/* Relationship */}
-                                    <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>
-                                            Relationship
+                                    {/* Email verification placeholder */}
+                                    <View style={styles.verificationBox}>
+                                        <View style={styles.verificationHeader}>
+                                            <Ionicons
+                                                name="mail-outline"
+                                                size={21}
+                                                color="#F59E0B"
+                                            />
+                                            <Text style={styles.verificationTitle}>
+                                                Email verification
+                                            </Text>
+                                        </View>
+
+                                        <Text style={styles.verificationHelp}>
+                                            Email verification has not been connected
+                                            yet. The button below does not send an
+                                            email or verify the address.
                                         </Text>
-                                        <Text style={styles.optionalText}>
-                                            Optional
-                                        </Text>
+
+                                        <TouchableOpacity
+                                            style={styles.verifyButton}
+                                            onPress={requestEmailVerification}
+                                        >
+                                            <Ionicons
+                                                name="mail"
+                                                size={18}
+                                                color="#FFFFFF"
+                                            />
+                                            <Text style={styles.verifyButtonText}>
+                                                Verify Email
+                                            </Text>
+                                        </TouchableOpacity>
                                     </View>
+
+                                    <Text style={styles.inputLabel}>
+                                        Relationship (optional)
+                                    </Text>
 
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="e.g. Parent, Friend (optional)"
+                                        placeholder="e.g. Parent, Friend"
                                         placeholderTextColor="#9AA8C0"
                                         value={relationship}
                                         onChangeText={setRelationship}
                                         returnKeyType="done"
                                     />
 
-                                    {/* Primary Contact Option */}
+                                    {/* Primary contact selection */}
                                     <TouchableOpacity
                                         style={styles.primaryOption}
                                         activeOpacity={0.8}
@@ -787,44 +878,31 @@ export default function Contacts() {
                                             {primary && (
                                                 <Ionicons
                                                     name="checkmark"
-                                                    size={20}
+                                                    size={18}
                                                     color="#FFFFFF"
                                                 />
                                             )}
                                         </View>
 
-                                        <View style={styles.primaryOptionText}>
-                                            <View style={styles.primaryTitleRow}>
-                                                <Text style={styles.primaryOptionTitle}>
-                                                    Set as Primary Contact
-                                                </Text>
-                                                <Text style={styles.optionalText}>
-                                                    Optional
-                                                </Text>
-                                            </View>
-
+                                        <View style={styles.primaryOptionInfo}>
+                                            <Text style={styles.primaryOptionTitle}>
+                                                Set as Primary Contact
+                                            </Text>
                                             <Text style={styles.primaryOptionDescription}>
-                                                This person will appear at the top as your
-                                                primary contact.
+                                                Show this person first in your contacts.
                                             </Text>
                                         </View>
                                     </TouchableOpacity>
 
-                                    {/* Save Contact */}
                                     <TouchableOpacity
                                         style={styles.saveButton}
                                         onPress={saveContact}
                                     >
                                         <Ionicons
-                                            name={
-                                                editingContactId !== null
-                                                    ? "checkmark-circle"
-                                                    : "person-add"
-                                            }
-                                            size={25}
+                                            name="checkmark-circle-outline"
+                                            size={22}
                                             color="#FFFFFF"
                                         />
-
                                         <Text style={styles.saveButtonText}>
                                             {editingContactId !== null
                                                 ? "Save Changes"
@@ -856,7 +934,7 @@ const styles = StyleSheet.create({
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
-        paddingBottom: 180,
+        paddingBottom: 35,
     },
     header: {
         flexDirection: "row",
@@ -864,405 +942,392 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginBottom: 30,
     },
+    headerTextContainer: {
+        flex: 1,
+        paddingRight: 12,
+    },
     title: {
-        fontSize: 36,
+        fontSize: 30,
         fontWeight: "800",
         color: "#173B8F",
-        maxWidth: 280,
     },
     subtitle: {
-        fontSize: 16,
-        lineHeight: 23,
+        fontSize: 15,
+        lineHeight: 22,
         color: "#60729E",
         marginTop: 7,
-        maxWidth: 270,
     },
     headerIcon: {
-        width: 68,
-        height: 68,
-        borderRadius: 34,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
         backgroundColor: "#E2FAEF",
         alignItems: "center",
         justifyContent: "center",
     },
     sectionLabel: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: "800",
         letterSpacing: 1,
         color: "#60729E",
         marginBottom: 12,
     },
-    emergencyCard: {
+    primaryCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 28,
-        padding: 24,
-        borderWidth: 2,
+        borderRadius: 25,
+        padding: 21,
+        borderWidth: 1.5,
         borderColor: "#08B88A",
         shadowColor: "#7898D8",
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 5 },
-        elevation: 5,
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
     },
-    emergencyTop: {
+    primaryCardHeader: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
     },
-    emergencyIcon: {
-        width: 82,
-        height: 82,
-        borderRadius: 41,
+    avatar: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
         backgroundColor: "#E2FAEF",
         alignItems: "center",
         justifyContent: "center",
     },
-    emergencyInitials: {
-        fontSize: 25,
+    avatarText: {
+        fontSize: 23,
         fontWeight: "800",
         color: "#08A96D",
     },
-    emergencyBadge: {
+    primaryBadge: {
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#E2FAEF",
-        borderRadius: 18,
-        paddingHorizontal: 12,
+        borderRadius: 16,
+        paddingHorizontal: 11,
         paddingVertical: 8,
     },
-    emergencyBadgeText: {
+    primaryBadgeText: {
         fontSize: 12,
         fontWeight: "800",
         color: "#08A96D",
         marginLeft: 5,
     },
-    emergencyName: {
-        fontSize: 29,
+    contactName: {
+        fontSize: 26,
         fontWeight: "800",
         color: "#173B8F",
-        marginTop: 20,
+        marginTop: 17,
     },
-    emergencyRelationship: {
-        fontSize: 16,
-        fontWeight: "700",
+    relationshipText: {
+        fontSize: 15,
         color: "#08A96D",
+        fontWeight: "700",
         marginTop: 4,
     },
-    emergencyInfo: {
+    contactDetails: {
         backgroundColor: "#F5FAF8",
-        borderRadius: 18,
-        padding: 15,
-        marginTop: 20,
+        borderRadius: 15,
+        padding: 13,
+        marginTop: 18,
     },
-    infoLine: {
+    detailRow: {
         flexDirection: "row",
         alignItems: "center",
         marginVertical: 5,
     },
-    infoText: {
-        fontSize: 15,
+    detailText: {
+        flex: 1,
+        fontSize: 14,
         color: "#526487",
         marginLeft: 10,
-        flex: 1,
     },
-    editContactButton: {
-        height: 50,
-        borderRadius: 15,
+    editButton: {
+        minHeight: 47,
+        borderRadius: 13,
         borderWidth: 1,
-        borderColor: "#BFD2F7",
+        borderColor: "#C9D9F8",
         backgroundColor: "#F5F8FF",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 18,
+        marginTop: 16,
     },
-    editContactText: {
-        color: "#2563E8",
-        fontSize: 15,
+    editButtonText: {
+        fontSize: 14,
         fontWeight: "800",
+        color: "#2563E8",
         marginLeft: 7,
     },
-    deleteEmergencyButton: {
-        height: 48,
-        borderRadius: 15,
+    deleteButton: {
+        minHeight: 45,
+        borderRadius: 13,
         borderWidth: 1,
-        borderColor: "#F2CACA",
+        borderColor: "#F2CCCC",
         backgroundColor: "#FFF8F8",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 10,
+        marginTop: 9,
     },
-    deleteEmergencyText: {
-        color: "#EF2929",
-        fontSize: 15,
+    deleteButtonText: {
+        fontSize: 14,
         fontWeight: "800",
+        color: "#E53935",
         marginLeft: 7,
     },
-    noEmergencyCard: {
+    emptyCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 26,
-        padding: 28,
+        borderRadius: 23,
+        padding: 25,
         alignItems: "center",
-    },
-    emptyIcon: {
-        width: 75,
-        height: 75,
-        borderRadius: 38,
-        backgroundColor: "#E2FAEF",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 14,
+        marginBottom: 20,
     },
     emptyTitle: {
-        fontSize: 21,
+        fontSize: 20,
         fontWeight: "800",
         color: "#173B8F",
         textAlign: "center",
+        marginTop: 12,
     },
     emptyText: {
-        fontSize: 15,
-        lineHeight: 23,
+        fontSize: 14,
+        lineHeight: 22,
         textAlign: "center",
         color: "#60729E",
         marginTop: 8,
     },
     signInButton: {
-        minHeight: 54,
         width: "100%",
+        minHeight: 49,
+        borderRadius: 13,
         backgroundColor: "#2563E8",
-        borderRadius: 15,
-        paddingHorizontal: 20,
-        marginTop: 22,
-        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 10,
+        marginTop: 20,
     },
     signInButtonText: {
         color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "800",
     },
     signUpButton: {
-        padding: 14,
-        marginTop: 4,
+        padding: 13,
     },
     signUpButtonText: {
         color: "#2563E8",
         fontSize: 14,
         fontWeight: "700",
-        textAlign: "center",
     },
     otherSection: {
-        marginTop: 30,
-    },
-    otherHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    countBadge: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: "#E2FAEF",
-        alignItems: "center",
-        justifyContent: "center",
-        marginLeft: 8,
-        marginBottom: 12,
-    },
-    countText: {
-        fontSize: 13,
-        fontWeight: "800",
-        color: "#08A96D",
+        marginTop: 27,
     },
     otherContactsCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 24,
-        paddingHorizontal: 18,
-        overflow: "hidden",
+        borderRadius: 20,
+        paddingHorizontal: 13,
     },
-    otherContact: {
-        minHeight: 82,
+    otherContactRow: {
         flexDirection: "row",
         alignItems: "center",
+        minHeight: 83,
+        paddingVertical: 10,
     },
     contactDivider: {
         borderBottomWidth: 1,
         borderBottomColor: "#E5EBF4",
     },
-    smallInitial: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
+    smallAvatar: {
+        width: 45,
+        height: 45,
+        borderRadius: 23,
         backgroundColor: "#F0E5FF",
         alignItems: "center",
         justifyContent: "center",
     },
-    smallInitialText: {
-        fontSize: 16,
+    smallAvatarText: {
+        fontSize: 15,
         fontWeight: "800",
         color: "#8B4DFF",
     },
     otherContactInfo: {
         flex: 1,
-        marginLeft: 14,
+        marginLeft: 10,
+        marginRight: 5,
     },
     otherContactName: {
-        fontSize: 17,
+        fontSize: 15,
         fontWeight: "800",
         color: "#173B8F",
     },
-    otherContactRelationship: {
-        fontSize: 14,
+    otherContactSubtext: {
+        fontSize: 12,
         color: "#60729E",
         marginTop: 3,
     },
-    editSmallButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 13,
+    verificationStatus: {
+        fontSize: 11,
+        color: "#60729E",
+        marginTop: 4,
+    },
+    smallActionButton: {
+        width: 36,
+        height: 38,
+        borderRadius: 10,
         backgroundColor: "#EFF5FF",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 8,
+        marginRight: 5,
     },
-    deleteSmallButton: {
-        width: 42,
-        height: 42,
-        borderRadius: 13,
+    smallDeleteButton: {
+        width: 36,
+        height: 38,
+        borderRadius: 10,
         backgroundColor: "#FFF2F2",
         alignItems: "center",
         justifyContent: "center",
     },
-    addSection: {
-        marginTop: 25,
-    },
-    addOutlineButton: {
-        height: 58,
-        borderRadius: 18,
-        borderWidth: 2,
+    addButton: {
+        minHeight: 55,
+        borderWidth: 1.5,
         borderColor: "#2563E8",
+        borderStyle: "dashed",
+        borderRadius: 16,
         backgroundColor: "#FFFFFF",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+        marginTop: 22,
     },
-    addOutlineText: {
-        fontSize: 17,
+    addButtonText: {
+        fontSize: 15,
         fontWeight: "800",
         color: "#2563E8",
         marginLeft: 8,
     },
     formCard: {
         backgroundColor: "#FFFFFF",
-        borderRadius: 24,
-        padding: 22,
+        borderRadius: 23,
+        padding: 20,
         marginTop: 18,
+        marginBottom: 20,
         shadowColor: "#7898D8",
         shadowOpacity: 0.08,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 3,
+        shadowRadius: 9,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 2,
     },
     formTitle: {
-        fontSize: 23,
+        fontSize: 22,
         fontWeight: "800",
         color: "#173B8F",
-        marginBottom: 20,
-    },
-    labelRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 7,
+        marginBottom: 12,
     },
     inputLabel: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: "#526487",
-    },
-    requiredText: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#EF2929",
-    },
-    optionalText: {
-        fontSize: 12,
-        fontWeight: "700",
-        color: "#08A96D",
-    },
-    input: {
-        height: 52,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: "#D7E1F0",
-        backgroundColor: "#F8FAFE",
-        paddingHorizontal: 15,
-        fontSize: 16,
-        color: "#173B8F",
-        marginBottom: 15,
-    },
-    primaryOption: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#F5F8FF",
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#D7E1F0",
-        padding: 15,
-        marginTop: 2,
-        marginBottom: 18,
-    },
-    checkbox: {
-        width: 27,
-        height: 27,
-        borderRadius: 8,
-        borderWidth: 2,
-        borderColor: "#B8C6DD",
-        backgroundColor: "#FFFFFF",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    checkboxSelected: {
-        backgroundColor: "#08B88A",
-        borderColor: "#08B88A",
-    },
-    primaryOptionText: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    primaryTitleRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    primaryOptionTitle: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: "800",
         color: "#173B8F",
-        flex: 1,
-        marginRight: 6,
+        marginTop: 15,
+        marginBottom: 8,
     },
-    primaryOptionDescription: {
-        fontSize: 13,
+    input: {
+        minHeight: 51,
+        borderWidth: 1,
+        borderColor: "#D6E0F0",
+        borderRadius: 13,
+        paddingHorizontal: 14,
+        fontSize: 15,
+        color: "#173B8F",
+        backgroundColor: "#FBFCFF",
+    },
+    verificationBox: {
+        backgroundColor: "#FFF9E9",
+        borderWidth: 1,
+        borderColor: "#F5D98C",
+        borderRadius: 15,
+        padding: 13,
+        marginTop: 14,
+    },
+    verificationHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    verificationTitle: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#173B8F",
+        marginLeft: 8,
+    },
+    verificationHelp: {
+        fontSize: 12,
         lineHeight: 19,
         color: "#60729E",
-        marginTop: 3,
+        marginTop: 8,
     },
-    saveButton: {
-        height: 56,
-        borderRadius: 17,
+    verifyButton: {
+        minHeight: 43,
+        borderRadius: 11,
         backgroundColor: "#2563E8",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+        marginTop: 12,
+    },
+    verifyButtonText: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#FFFFFF",
+        marginLeft: 8,
+    },
+    primaryOption: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        marginTop: 23,
+        marginBottom: 20,
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        borderWidth: 1.5,
+        borderColor: "#B8C7DF",
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 11,
+    },
+    checkboxSelected: {
+        backgroundColor: "#08A96D",
+        borderColor: "#08A96D",
+    },
+    primaryOptionInfo: {
+        flex: 1,
+    },
+    primaryOptionTitle: {
+        fontSize: 14,
+        fontWeight: "800",
+        color: "#173B8F",
+    },
+    primaryOptionDescription: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: "#60729E",
         marginTop: 5,
     },
+    saveButton: {
+        minHeight: 54,
+        borderRadius: 14,
+        backgroundColor: "#08A96D",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     saveButtonText: {
-        color: "#FFFFFF",
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: "800",
+        color: "#FFFFFF",
         marginLeft: 8,
     },
 });
