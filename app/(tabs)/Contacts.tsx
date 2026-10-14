@@ -1,4 +1,3 @@
-
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
@@ -49,7 +48,7 @@ export default function Contacts() {
     const scrollViewRef = useRef<ScrollView | null>(null);
     const currentUserIdRef = useRef<string | null>(null);
 
-    // Load only the contacts belonging to the selected account.
+    // Load contacts belonging to the selected account.
     const loadContacts = useCallback(async (id: string) => {
         setContactsLoaded(false);
 
@@ -147,6 +146,7 @@ export default function Contacts() {
         };
     }, [loadContacts]);
 
+    // Return the screen to the top when it gains focus.
     useFocusEffect(
         useCallback(() => {
             const timer = setTimeout(() => {
@@ -160,6 +160,7 @@ export default function Contacts() {
         }, [])
     );
 
+    // Track keyboard visibility to manage bottom navigation.
     useEffect(() => {
         const showListener = Keyboard.addListener(
             "keyboardDidShow",
@@ -176,7 +177,7 @@ export default function Contacts() {
         };
     }, []);
 
-    // Save to the current account's storage key.
+    // Save contacts to the current account's storage key.
     const persistContacts = async (updated: Contact[]) => {
         const id = currentUserIdRef.current;
 
@@ -214,6 +215,7 @@ export default function Contacts() {
         }
     };
 
+    // Clear and close the contact form.
     const finishForm = () => {
         setName("");
         setPhone("");
@@ -225,6 +227,7 @@ export default function Contacts() {
         Keyboard.dismiss();
     };
 
+    // Validate and save a new or edited contact.
     const saveContact = async () => {
         if (!userId) {
             Alert.alert(
@@ -252,10 +255,13 @@ export default function Contacts() {
             return;
         }
 
-        if (email.trim()) {
+        // Email is optional, but it must be valid when supplied.
+        const cleanedEmail = email.trim();
+
+        if (cleanedEmail) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-            if (!emailRegex.test(email.trim())) {
+            if (!emailRegex.test(cleanedEmail)) {
                 Alert.alert(
                     "Invalid Email",
                     "Please enter a valid email address or leave the email field empty."
@@ -274,7 +280,7 @@ export default function Contacts() {
             name: name.trim(),
             phone: phone.trim(),
             relationship: relationship.trim(),
-            email: email.trim().toLowerCase(),
+            email: cleanedEmail.toLowerCase(),
             primary,
         };
 
@@ -318,6 +324,7 @@ export default function Contacts() {
         );
     };
 
+    // Populate the form with the selected contact's details.
     const editContact = (contact: Contact) => {
         setName(contact.name);
         setPhone(contact.phone);
@@ -332,6 +339,7 @@ export default function Contacts() {
         }, 100);
     };
 
+    // Ask for confirmation before removing a contact.
     const deleteContact = (id: number) => {
         Alert.alert(
             "Delete Contact",
@@ -359,6 +367,7 @@ export default function Contacts() {
         );
     };
 
+    // Generate initials for contact avatars.
     const getInitials = (contactName: string) => {
         const words = contactName.trim().split(/\s+/);
 
@@ -394,6 +403,7 @@ export default function Contacts() {
                                 People who can help keep you safe
                             </Text>
                         </View>
+
                         <View style={styles.headerIcon}>
                             <Ionicons
                                 name="shield-checkmark"
@@ -405,7 +415,9 @@ export default function Contacts() {
 
                     {!authLoaded ? (
                         <View style={styles.noEmergencyCard}>
-                            <Text style={styles.emptyTitle}>Checking Sign In...</Text>
+                            <Text style={styles.emptyTitle}>
+                                Checking Sign In...
+                            </Text>
                         </View>
                     ) : !userId ? (
                         <View style={styles.noEmergencyCard}>
@@ -420,6 +432,7 @@ export default function Contacts() {
                             <Text style={styles.emptyTitle}>
                                 Sign In to View Contacts
                             </Text>
+
                             <Text style={styles.emptyText}>
                                 Sign in to add and manage your trusted contacts.
                                 Your contacts are kept separately for each account.
@@ -435,7 +448,9 @@ export default function Contacts() {
                                     size={22}
                                     color="#FFFFFF"
                                 />
-                                <Text style={styles.signInButtonText}>Sign In</Text>
+                                <Text style={styles.signInButtonText}>
+                                    Sign In
+                                </Text>
                                 <Ionicons
                                     name="arrow-forward"
                                     size={18}
@@ -455,11 +470,15 @@ export default function Contacts() {
                         </View>
                     ) : !contactsLoaded ? (
                         <View style={styles.noEmergencyCard}>
-                            <Text style={styles.emptyTitle}>Loading Contacts...</Text>
+                            <Text style={styles.emptyTitle}>
+                                Loading Contacts...
+                            </Text>
                         </View>
                     ) : (
                         <>
-                            <Text style={styles.sectionLabel}>PRIMARY CONTACT</Text>
+                            <Text style={styles.sectionLabel}>
+                                PRIMARY CONTACT
+                            </Text>
 
                             {primaryContact ? (
                                 <View style={styles.emergencyCard}>
@@ -485,6 +504,7 @@ export default function Contacts() {
                                     <Text style={styles.emergencyName}>
                                         {primaryContact.name}
                                     </Text>
+
                                     <Text style={styles.emergencyRelationship}>
                                         {primaryContact.relationship ||
                                             "Relationship not provided"}
@@ -553,9 +573,11 @@ export default function Contacts() {
                                             color="#08B88A"
                                         />
                                     </View>
+
                                     <Text style={styles.emptyTitle}>
                                         No primary contact
                                     </Text>
+
                                     <Text style={styles.emptyText}>
                                         Add a trusted person and select
                                         "Set as Primary Contact".
@@ -569,6 +591,7 @@ export default function Contacts() {
                                         <Text style={styles.sectionLabel}>
                                             OTHER TRUSTED CONTACTS
                                         </Text>
+
                                         <View style={styles.countBadge}>
                                             <Text style={styles.countText}>
                                                 {otherContacts.length}
@@ -596,6 +619,7 @@ export default function Contacts() {
                                                     <Text style={styles.otherContactName}>
                                                         {contact.name}
                                                     </Text>
+
                                                     <Text style={styles.otherContactRelationship}>
                                                         {contact.relationship || contact.phone}
                                                     </Text>
@@ -650,6 +674,7 @@ export default function Contacts() {
                                         size={25}
                                         color="#2563E8"
                                     />
+
                                     <Text style={styles.addOutlineText}>
                                         {showAddContact
                                             ? "Cancel"
@@ -666,23 +691,36 @@ export default function Contacts() {
                                             : "Add Trusted Contact"}
                                     </Text>
 
+                                    {/* Full Name */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>Full Name</Text>
-                                        <Text style={styles.requiredText}>Required</Text>
+                                        <Text style={styles.inputLabel}>
+                                            Full Name
+                                        </Text>
+                                        <Text style={styles.requiredText}>
+                                            Required
+                                        </Text>
                                     </View>
+
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter full name"
                                         placeholderTextColor="#9AA8C0"
                                         value={name}
                                         onChangeText={setName}
+                                        autoCapitalize="words"
                                         returnKeyType="next"
                                     />
 
+                                    {/* Phone Number */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>Phone Number</Text>
-                                        <Text style={styles.requiredText}>Required</Text>
+                                        <Text style={styles.inputLabel}>
+                                            Phone Number
+                                        </Text>
+                                        <Text style={styles.requiredText}>
+                                            Required
+                                        </Text>
                                     </View>
+
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter phone number"
@@ -693,13 +731,13 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                                                        {/* Email */}
+                                    {/* Email - positioned above Relationship */}
                                     <View style={styles.labelRow}>
                                         <Text style={styles.inputLabel}>
                                             Email
                                         </Text>
-                                        <Text style={styles.requiredText}>
-                                            Required
+                                        <Text style={styles.optionalText}>
+                                            Optional
                                         </Text>
                                     </View>
 
@@ -712,7 +750,7 @@ export default function Contacts() {
                                         autoCorrect={false}
                                         value={email}
                                         onChangeText={setEmail}
-                                        returnKeyType="done"
+                                        returnKeyType="next"
                                     />
 
                                     {/* Relationship */}
@@ -731,9 +769,10 @@ export default function Contacts() {
                                         placeholderTextColor="#9AA8C0"
                                         value={relationship}
                                         onChangeText={setRelationship}
-                                        returnKeyType="next"
+                                        returnKeyType="done"
                                     />
 
+                                    {/* Primary Contact Option */}
                                     <TouchableOpacity
                                         style={styles.primaryOption}
                                         activeOpacity={0.8}
@@ -759,8 +798,11 @@ export default function Contacts() {
                                                 <Text style={styles.primaryOptionTitle}>
                                                     Set as Primary Contact
                                                 </Text>
-                                                <Text style={styles.optionalText}>Optional</Text>
+                                                <Text style={styles.optionalText}>
+                                                    Optional
+                                                </Text>
                                             </View>
+
                                             <Text style={styles.primaryOptionDescription}>
                                                 This person will appear at the top as your
                                                 primary contact.
@@ -768,6 +810,7 @@ export default function Contacts() {
                                         </View>
                                     </TouchableOpacity>
 
+                                    {/* Save Contact */}
                                     <TouchableOpacity
                                         style={styles.saveButton}
                                         onPress={saveContact}
@@ -781,6 +824,7 @@ export default function Contacts() {
                                             size={25}
                                             color="#FFFFFF"
                                         />
+
                                         <Text style={styles.saveButtonText}>
                                             {editingContactId !== null
                                                 ? "Save Changes"
@@ -802,8 +846,13 @@ export default function Contacts() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#F5F8FF" },
-    keyboardContainer: { flex: 1 },
+    container: {
+        flex: 1,
+        backgroundColor: "#F5F8FF",
+    },
+    keyboardContainer: {
+        flex: 1,
+    },
     scrollContainer: {
         paddingHorizontal: 22,
         paddingTop: 20,
@@ -1005,8 +1054,13 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         textAlign: "center",
     },
-    otherSection: { marginTop: 30 },
-    otherHeader: { flexDirection: "row", alignItems: "center" },
+    otherSection: {
+        marginTop: 30,
+    },
+    otherHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
     countBadge: {
         width: 30,
         height: 30,
@@ -1050,7 +1104,10 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: "#8B4DFF",
     },
-    otherContactInfo: { flex: 1, marginLeft: 14 },
+    otherContactInfo: {
+        flex: 1,
+        marginLeft: 14,
+    },
     otherContactName: {
         fontSize: 17,
         fontWeight: "800",
@@ -1078,7 +1135,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    addSection: { marginTop: 25 },
+    addSection: {
+        marginTop: 25,
+    },
     addOutlineButton: {
         height: 58,
         borderRadius: 18,
@@ -1169,7 +1228,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#08B88A",
         borderColor: "#08B88A",
     },
-    primaryOptionText: { flex: 1, marginLeft: 12 },
+    primaryOptionText: {
+        flex: 1,
+        marginLeft: 12,
+    },
     primaryTitleRow: {
         flexDirection: "row",
         alignItems: "center",
