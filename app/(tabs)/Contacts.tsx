@@ -693,26 +693,19 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
+                                                                        {/* Email */}
                                     <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>Relationship</Text>
-                                        <Text style={styles.optionalText}>Optional</Text>
+                                        <Text style={styles.inputLabel}>
+                                            Email
+                                        </Text>
+                                        <Text style={styles.requiredText}>
+                                            Required
+                                        </Text>
                                     </View>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="e.g. Parent, Friend (optional)"
-                                        placeholderTextColor="#9AA8C0"
-                                        value={relationship}
-                                        onChangeText={setRelationship}
-                                        returnKeyType="next"
-                                    />
 
-                                    <View style={styles.labelRow}>
-                                        <Text style={styles.inputLabel}>Email</Text>
-                                        <Text style={styles.requiredText}>Required</Text>
-                                    </View>
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Enter email address (optional)"
+                                        placeholder="Enter email address"
                                         placeholderTextColor="#9AA8C0"
                                         keyboardType="email-address"
                                         autoCapitalize="none"
@@ -720,6 +713,25 @@ export default function Contacts() {
                                         value={email}
                                         onChangeText={setEmail}
                                         returnKeyType="done"
+                                    />
+
+                                    {/* Relationship */}
+                                    <View style={styles.labelRow}>
+                                        <Text style={styles.inputLabel}>
+                                            Relationship
+                                        </Text>
+                                        <Text style={styles.optionalText}>
+                                            Optional
+                                        </Text>
+                                    </View>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="e.g. Parent, Friend (optional)"
+                                        placeholderTextColor="#9AA8C0"
+                                        value={relationship}
+                                        onChangeText={setRelationship}
+                                        returnKeyType="next"
                                     />
 
                                     <TouchableOpacity
