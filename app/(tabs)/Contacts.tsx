@@ -708,7 +708,7 @@ export default function Contacts() {
 
                                     <View style={styles.labelRow}>
                                         <Text style={styles.inputLabel}>Email</Text>
-                                        <Text style={styles.optionalText}>Optional</Text>
+                                        <Text style={styles.requiredText}>Required</Text>
                                     </View>
                                     <TextInput
                                         style={styles.input}

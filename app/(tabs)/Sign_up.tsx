@@ -1,4 +1,5 @@
 
+
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import { supabase } from "../../lib/supabase";
 
+
 export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,9 +26,11 @@ export default function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
   const handleSignUp = async () => {
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
+
 
     // Validate required fields
     if (!cleanName || !cleanEmail || !password || !confirmPassword) {
@@ -34,12 +38,14 @@ export default function SignUp() {
       return;
     }
 
+
     // Validate email format
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(cleanEmail)) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
+
 
     // Validate password length
     if (password.length < 6) {
@@ -50,6 +56,7 @@ export default function SignUp() {
       return;
     }
 
+
     // Check password confirmation
     if (password !== confirmPassword) {
       Alert.alert(
@@ -59,7 +66,9 @@ export default function SignUp() {
       return;
     }
 
+
     setLoading(true);
+
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -72,14 +81,17 @@ export default function SignUp() {
         },
       });
 
+
       if (error) {
         const message = error.message.toLowerCase();
+
 
         const accountAlreadyExists =
           message.includes("already registered") ||
           message.includes("already exists") ||
           message.includes("already been registered") ||
           message.includes("user already");
+
 
         if (accountAlreadyExists) {
           Alert.alert(
@@ -98,8 +110,10 @@ export default function SignUp() {
           Alert.alert("Sign Up Failed", error.message);
         }
 
+
         return;
       }
+
 
       // Some Supabase configurations return no identities
       // when an email is already registered.
@@ -118,6 +132,7 @@ export default function SignUp() {
         );
         return;
       }
+
 
       if (data.user) {
         Alert.alert(
@@ -147,6 +162,7 @@ export default function SignUp() {
     }
   };
 
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -165,6 +181,7 @@ export default function SignUp() {
           <Ionicons name="arrow-back" size={25} color="#1F2937" />
         </TouchableOpacity>
 
+
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoCircle}>
@@ -175,15 +192,18 @@ export default function SignUp() {
             />
           </View>
 
+
           <Text style={styles.title}>Create your account</Text>
           <Text style={styles.subtitle}>
             Sign up to start using SafeTap
           </Text>
         </View>
 
+
         {/* Full name */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Full Name</Text>
+
 
           <View style={styles.inputWrapper}>
             <Ionicons
@@ -192,6 +212,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
 
             <TextInput
               style={styles.input}
@@ -205,9 +226,11 @@ export default function SignUp() {
           </View>
         </View>
 
+
         {/* Email */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
+
 
           <View style={styles.inputWrapper}>
             <Ionicons
@@ -216,6 +239,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
 
             <TextInput
               style={styles.input}
@@ -230,9 +254,11 @@ export default function SignUp() {
           </View>
         </View>
 
+
         {/* Password */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
+
 
           <View style={styles.inputWrapper}>
             <Ionicons
@@ -241,6 +267,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
 
             <TextInput
               style={styles.input}
@@ -252,6 +279,7 @@ export default function SignUp() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+
 
             <TouchableOpacity
               onPress={() =>
@@ -270,14 +298,17 @@ export default function SignUp() {
             </TouchableOpacity>
           </View>
 
+
           <Text style={styles.helperText}>
             Password must be at least 6 characters.
           </Text>
         </View>
 
+
         {/* Confirm password */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Confirm Password</Text>
+
 
           <View style={styles.inputWrapper}>
             <Ionicons
@@ -286,6 +317,7 @@ export default function SignUp() {
               color="#6B7280"
               style={styles.inputIcon}
             />
+
 
             <TextInput
               style={styles.input}
@@ -297,6 +329,7 @@ export default function SignUp() {
               autoCapitalize="none"
               autoCorrect={false}
             />
+
 
             <TouchableOpacity
               onPress={() =>
@@ -317,6 +350,7 @@ export default function SignUp() {
             </TouchableOpacity>
           </View>
         </View>
+
 
         {/* Create account button */}
         <TouchableOpacity
@@ -344,11 +378,13 @@ export default function SignUp() {
           )}
         </TouchableOpacity>
 
+
         {/* Sign in link */}
         <View style={styles.loginContainer}>
           <Text style={styles.loginText}>
             Already have an account?
           </Text>
+
 
           <TouchableOpacity
             onPress={() =>
@@ -360,6 +396,7 @@ export default function SignUp() {
           </TouchableOpacity>
         </View>
 
+
         {/* Privacy message */}
         <View style={styles.privacyContainer}>
           <Ionicons
@@ -367,6 +404,7 @@ export default function SignUp() {
             size={17}
             color="#6B7280"
           />
+
 
           <Text style={styles.privacyText}>
             Your information is kept private and secure.
@@ -376,6 +414,7 @@ export default function SignUp() {
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -506,3 +545,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
