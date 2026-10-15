@@ -307,10 +307,42 @@ export default function Contacts() {
         } catch (error: any) {
             console.error("Email verification error:", error);
 
+            let errorDetails =
+                error?.message ??
+                "Something went wrong. Please try again.";
+
+            // Read the HTTP response returned by the Edge Function.
+            try {
+                if (error?.context) {
+                    const responseText = await error.context
+                        .clone()
+                        .text();
+
+                    console.error(
+                        "Email verification response:",
+                        responseText
+                    );
+
+                    if (responseText) {
+                        errorDetails +=
+                            "\n\nDetails: " + responseText;
+                    }
+
+                    console.error(
+                        "Email verification status:",
+                        error.context.status
+                    );
+                }
+            } catch (detailsError) {
+                console.error(
+                    "Could not read error response:",
+                    detailsError
+                );
+            }
+
             Alert.alert(
                 "Could Not Send Email",
-                error?.message ??
-                    "Something went wrong. Please try again."
+                errorDetails
             );
         }
     };
@@ -511,8 +543,7 @@ export default function Contacts() {
         setSavingContact(true);
 
         try {
-            // CRITICAL: check Supabase immediately before saving.
-            // A local emailVerified state is not enough.
+            // Check Supabase immediately before saving.
             const verified = await getVerifiedStatus(
                 contactId,
                 cleanedEmail
@@ -589,7 +620,10 @@ export default function Contacts() {
                     : "The verified trusted contact has been added successfully."
             );
         } catch (error: any) {
-            console.error("Contact verification before save failed:", error);
+            console.error(
+                "Contact verification before save failed:",
+                error
+            );
 
             Alert.alert(
                 "Could Not Confirm Verification",
@@ -687,7 +721,6 @@ export default function Contacts() {
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.scrollContainer}
                 >
-                    {/* Page header */}
                     <View style={styles.header}>
                         <View style={styles.headerTextContainer}>
                             <Text style={styles.title}>
@@ -751,7 +784,6 @@ export default function Contacts() {
                         </View>
                     ) : (
                         <>
-                            {/* Primary contact */}
                             <Text style={styles.sectionLabel}>
                                 PRIMARY CONTACT
                             </Text>
@@ -874,7 +906,6 @@ export default function Contacts() {
                                 </View>
                             )}
 
-                            {/* Other contacts */}
                             {otherContacts.length > 0 && (
                                 <View style={styles.otherSection}>
                                     <Text style={styles.sectionLabel}>
@@ -946,7 +977,6 @@ export default function Contacts() {
                                 </View>
                             )}
 
-                            {/* Add contact button */}
                             <TouchableOpacity
                                 style={styles.addButton}
                                 onPress={() => {
@@ -984,7 +1014,6 @@ export default function Contacts() {
                                 </Text>
                             </TouchableOpacity>
 
-                            {/* Contact form */}
                             {showAddContact && (
                                 <View style={styles.formCard}>
                                     <Text style={styles.formTitle}>
@@ -1038,7 +1067,6 @@ export default function Contacts() {
                                         returnKeyType="next"
                                     />
 
-                                    {/* Email verification */}
                                     <View style={styles.verificationBox}>
                                         <View style={styles.verificationHeader}>
                                             <Ionicons
@@ -1125,7 +1153,6 @@ export default function Contacts() {
                                         returnKeyType="done"
                                     />
 
-                                    {/* Primary contact selection */}
                                     <TouchableOpacity
                                         style={styles.primaryOption}
                                         activeOpacity={0.8}
