@@ -47,20 +47,18 @@ export default function Contacts() {
     const [emailVerified, setEmailVerified] = useState(false);
     const [verificationSent, setVerificationSent] = useState(false);
     const [checkingVerification, setCheckingVerification] = useState(false);
+    const [savingContact, setSavingContact] = useState(false);
 
     const [editingContactId, setEditingContactId] =
         useState<number | null>(null);
-
-    // Keeps the ID stable when verifying a new contact before saving it.
     const [draftContactId, setDraftContactId] =
         useState<number | null>(null);
-
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const scrollViewRef = useRef<ScrollView | null>(null);
     const currentUserIdRef = useRef<string | null>(null);
 
-    // Load contacts for the signed-in account.
+    // Load contacts belonging to the signed-in account.
     const loadContacts = useCallback(async (id: string) => {
         setContactsLoaded(false);
 
@@ -81,7 +79,6 @@ export default function Contacts() {
 
             if (currentUserIdRef.current === id) {
                 setContacts([]);
-
                 Alert.alert(
                     "Loading Error",
                     "Your contacts could not be loaded."
@@ -94,7 +91,7 @@ export default function Contacts() {
         }
     }, []);
 
-    // Check the session and respond to sign-in/sign-out.
+    // Check the authentication session.
     useEffect(() => {
         let active = true;
 
@@ -195,7 +192,7 @@ export default function Contacts() {
         };
     }, []);
 
-    // Save contacts to the current account's storage.
+    // Save the current account's contacts.
     const persistContacts = async (updated: Contact[]) => {
         const id = currentUserIdRef.current;
 
@@ -252,8 +249,173 @@ export default function Contacts() {
         Keyboard.dismiss();
     };
 
+    // Send an email verification link.
+    const requestEmailVerification = async () => {
+        const cleanedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!userId) {
+            Alert.alert("Sign In Required", "Please sign in first.");
+            return;
+        }
+
+        if (!cleanedEmail || !emailRegex.test(cleanedEmail)) {
+            Alert.alert(
+                "Enter a Valid Email",
+                "Enter a valid email address before requesting verification."
+            );
+            return;
+        }
+
+        // Reuse the same ID for this contact throughout the form.
+        const contactId =
+            editingContactId ?? draftContactId ?? Date.now();
+
+        try {
+            const { data, error } =
+                await supabase.functions.invoke(
+                    "send-contact-verification",
+                    {
+                        body: {
+                            action: "send",
+                            contactId,
+                            email: cleanedEmail,
+                        },
+                    }
+                );
+
+            if (error) throw error;
+
+            if (!data?.success) {
+                throw new Error(
+                    data?.error ??
+                        "The verification email could not be sent."
+                );
+            }
+
+            if (editingContactId === null) {
+                setDraftContactId(contactId);
+            }
+
+            setEmailVerified(false);
+            setVerificationSent(true);
+
+            Alert.alert(
+                "Verification Email Sent",
+                `A verification link was sent to ${cleanedEmail}. Open that email and click the verification link before saving this contact.`
+            );
+        } catch (error: any) {
+            console.error("Email verification error:", error);
+
+            Alert.alert(
+                "Could Not Send Email",
+                error?.message ??
+                    "Something went wrong. Please try again."
+            );
+        }
+    };
+
+    // Ask Supabase for the real verification status.
+    // Never treat a local state value as proof of verification.
+    const getVerifiedStatus = async (
+        contactId: number,
+        contactEmail: string
+    ): Promise<boolean> => {
+        const cleanedEmail = contactEmail.trim().toLowerCase();
+
+        const { data, error } =
+            await supabase.functions.invoke(
+                "send-contact-verification",
+                {
+                    body: {
+                        action: "status",
+                        contactId,
+                    },
+                }
+            );
+
+        if (error) throw error;
+
+        if (data?.error) {
+            throw new Error(data.error);
+        }
+
+        return (
+            data?.verified === true &&
+            typeof data?.email === "string" &&
+            data.email.trim().toLowerCase() === cleanedEmail
+        );
+    };
+
+    // Check verification status when the user taps the status button.
+    const checkEmailVerification = async (
+        contactId: number,
+        contactEmail: string
+    ) => {
+        if (!userId) {
+            Alert.alert("Sign In Required", "Please sign in first.");
+            return;
+        }
+
+        setCheckingVerification(true);
+
+        try {
+            const verified = await getVerifiedStatus(
+                contactId,
+                contactEmail
+            );
+
+            setEmailVerified(verified);
+
+            // Update a saved contact only if its email still matches.
+            const updatedContacts = contacts.map((contact) => {
+                if (
+                    contact.id === contactId &&
+                    contact.email.trim().toLowerCase() ===
+                        contactEmail.trim().toLowerCase()
+                ) {
+                    return {
+                        ...contact,
+                        emailVerified: verified,
+                    };
+                }
+
+                return contact;
+            });
+
+            if (currentUserIdRef.current !== userId) return;
+
+            if (contacts.some((contact) => contact.id === contactId)) {
+                await AsyncStorage.setItem(
+                    getContactsStorageKey(userId),
+                    JSON.stringify(updatedContacts)
+                );
+                setContacts(updatedContacts);
+            }
+
+            Alert.alert(
+                verified ? "Email Verified" : "Not Verified Yet",
+                verified
+                    ? "Supabase confirms this email address is verified."
+                    : "The email has not been verified for this address yet. Open the verification link and try again."
+            );
+        } catch (error: any) {
+            console.error("Verification status error:", error);
+
+            Alert.alert(
+                "Could Not Check Status",
+                error?.message ??
+                    "Unable to check verification status. Please try again."
+            );
+        } finally {
+            setCheckingVerification(false);
+        }
+    };
+
     // Validate and save a contact.
     const saveContact = async () => {
+        if (savingContact) return;
+
         if (!userId) {
             Alert.alert(
                 "Sign In Required",
@@ -343,226 +505,103 @@ export default function Contacts() {
             return;
         }
 
-        const existingContact = contacts.find(
-            (contact) => contact.id === editingContactId
-        );
-
-        // Keep the verification state only for the same email address.
-        const sameEmail =
-            existingContact?.email.trim().toLowerCase() === cleanedEmail;
-
-        const cleanedContact: Contact = {
-            id:
-                editingContactId ??
-                draftContactId ??
-                Date.now(),
-            name: name.trim(),
-            phone: cleanedPhone,
-            email: cleanedEmail,
-            relationship: relationship.trim(),
-            emailVerified: sameEmail && emailVerified,
-            primary,
-        };
-
-        let updated: Contact[];
-
-        if (editingContactId !== null) {
-            updated = contacts.map((contact) => {
-                if (contact.id === editingContactId) {
-                    return cleanedContact;
-                }
-
-                if (primary) {
-                    return { ...contact, primary: false };
-                }
-
-                return contact;
-            });
-        } else {
-            const existing = primary
-                ? contacts.map((contact) => ({
-                    ...contact,
-                    primary: false,
-                }))
-                : contacts;
-
-            updated = [...existing, cleanedContact];
-        }
-
-        const wasEditing = editingContactId !== null;
-        const saved = await persistContacts(updated);
-
-        if (!saved) return;
-
-        finishForm();
-
-        Alert.alert(
-            wasEditing ? "Contact Updated" : "Contact Added",
-            wasEditing
-                ? "The contact details have been updated."
-                : "The trusted contact has been added successfully."
-        );
-    };
-
-    // Send an email verification link using the deployed Edge Function.
-    const requestEmailVerification = async () => {
-        const cleanedEmail = email.trim().toLowerCase();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!userId) {
-            Alert.alert(
-                "Sign In Required",
-                "Please sign in first."
-            );
-            return;
-        }
-
-        if (!cleanedEmail || !emailRegex.test(cleanedEmail)) {
-            Alert.alert(
-                "Enter a Valid Email",
-                "Enter a valid email address before requesting verification."
-            );
-            return;
-        }
-
         const contactId =
             editingContactId ?? draftContactId ?? Date.now();
 
-        try {
-            const { data, error } =
-                await supabase.functions.invoke(
-                    "send-contact-verification",
-                    {
-                        body: {
-                            action: "send",
-                            contactId,
-                            email: cleanedEmail,
-                        },
-                    }
-                );
-
-            if (error) throw error;
-
-            if (!data?.success) {
-                throw new Error(
-                    data?.error ??
-                        "The verification email could not be sent."
-                );
-            }
-
-            if (editingContactId === null) {
-                setDraftContactId(contactId);
-            }
-
-            setEmailVerified(false);
-            setVerificationSent(true);
-
-            Alert.alert(
-                "Verification Email Sent",
-                `A verification link was sent to ${cleanedEmail}. Ask the contact to open the email and click the verification link.`
-            );
-        } catch (error: any) {
-            console.error("Email verification error:", error);
-
-            Alert.alert(
-                "Could Not Send Email",
-                error?.message ??
-                    "Something went wrong. Please try again."
-            );
-        }
-    };
-
-    // Check the verification status stored in Supabase.
-    const checkEmailVerification = async (
-        contactId: number,
-        contactEmail: string
-    ) => {
-        if (!userId) {
-            Alert.alert(
-                "Sign In Required",
-                "Please sign in first."
-            );
-            return;
-        }
-
-        setCheckingVerification(true);
+        setSavingContact(true);
 
         try {
-            const { data, error } =
-                await supabase.functions.invoke(
-                    "send-contact-verification",
-                    {
-                        body: {
-                            action: "status",
-                            contactId,
-                        },
-                    }
+            // CRITICAL: check Supabase immediately before saving.
+            // A local emailVerified state is not enough.
+            const verified = await getVerifiedStatus(
+                contactId,
+                cleanedEmail
+            );
+
+            if (!verified) {
+                setEmailVerified(false);
+
+                Alert.alert(
+                    "Email Verification Required",
+                    "This contact cannot be saved until their email is verified. Send the verification email, open its link, and check the status again."
                 );
 
-            if (error) throw error;
-
-            if (data?.error) {
-                throw new Error(data.error);
+                return;
             }
 
-            // Only accept a verification for the current email.
-            const verified =
-                data?.verified === true &&
-                typeof data?.email === "string" &&
-                data.email.trim().toLowerCase() ===
-                    contactEmail.trim().toLowerCase();
+            setEmailVerified(true);
 
-            setEmailVerified(verified);
+            // Preserve verification only for the exact verified email.
+            const existingContact = contacts.find(
+                (contact) => contact.id === editingContactId
+            );
 
-            // Update the saved contact, if it already exists.
-            const updatedContacts = contacts.map((contact) => {
-                if (
-                    contact.id === contactId &&
-                    contact.email.trim().toLowerCase() ===
-                        contactEmail.trim().toLowerCase()
-                ) {
-                    return {
+            const sameEmail =
+                existingContact?.email.trim().toLowerCase() ===
+                cleanedEmail;
+
+            const cleanedContact: Contact = {
+                id: contactId,
+                name: name.trim(),
+                phone: cleanedPhone,
+                email: cleanedEmail,
+                relationship: relationship.trim(),
+                emailVerified: verified || sameEmail,
+                primary,
+            };
+
+            let updated: Contact[];
+
+            if (editingContactId !== null) {
+                updated = contacts.map((contact) => {
+                    if (contact.id === editingContactId) {
+                        return cleanedContact;
+                    }
+
+                    if (primary) {
+                        return { ...contact, primary: false };
+                    }
+
+                    return contact;
+                });
+            } else {
+                const existing = primary
+                    ? contacts.map((contact) => ({
                         ...contact,
-                        emailVerified: verified,
-                    };
-                }
+                        primary: false,
+                    }))
+                    : contacts;
 
-                return contact;
-            });
-
-            if (currentUserIdRef.current !== userId) return;
-
-            if (
-                contacts.some((contact) => contact.id === contactId)
-            ) {
-                await AsyncStorage.setItem(
-                    getContactsStorageKey(userId),
-                    JSON.stringify(updatedContacts)
-                );
-
-                setContacts(updatedContacts);
+                updated = [...existing, cleanedContact];
             }
 
-            Alert.alert(
-                verified ? "Email Verified" : "Not Verified Yet",
-                verified
-                    ? "This contact's email address has been verified successfully."
-                    : "The email has not been verified yet. Ask the contact to open the verification link, then check again."
-            );
-        } catch (error: any) {
-            console.error("Verification status error:", error);
+            const wasEditing = editingContactId !== null;
+            const saved = await persistContacts(updated);
+
+            if (!saved) return;
+
+            finishForm();
 
             Alert.alert(
-                "Could Not Check Status",
+                wasEditing ? "Contact Updated" : "Contact Added",
+                wasEditing
+                    ? "The verified contact details have been updated."
+                    : "The verified trusted contact has been added successfully."
+            );
+        } catch (error: any) {
+            console.error("Contact verification before save failed:", error);
+
+            Alert.alert(
+                "Could Not Confirm Verification",
                 error?.message ??
-                    "Unable to check verification status. Please try again."
+                    "SafeTap could not confirm this email address with Supabase. The contact has not been saved. Please try again."
             );
         } finally {
-            setCheckingVerification(false);
+            setSavingContact(false);
         }
     };
 
-    // Load an existing contact into the form for editing.
+    // Load an existing contact into the form.
     const editContact = (contact: Contact) => {
         setName(contact.name);
         setPhone(contact.phone);
@@ -570,7 +609,7 @@ export default function Contacts() {
         setRelationship(contact.relationship);
         setPrimary(contact.primary);
 
-        // Recheck against Supabase rather than trusting local storage.
+        // Do not trust the locally stored verification flag.
         setEmailVerified(false);
         setVerificationSent(true);
 
@@ -681,15 +720,12 @@ export default function Contacts() {
                                 size={42}
                                 color="#08A96D"
                             />
-
                             <Text style={styles.emptyTitle}>
                                 Sign In to View Contacts
                             </Text>
-
                             <Text style={styles.emptyText}>
                                 Sign in to add and manage your trusted contacts.
                             </Text>
-
                             <TouchableOpacity
                                 style={styles.signInButton}
                                 onPress={() => router.push("/(tabs)/Log_in")}
@@ -698,7 +734,6 @@ export default function Contacts() {
                                     Sign In
                                 </Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
                                 style={styles.signUpButton}
                                 onPress={() => router.push("/(tabs)/Sign_up")}
@@ -729,7 +764,6 @@ export default function Contacts() {
                                                 {getInitials(primaryContact.name)}
                                             </Text>
                                         </View>
-
                                         <View style={styles.primaryBadge}>
                                             <Ionicons
                                                 name="shield-checkmark"
@@ -745,7 +779,6 @@ export default function Contacts() {
                                     <Text style={styles.contactName}>
                                         {primaryContact.name}
                                     </Text>
-
                                     <Text style={styles.relationshipText}>
                                         {primaryContact.relationship ||
                                             "Relationship not provided"}
@@ -762,7 +795,6 @@ export default function Contacts() {
                                                 {primaryContact.phone}
                                             </Text>
                                         </View>
-
                                         <View style={styles.detailRow}>
                                             <Ionicons
                                                 name="mail-outline"
@@ -773,7 +805,6 @@ export default function Contacts() {
                                                 {primaryContact.email}
                                             </Text>
                                         </View>
-
                                         <View style={styles.detailRow}>
                                             <Ionicons
                                                 name={
@@ -833,11 +864,9 @@ export default function Contacts() {
                                         size={42}
                                         color="#08A96D"
                                     />
-
                                     <Text style={styles.emptyTitle}>
                                         No Primary Contact
                                     </Text>
-
                                     <Text style={styles.emptyText}>
                                         Add a trusted person and select
                                         "Set as Primary Contact".
@@ -872,11 +901,9 @@ export default function Contacts() {
                                                     <Text style={styles.otherContactName}>
                                                         {contact.name}
                                                     </Text>
-
                                                     <Text style={styles.otherContactSubtext}>
                                                         {contact.relationship || contact.phone}
                                                     </Text>
-
                                                     <Text
                                                         style={[
                                                             styles.verificationStatus,
@@ -969,7 +996,6 @@ export default function Contacts() {
                                     <Text style={styles.inputLabel}>
                                         Full Name *
                                     </Text>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter full name"
@@ -983,7 +1009,6 @@ export default function Contacts() {
                                     <Text style={styles.inputLabel}>
                                         Phone Number *
                                     </Text>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter phone number"
@@ -997,7 +1022,6 @@ export default function Contacts() {
                                     <Text style={styles.inputLabel}>
                                         Email *
                                     </Text>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter email address"
@@ -1037,10 +1061,10 @@ export default function Contacts() {
 
                                         <Text style={styles.verificationHelp}>
                                             {emailVerified
-                                                ? "This email address has been verified."
+                                                ? "Supabase has confirmed this email address."
                                                 : verificationSent
-                                                    ? "Check whether the contact has opened the verification link."
-                                                    : "Send a verification link to confirm this email address."}
+                                                    ? "Open the verification email first, then check the status."
+                                                    : "Verify the email address before saving this trusted contact."}
                                         </Text>
 
                                         <TouchableOpacity
@@ -1092,7 +1116,6 @@ export default function Contacts() {
                                     <Text style={styles.inputLabel}>
                                         Relationship (optional)
                                     </Text>
-
                                     <TextInput
                                         style={styles.input}
                                         placeholder="e.g. Parent, Friend"
@@ -1134,7 +1157,11 @@ export default function Contacts() {
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.saveButton}
+                                        style={[
+                                            styles.saveButton,
+                                            savingContact && styles.disabledButton,
+                                        ]}
+                                        disabled={savingContact}
                                         onPress={saveContact}
                                     >
                                         <Ionicons
@@ -1143,9 +1170,11 @@ export default function Contacts() {
                                             color="#FFFFFF"
                                         />
                                         <Text style={styles.saveButtonText}>
-                                            {editingContactId !== null
-                                                ? "Save Changes"
-                                                : "Save Contact"}
+                                            {savingContact
+                                                ? "Checking Verification..."
+                                                : editingContactId !== null
+                                                    ? "Save Changes"
+                                                    : "Save Contact"}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -1571,6 +1600,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+    },
+    disabledButton: {
+        opacity: 0.65,
     },
     saveButtonText: {
         fontSize: 16,
