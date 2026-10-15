@@ -274,7 +274,7 @@ export default function Contacts() {
         try {
             const { data, error } =
                 await supabase.functions.invoke(
-                    "send-contact-verification",
+                    "Send-Contact-Verification",
                     {
                         body: {
                             action: "send",
@@ -357,7 +357,7 @@ export default function Contacts() {
 
         const { data, error } =
             await supabase.functions.invoke(
-                "send-contact-verification",
+                "Send-Contact-Verification",
                 {
                     body: {
                         action: "status",
