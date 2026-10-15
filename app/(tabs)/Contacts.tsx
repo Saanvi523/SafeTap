@@ -45,8 +45,16 @@ export default function Contacts() {
     const [relationship, setRelationship] = useState("");
     const [primary, setPrimary] = useState(false);
     const [emailVerified, setEmailVerified] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
+    const [checkingVerification, setCheckingVerification] = useState(false);
+
     const [editingContactId, setEditingContactId] =
         useState<number | null>(null);
+
+    // Keeps the ID stable when verifying a new contact before saving it.
+    const [draftContactId, setDraftContactId] =
+        useState<number | null>(null);
+
     const [keyboardVisible, setKeyboardVisible] = useState(false);
 
     const scrollViewRef = useRef<ScrollView | null>(null);
@@ -65,12 +73,15 @@ export default function Contacts() {
 
             if (currentUserIdRef.current !== id) return;
 
-            setContacts(Array.isArray(parsed) ? parsed as Contact[] : []);
+            setContacts(
+                Array.isArray(parsed) ? (parsed as Contact[]) : []
+            );
         } catch (error) {
             console.error("Error loading contacts:", error);
 
             if (currentUserIdRef.current === id) {
                 setContacts([]);
+
                 Alert.alert(
                     "Loading Error",
                     "Your contacts could not be loaded."
@@ -96,12 +107,14 @@ export default function Contacts() {
             setContactsLoaded(false);
             setShowAddContact(false);
             setEditingContactId(null);
+            setDraftContactId(null);
             setName("");
             setPhone("");
             setEmail("");
             setRelationship("");
             setPrimary(false);
             setEmailVerified(false);
+            setVerificationSent(false);
 
             if (!id) {
                 setContactsLoaded(true);
@@ -232,7 +245,9 @@ export default function Contacts() {
         setRelationship("");
         setPrimary(false);
         setEmailVerified(false);
+        setVerificationSent(false);
         setEditingContactId(null);
+        setDraftContactId(null);
         setShowAddContact(false);
         Keyboard.dismiss();
     };
@@ -263,10 +278,11 @@ export default function Contacts() {
             return;
         }
 
-        // Allow digits, spaces, hyphens, brackets and an optional +.
         const cleanedPhone = phone.trim();
         const phoneDigits = cleanedPhone.replace(/\D/g, "");
-        const validPhoneCharacters = /^\+?[0-9\s()\-]+$/.test(cleanedPhone);
+        const validPhoneCharacters = /^\+?[0-9\s()\-]+$/.test(
+            cleanedPhone
+        );
 
         if (
             !validPhoneCharacters ||
@@ -280,7 +296,6 @@ export default function Contacts() {
             return;
         }
 
-        // Email is required and must have a valid format.
         const cleanedEmail = email.trim().toLowerCase();
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -328,13 +343,24 @@ export default function Contacts() {
             return;
         }
 
+        const existingContact = contacts.find(
+            (contact) => contact.id === editingContactId
+        );
+
+        // Keep the verification state only for the same email address.
+        const sameEmail =
+            existingContact?.email.trim().toLowerCase() === cleanedEmail;
+
         const cleanedContact: Contact = {
-            id: editingContactId ?? Date.now(),
+            id:
+                editingContactId ??
+                draftContactId ??
+                Date.now(),
             name: name.trim(),
             phone: cleanedPhone,
             email: cleanedEmail,
             relationship: relationship.trim(),
-            emailVerified,
+            emailVerified: sameEmail && emailVerified,
             primary,
         };
 
@@ -378,10 +404,18 @@ export default function Contacts() {
         );
     };
 
-    // Placeholder until a real email verification service is connected.
-    const requestEmailVerification = () => {
+    // Send an email verification link using the deployed Edge Function.
+    const requestEmailVerification = async () => {
         const cleanedEmail = email.trim().toLowerCase();
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!userId) {
+            Alert.alert(
+                "Sign In Required",
+                "Please sign in first."
+            );
+            return;
+        }
 
         if (!cleanedEmail || !emailRegex.test(cleanedEmail)) {
             Alert.alert(
@@ -391,10 +425,141 @@ export default function Contacts() {
             return;
         }
 
-        Alert.alert(
-            "Verification Not Set Up",
-            "Email verification is not connected yet. No verification email has been sent."
-        );
+        const contactId =
+            editingContactId ?? draftContactId ?? Date.now();
+
+        try {
+            const { data, error } =
+                await supabase.functions.invoke(
+                    "send-contact-verification",
+                    {
+                        body: {
+                            action: "send",
+                            contactId,
+                            email: cleanedEmail,
+                        },
+                    }
+                );
+
+            if (error) throw error;
+
+            if (!data?.success) {
+                throw new Error(
+                    data?.error ??
+                        "The verification email could not be sent."
+                );
+            }
+
+            if (editingContactId === null) {
+                setDraftContactId(contactId);
+            }
+
+            setEmailVerified(false);
+            setVerificationSent(true);
+
+            Alert.alert(
+                "Verification Email Sent",
+                `A verification link was sent to ${cleanedEmail}. Ask the contact to open the email and click the verification link.`
+            );
+        } catch (error: any) {
+            console.error("Email verification error:", error);
+
+            Alert.alert(
+                "Could Not Send Email",
+                error?.message ??
+                    "Something went wrong. Please try again."
+            );
+        }
+    };
+
+    // Check the verification status stored in Supabase.
+    const checkEmailVerification = async (
+        contactId: number,
+        contactEmail: string
+    ) => {
+        if (!userId) {
+            Alert.alert(
+                "Sign In Required",
+                "Please sign in first."
+            );
+            return;
+        }
+
+        setCheckingVerification(true);
+
+        try {
+            const { data, error } =
+                await supabase.functions.invoke(
+                    "send-contact-verification",
+                    {
+                        body: {
+                            action: "status",
+                            contactId,
+                        },
+                    }
+                );
+
+            if (error) throw error;
+
+            if (data?.error) {
+                throw new Error(data.error);
+            }
+
+            // Only accept a verification for the current email.
+            const verified =
+                data?.verified === true &&
+                typeof data?.email === "string" &&
+                data.email.trim().toLowerCase() ===
+                    contactEmail.trim().toLowerCase();
+
+            setEmailVerified(verified);
+
+            // Update the saved contact, if it already exists.
+            const updatedContacts = contacts.map((contact) => {
+                if (
+                    contact.id === contactId &&
+                    contact.email.trim().toLowerCase() ===
+                        contactEmail.trim().toLowerCase()
+                ) {
+                    return {
+                        ...contact,
+                        emailVerified: verified,
+                    };
+                }
+
+                return contact;
+            });
+
+            if (currentUserIdRef.current !== userId) return;
+
+            if (
+                contacts.some((contact) => contact.id === contactId)
+            ) {
+                await AsyncStorage.setItem(
+                    getContactsStorageKey(userId),
+                    JSON.stringify(updatedContacts)
+                );
+
+                setContacts(updatedContacts);
+            }
+
+            Alert.alert(
+                verified ? "Email Verified" : "Not Verified Yet",
+                verified
+                    ? "This contact's email address has been verified successfully."
+                    : "The email has not been verified yet. Ask the contact to open the verification link, then check again."
+            );
+        } catch (error: any) {
+            console.error("Verification status error:", error);
+
+            Alert.alert(
+                "Could Not Check Status",
+                error?.message ??
+                    "Unable to check verification status. Please try again."
+            );
+        } finally {
+            setCheckingVerification(false);
+        }
     };
 
     // Load an existing contact into the form for editing.
@@ -404,12 +569,19 @@ export default function Contacts() {
         setEmail(contact.email);
         setRelationship(contact.relationship);
         setPrimary(contact.primary);
-        setEmailVerified(contact.emailVerified === true);
+
+        // Recheck against Supabase rather than trusting local storage.
+        setEmailVerified(false);
+        setVerificationSent(true);
+
         setEditingContactId(contact.id);
+        setDraftContactId(null);
         setShowAddContact(true);
 
         setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
+            scrollViewRef.current?.scrollToEnd({
+                animated: true,
+            });
         }, 100);
     };
 
@@ -455,8 +627,13 @@ export default function Contacts() {
         ).toUpperCase();
     };
 
-    const primaryContact = contacts.find((contact) => contact.primary);
-    const otherContacts = contacts.filter((contact) => !contact.primary);
+    const primaryContact = contacts.find(
+        (contact) => contact.primary
+    );
+
+    const otherContacts = contacts.filter(
+        (contact) => !contact.primary
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -599,14 +776,22 @@ export default function Contacts() {
 
                                         <View style={styles.detailRow}>
                                             <Ionicons
-                                                name="information-circle-outline"
+                                                name={
+                                                    primaryContact.emailVerified
+                                                        ? "checkmark-circle"
+                                                        : "information-circle-outline"
+                                                }
                                                 size={19}
-                                                color="#F59E0B"
+                                                color={
+                                                    primaryContact.emailVerified
+                                                        ? "#08A96D"
+                                                        : "#F59E0B"
+                                                }
                                             />
                                             <Text style={styles.detailText}>
                                                 {primaryContact.emailVerified
-                                                    ? "Email marked as verified"
-                                                    : "Email verification not confirmed"}
+                                                    ? "Email verified"
+                                                    : "Email not verified"}
                                             </Text>
                                         </View>
                                     </View>
@@ -627,7 +812,9 @@ export default function Contacts() {
 
                                     <TouchableOpacity
                                         style={styles.deleteButton}
-                                        onPress={() => deleteContact(primaryContact.id)}
+                                        onPress={() =>
+                                            deleteContact(primaryContact.id)
+                                        }
                                     >
                                         <MaterialIcons
                                             name="delete-outline"
@@ -690,9 +877,15 @@ export default function Contacts() {
                                                         {contact.relationship || contact.phone}
                                                     </Text>
 
-                                                    <Text style={styles.verificationStatus}>
+                                                    <Text
+                                                        style={[
+                                                            styles.verificationStatus,
+                                                            contact.emailVerified &&
+                                                                styles.verifiedStatus,
+                                                        ]}
+                                                    >
                                                         {contact.emailVerified
-                                                            ? "Email marked as verified"
+                                                            ? "Email verified"
                                                             : "Email not verified"}
                                                     </Text>
                                                 </View>
@@ -710,7 +903,9 @@ export default function Contacts() {
 
                                                 <TouchableOpacity
                                                     style={styles.smallDeleteButton}
-                                                    onPress={() => deleteContact(contact.id)}
+                                                    onPress={() =>
+                                                        deleteContact(contact.id)
+                                                    }
                                                 >
                                                     <MaterialIcons
                                                         name="delete-outline"
@@ -737,7 +932,9 @@ export default function Contacts() {
                                         setRelationship("");
                                         setPrimary(false);
                                         setEmailVerified(false);
+                                        setVerificationSent(false);
                                         setEditingContactId(null);
+                                        setDraftContactId(null);
                                         setShowAddContact(true);
 
                                         setTimeout(() => {
@@ -812,17 +1009,26 @@ export default function Contacts() {
                                         onChangeText={(value) => {
                                             setEmail(value);
                                             setEmailVerified(false);
+                                            setVerificationSent(false);
                                         }}
                                         returnKeyType="next"
                                     />
 
-                                    {/* Email verification placeholder */}
+                                    {/* Email verification */}
                                     <View style={styles.verificationBox}>
                                         <View style={styles.verificationHeader}>
                                             <Ionicons
-                                                name="mail-outline"
+                                                name={
+                                                    emailVerified
+                                                        ? "checkmark-circle"
+                                                        : "mail-outline"
+                                                }
                                                 size={21}
-                                                color="#F59E0B"
+                                                color={
+                                                    emailVerified
+                                                        ? "#08A96D"
+                                                        : "#F59E0B"
+                                                }
                                             />
                                             <Text style={styles.verificationTitle}>
                                                 Email verification
@@ -830,9 +1036,11 @@ export default function Contacts() {
                                         </View>
 
                                         <Text style={styles.verificationHelp}>
-                                            Email verification has not been connected
-                                            yet. The button below does not send an
-                                            email or verify the address.
+                                            {emailVerified
+                                                ? "This email address has been verified."
+                                                : verificationSent
+                                                    ? "Check whether the contact has opened the verification link."
+                                                    : "Send a verification link to confirm this email address."}
                                         </Text>
 
                                         <TouchableOpacity
@@ -845,9 +1053,40 @@ export default function Contacts() {
                                                 color="#FFFFFF"
                                             />
                                             <Text style={styles.verifyButtonText}>
-                                                Verify Email
+                                                {verificationSent
+                                                    ? "Resend Verification Email"
+                                                    : "Send Verification Email"}
                                             </Text>
                                         </TouchableOpacity>
+
+                                        {verificationSent && (
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.verifyButton,
+                                                    styles.checkStatusButton,
+                                                ]}
+                                                disabled={checkingVerification}
+                                                onPress={() =>
+                                                    checkEmailVerification(
+                                                        editingContactId ??
+                                                            draftContactId ??
+                                                            Date.now(),
+                                                        email.trim().toLowerCase()
+                                                    )
+                                                }
+                                            >
+                                                <Ionicons
+                                                    name="refresh"
+                                                    size={18}
+                                                    color="#FFFFFF"
+                                                />
+                                                <Text style={styles.verifyButtonText}>
+                                                    {checkingVerification
+                                                        ? "Checking..."
+                                                        : "Check Verification Status"}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
 
                                     <Text style={styles.inputLabel}>
@@ -1173,6 +1412,10 @@ const styles = StyleSheet.create({
         color: "#60729E",
         marginTop: 4,
     },
+    verifiedStatus: {
+        color: "#08A96D",
+        fontWeight: "700",
+    },
     smallActionButton: {
         width: 36,
         height: 38,
@@ -1275,12 +1518,17 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginTop: 12,
+        paddingHorizontal: 8,
+    },
+    checkStatusButton: {
+        backgroundColor: "#08A96D",
     },
     verifyButtonText: {
         fontSize: 14,
         fontWeight: "800",
         color: "#FFFFFF",
         marginLeft: 8,
+        textAlign: "center",
     },
     primaryOption: {
         flexDirection: "row",
