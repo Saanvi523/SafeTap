@@ -1,3 +1,4 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -27,8 +28,9 @@ export default function ActualCheckIn() {
             ? duration
             : "30 min";
 
-    // Store a reference to the ScrollView.
+    // Store references to the ScrollView and database check-in.
     const scrollViewRef = useRef<ScrollView>(null);
+    const activeCheckInId = useRef<number | null>(null);
 
     // Convert the selected duration into seconds.
     const getDurationInSeconds = (value: string) => {
@@ -94,6 +96,87 @@ export default function ActualCheckIn() {
         setIsActive(true);
     }, [selectedDuration]);
 
+    // Save the active check-in and deadline to Supabase.
+    useEffect(() => {
+        let cancelled = false;
+
+        const createCheckIn = async () => {
+            try {
+                const {
+                    data: { user },
+                    error: userError,
+                } = await supabase.auth.getUser();
+
+                if (userError || !user) {
+                    if (!cancelled) {
+                        Alert.alert(
+                            "Sign In Required",
+                            "Please sign in before starting a check-in."
+                        );
+                    }
+                    return;
+                }
+
+                const startedAt = new Date();
+
+                const deadline = new Date(
+                    startedAt.getTime() +
+                        getDurationInSeconds(selectedDuration) *
+                            1000
+                );
+
+                const { data, error } = await supabase
+                    .from("check_ins")
+                    .insert({
+                        user_id: user.id,
+                        status: "scheduled",
+                        duration: selectedDuration,
+                        scheduled_time: startedAt.toISOString(),
+                        deadline_at: deadline.toISOString(),
+                    })
+                    .select("id")
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                if (cancelled) {
+                    // Avoid leaving an orphaned active check-in
+                    // if the screen unmounts before the insert finishes.
+                    await supabase
+                        .from("check_ins")
+                        .update({ status: "ended" })
+                        .eq("id", data.id)
+                        .eq("user_id", user.id)
+                        .eq("status", "scheduled");
+
+                    return;
+                }
+
+                activeCheckInId.current = data.id;
+            } catch (error) {
+                console.error(
+                    "Could not save the check-in deadline:",
+                    error
+                );
+
+                if (!cancelled) {
+                    Alert.alert(
+                        "Check-In Saving Error",
+                        "Your timer is running, but its deadline could not be saved to the server. Automatic email alerts may not work for this check-in."
+                    );
+                }
+            }
+        };
+
+        createCheckIn();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedDuration]);
+
     // Run the countdown timer while the check-in is active.
     useEffect(() => {
         if (!isActive || timeRemaining <= 0) {
@@ -122,8 +205,7 @@ export default function ActualCheckIn() {
 
         const hours =
             Math.floor(
-                (seconds % (24 * 60 * 60)) /
-                    (60 * 60)
+                (seconds % (24 * 60 * 60)) / (60 * 60)
             );
 
         const minutes =
@@ -131,8 +213,7 @@ export default function ActualCheckIn() {
                 (seconds % (60 * 60)) / 60
             );
 
-        const remainingSeconds =
-            seconds % 60;
+        const remainingSeconds = seconds % 60;
 
         if (days > 0) {
             return `${days}:${String(hours).padStart(
@@ -166,10 +247,10 @@ export default function ActualCheckIn() {
         )}`;
     };
 
-    // Save the completed check-in to the signed-in user's history.
+    // Complete the current check-in, save history,
+    // and start a new check-in with a fresh deadline.
     const handleImSafe = async () => {
         try {
-            // Get the currently signed-in user from Supabase.
             const {
                 data: { user },
                 error: userError,
@@ -183,18 +264,53 @@ export default function ActualCheckIn() {
                 return;
             }
 
+            if (activeCheckInId.current === null) {
+                Alert.alert(
+                    "Please Wait",
+                    "Your check-in is still being saved. Please try again in a moment."
+                );
+                return;
+            }
+
+            const checkInId = activeCheckInId.current;
             const now = new Date();
 
-            const date =
-                now.toLocaleDateString();
+            const date = now.toLocaleDateString();
 
-            const time =
-                now.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                });
+            const time = now.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
 
-            // Create a new history record.
+            // Mark the current database record as completed.
+            const { data: completedCheckIn, error: updateError } =
+                await supabase
+                    .from("check_ins")
+                    .update({
+                        status: "completed",
+                        completed_time: now.toISOString(),
+                    })
+                    .eq("id", checkInId)
+                    .eq("user_id", user.id)
+                    .eq("status", "scheduled")
+                    .select("id")
+                    .maybeSingle();
+
+            if (updateError) {
+                throw updateError;
+            }
+
+            if (!completedCheckIn) {
+                Alert.alert(
+                    "Check-In No Longer Active",
+                    "This check-in may have expired or already ended. Please start a new check-in."
+                );
+                activeCheckInId.current = null;
+                setIsActive(false);
+                return;
+            }
+
+            // Preserve the existing local history record.
             const newHistoryItem = {
                 id: Date.now().toString(),
                 date,
@@ -202,15 +318,12 @@ export default function ActualCheckIn() {
                 duration: selectedDuration,
                 reminderEnabled: true,
                 reminderTime: "5 minutes before",
-                message:
-                    `I'm Safe check-in completed at ${time}.`,
+                message: `I'm Safe check-in completed at ${time}.`,
             };
 
-            // Use a separate history key for each account.
             const historyKey =
                 `@safetap_history_${user.id}`;
 
-            // Get this user's existing check-ins.
             const existingHistory =
                 await AsyncStorage.getItem(historyKey);
 
@@ -218,26 +331,50 @@ export default function ActualCheckIn() {
                 ? JSON.parse(existingHistory)
                 : [];
 
-            // Make sure the stored data is an array.
             const validHistory = Array.isArray(parsedHistory)
                 ? parsedHistory
                 : [];
 
-            // Add the newest check-in to the beginning.
             const updatedHistory = [
                 newHistoryItem,
                 ...validHistory,
             ];
 
-            // Save the updated history for this user.
             await AsyncStorage.setItem(
                 historyKey,
                 JSON.stringify(updatedHistory)
             );
 
-            // Reset the timer after the check-in is completed.
+            // Start the next check-in with a fresh deadline.
             const resetTime =
                 getDurationInSeconds(selectedDuration);
+
+            const nextStart = new Date();
+
+            const nextDeadline = new Date(
+                nextStart.getTime() + resetTime * 1000
+            );
+
+            const {
+                data: nextCheckIn,
+                error: insertError,
+            } = await supabase
+                .from("check_ins")
+                .insert({
+                    user_id: user.id,
+                    status: "scheduled",
+                    duration: selectedDuration,
+                    scheduled_time: nextStart.toISOString(),
+                    deadline_at: nextDeadline.toISOString(),
+                })
+                .select("id")
+                .single();
+
+            if (insertError) {
+                throw insertError;
+            }
+
+            activeCheckInId.current = nextCheckIn.id;
 
             setTotalSeconds(resetTime);
             setTimeRemaining(resetTime);
@@ -249,13 +386,13 @@ export default function ActualCheckIn() {
             );
         } catch (error) {
             console.error(
-                "Error saving history:",
+                "Error completing check-in:",
                 error
             );
 
             Alert.alert(
                 "Error",
-                "Your check-in could not be saved. Please try again."
+                "Your check-in could not be fully saved. Please check your connection and try again."
             );
         }
     };
@@ -273,12 +410,53 @@ export default function ActualCheckIn() {
                 {
                     text: "End Check-In",
                     style: "destructive",
-                    onPress: () => {
-                        setIsActive(false);
+                    onPress: async () => {
+                        try {
+                            const {
+                                data: { user },
+                                error: userError,
+                            } = await supabase.auth.getUser();
 
-                        router.replace(
-                            "/(tabs)/Check_In"
-                        );
+                            if (userError || !user) {
+                                Alert.alert(
+                                    "Error",
+                                    "Please sign in again before ending your check-in."
+                                );
+                                return;
+                            }
+
+                            if (activeCheckInId.current !== null) {
+                                const { error } = await supabase
+                                    .from("check_ins")
+                                    .update({
+                                        status: "ended",
+                                    })
+                                    .eq("id", activeCheckInId.current)
+                                    .eq("user_id", user.id)
+                                    .eq("status", "scheduled");
+
+                                if (error) {
+                                    throw error;
+                                }
+                            }
+
+                            activeCheckInId.current = null;
+                            setIsActive(false);
+
+                            router.replace(
+                                "/(tabs)/Check_In"
+                            );
+                        } catch (error) {
+                            console.error(
+                                "Error ending check-in:",
+                                error
+                            );
+
+                            Alert.alert(
+                                "Error",
+                                "The check-in could not be ended on the server. Please try again."
+                            );
+                        }
                     },
                 },
             ]
@@ -783,4 +961,3 @@ const styles = StyleSheet.create({
         color: "#2563E8",
     },
 });
-
